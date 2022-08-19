@@ -1,0 +1,5 @@
+pymysql
+sqlmodel
+fastapi
+pydantic[dotenv]
+uvicorn[standard]
