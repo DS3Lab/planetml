@@ -5,7 +5,7 @@ from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(title="PlanetML API", description="PlanetML API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,8 +34,13 @@ def on_startup():
 async def root():
     return {"message": "Hello World"}
 
-@app.post("/resource")
-def add_model(resource: ResourceStats):
+@app.post("/resource_stats", response_model=ResourceStats)
+def add_resource(resource: ResourceStats):
+    """
+    Adding Resource Stats to the database
+    * `id` and `created_at` are optional (will be generated if not provided)
+    * `created_at` will be generated as utcnow()
+    """
     with Session(engine) as session:
         if resource.created_at is None:
             resource.created_at = datetime.datetime.utcnow()
