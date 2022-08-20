@@ -1,4 +1,5 @@
 import pymysql
+import datetime
 from schemas.resource import ResourceStats
 from fastapi import FastAPI
 from pydantic import BaseSettings
@@ -41,6 +42,8 @@ async def root():
 @app.post("/resource")
 def add_model(resource: ResourceStats):
     with Session(engine) as session:
+        if resource.created_at is None:
+            resource.created_at = datetime.datetime.utcnow()
         session.add(resource)
         session.commit()
         session.refresh(resource)

@@ -20,8 +20,9 @@ class ResourceStats(SQLModel, table=True):
         nullable=False,
     )
     source: ResourceSite = Field(sa_column=Column(Enum(ResourceSite)))
-    created_at: datetime.datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     
+    created_at: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
     total_perfs: float
     num_gpu: int
     num_cpu: int
