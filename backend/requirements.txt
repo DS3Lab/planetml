@@ -1,5 +1,5 @@
-pymysql
 sqlmodel
 fastapi
 pydantic[dotenv]
 uvicorn[standard]
+psycopg2-binary

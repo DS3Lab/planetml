@@ -1,12 +1,9 @@
-import pymysql
 import datetime
 from schemas.resource import ResourceStats
 from fastapi import FastAPI
 from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session
 from fastapi.middleware.cors import CORSMiddleware
-
-pymysql.install_as_MySQLdb()
 
 app = FastAPI()
 
@@ -31,8 +28,7 @@ def on_startup():
     
     global engine
     settings = Settings()
-    ssl_args = {'ssl': {'ca': "/etc/ssl/certs/ca-certificates.crt"}}
-    engine = create_engine(f"mysql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}?charset=utf8mb4", connect_args=ssl_args)
+    engine = create_engine(f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
 
 @app.get("/")
 async def root():
@@ -50,7 +46,5 @@ def add_model(resource: ResourceStats):
 
 if __name__=="__main__":
     settings = Settings()
-    ssl_args = {'ssl': {'ca': "/etc/ssl/certs/ca-certificates.crt"}}
-    engine = create_engine(f"mysql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}?charset=utf8mb4", connect_args=ssl_args)
-    
+    engine = create_engine(f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
     SQLModel.metadata.create_all(engine)
