@@ -6,7 +6,7 @@ from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="PlanetML API", description="PlanetML API", version="0.1.0")
+app = FastAPI(title="TOMA API", description="Together Open Inference Program", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -59,13 +59,24 @@ def add_resource(stat: SiteStat):
         session.refresh(stat)
         return stat
 
-@app.get("/sites", response_model=List[Site])
+@app.get("/sites")
 def get_sites():
     """
     Get all sites
     """
     with Session(engine) as session:
-        return session.query(Site).all()
+        sites = session.query(Site).all()
+        results = []
+        for site in sites:
+            # this should be done automatically by sqlalchemy, maybe in the future
+            statement = select(SiteStat).where(SiteStat.site_identifier == site.identifier).order_by(SiteStat.created_at.desc())
+            stats = session.execute(statement).first()
+            site_dict = site.dict()
+            print(stats)
+            site_dict["stats"] = stats
+            results.append(site_dict)
+        print(results)
+        return results
 
 @app.get("/site_stats", response_model=List[SiteStat])
 def get_site_stats():
