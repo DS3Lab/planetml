@@ -59,6 +59,17 @@ def add_resource(stat: SiteStat):
         session.refresh(stat)
         return stat
 
+@app.post("/jobs", response_model=Job)
+def add_job(job: Job):
+    """
+    Adding a new job to the database
+    """
+    with Session(engine) as session:
+        session.add(job)
+        session.commit()
+        session.refresh(job)
+        return job
+
 @app.get("/sites")
 def get_sites():
     """
@@ -85,6 +96,15 @@ def get_site_stats():
     """
     with Session(engine) as session:
         return session.query(SiteStat).all()
+
+@app.get("/jobs", response_model=List[Job])
+def get_jobs():
+    """
+    Get all jobs
+    """
+    with Session(engine) as session:
+        return session.query(Job).all()
+
 
 if __name__=="__main__":
     settings = Settings()

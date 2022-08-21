@@ -11,7 +11,9 @@ specifiers:
   tailwindcss: ^3.1.8
   vite: ^3.0.7
   vue: ^3.2.37
+  vue-json-pretty: ^2.2.0
   vue-router: ^4.1.3
+  vue3-easy-data-table: ^1.4.14
 
 dependencies:
   axios: 0.27.2
@@ -19,7 +21,9 @@ dependencies:
   flowbite: 1.5.2
   plotly.js-dist: 2.14.0
   vue: 3.2.37
+  vue-json-pretty: 2.2.0_vue@3.2.37
   vue-router: 4.1.3_vue@3.2.37
+  vue3-easy-data-table: 1.4.14
 
 devDependencies:
   '@vitejs/plugin-vue': 3.0.3_vite@3.0.9+vue@3.2.37
@@ -1260,6 +1264,15 @@ packages:
       fsevents: 2.3.2
     dev: true
 
+  /vue-json-pretty/2.2.0_vue@3.2.37:
+    resolution: {integrity: sha512-Jah7kWV+ZEFPIvf1NCAntUzcmtNYAbkkj2l5WHJotz97BE7YRJ3hx5ecBcaCPkW6bYBugm1ditZjKAdX8AQZMA==}
+    engines: {node: '>= 10.0.0', npm: '>= 5.0.0'}
+    peerDependencies:
+      vue: '>=3.0.0'
+    dependencies:
+      vue: 3.2.37
+    dev: false
+
   /vue-router/4.1.3_vue@3.2.37:
     resolution: {integrity: sha512-XvK81bcYglKiayT7/vYAg/f36ExPC4t90R/HIpzrZ5x+17BOWptXLCrEPufGgZeuq68ww4ekSIMBZY1qdUdfjA==}
     peerDependencies:
@@ -1277,6 +1290,12 @@ packages:
       '@vue/runtime-dom': 3.2.37
       '@vue/server-renderer': 3.2.37_vue@3.2.37
       '@vue/shared': 3.2.37
+
+  /vue3-easy-data-table/1.4.14:
+    resolution: {integrity: sha512-0pqhzu2A6FvQkpENX41Vr66K1JQRugXsSW8J6vJYo2/liJ9Xw6Vkx5dnoQxUa5CINmJTlo8wXlfdhZ+dUjVZQg==}
+    dependencies:
+      vue: 3.2.37
+    dev: false
 
   /xtend/4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}

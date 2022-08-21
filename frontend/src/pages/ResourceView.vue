@@ -36,7 +36,7 @@ onMounted(() => {
         console.log(data)
         var layout = {
             dragmode: "zoom",
-            mapbox: { style: "open-street-map", center: { lat: 0, lon: 48.4113 }, zoom: 0 },
+            mapbox: { style: "open-street-map", center: { lat: 45, lon: 0 }, zoom: 0.8 },
             margin: { r: 0, t: 0, b: 0, l: 0 }
         };
         Plotly.newPlot("tester", data, layout);

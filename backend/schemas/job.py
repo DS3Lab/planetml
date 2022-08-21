@@ -34,8 +34,8 @@ class Job(SQLModel, table=True):
 
     status: JobStatus = Field(sa_column=Column(Enum(JobStatus)))
     source: JobSource = Field(sa_column=Column(Enum(JobSource)))
-    created_at: datetime.datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False, default=datetime.datetime.utcnow))
-    
+    created_at: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), nullable=False, default=datetime.datetime.utcnow))
+
     processed_by: str
     
     class Config:

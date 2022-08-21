@@ -12,15 +12,21 @@ import PMFooter from './components/PMFooter.vue';
     <PMHeader />
   </header>
 
-  <main>
+  <main class="main_view">
     <router-view />
   </main>
 
-  <footer>
+  <footer class="fixed inset-x-0 bottom-0">
     <PMFooter />
   </footer>
 
 </template>
 
 <style scoped>
+.main_view {
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+    height: 100%;
+}
 </style>

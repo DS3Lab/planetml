@@ -30,11 +30,11 @@ import { ref } from 'vue'
             <div
                 class="flex flex-col mt-4 space-y-2 lg:mt-0 lg:flex-row lg:-px-8 lg:space-y-0">
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
-                    href="#">Home</a>
+                    href="/">Home</a>
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
-                    href="#">Status</a>
+                    href="/site">Status</a>
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
-                    href="#">Jobs</a>
+                    href="/jobs">Jobs</a>
             </div>
         </nav>
     </section>
