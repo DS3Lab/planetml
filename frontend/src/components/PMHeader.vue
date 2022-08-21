@@ -9,7 +9,7 @@ import { ref } from 'vue'
             <div class="flex items-center justify-between">
                 <div>
                     <a class="text-2xl font-bold text-gray-800 dark:text-white lg:text-3xl hover:text-gray-700 dark:hover:text-gray-300"
-                        href="#">PlanetML</a>
+                        href="#">Together Open Inference Program</a>
                 </div>
 
                 <!-- Mobile menu button -->
@@ -32,11 +32,9 @@ import { ref } from 'vue'
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
                     href="#">Home</a>
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
-                    href="#">Components</a>
+                    href="#">Status</a>
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
-                    href="#">Pricing</a>
-                <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
-                    href="#">Contact</a>
+                    href="#">Jobs</a>
             </div>
         </nav>
     </section>

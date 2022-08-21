@@ -1,8 +1,9 @@
-import datetime
-from schemas.resource import ResourceStats
+from schemas.resource import Site,SiteStat
+from schemas.job import Job
+from typing import List
 from fastapi import FastAPI
 from pydantic import BaseSettings
-from sqlmodel import create_engine, SQLModel, Session
+from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="PlanetML API", description="PlanetML API", version="0.1.0")
@@ -34,20 +35,45 @@ def on_startup():
 async def root():
     return {"message": "Hello World"}
 
-@app.post("/resource_stats", response_model=ResourceStats)
-def add_resource(resource: ResourceStats):
+@app.post("/sites", response_model=Site)
+def add_site(site: Site):
+    """
+    Adding a new computation site to the database
+    """
+    with Session(engine) as session:
+        session.add(site)
+        session.commit()
+        session.refresh(site)
+        return site
+
+@app.post("/site_stats", response_model=SiteStat)
+def add_resource(stat: SiteStat):
     """
     Adding Resource Stats to the database
     * `id` and `created_at` are optional (will be generated if not provided)
     * `created_at` will be generated as utcnow()
     """
     with Session(engine) as session:
-        if resource.created_at is None:
-            resource.created_at = datetime.datetime.utcnow()
-        session.add(resource)
+        session.add(stat)
         session.commit()
-        session.refresh(resource)
-        return resource
+        session.refresh(stat)
+        return stat
+
+@app.get("/sites", response_model=List[Site])
+def get_sites():
+    """
+    Get all sites
+    """
+    with Session(engine) as session:
+        return session.query(Site).all()
+
+@app.get("/site_stats", response_model=List[SiteStat])
+def get_site_stats():
+    """
+    Get all site stats
+    """
+    with Session(engine) as session:
+        return session.query(SiteStat).all()
 
 if __name__=="__main__":
     settings = Settings()

@@ -4,9 +4,9 @@
             <a href="#"
                 class="flex justify-center items-center text-2xl font-semibold text-gray-900 dark:text-white">
                 
-                PlanetML
+                TOMA
             </a>
-            <p class="my-6 text-gray-500 dark:text-gray-400">Run Machine Learning at Any Scale</p>
+            <p class="my-6 text-gray-500 dark:text-gray-400">Together Open Inference Program</p>
             <ul
                 class="flex flex-wrap justify-center items-center mb-6 text-gray-900 dark:text-white">
                 <li>

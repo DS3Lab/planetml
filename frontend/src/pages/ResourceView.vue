@@ -6,11 +6,11 @@ onMounted(() => {
     var data = [
         {
             type: "scattermapbox",
-            text: "123",
-            lon: [0],
-            lat: [48.4113],
-            marker: { color: "fuchsia", size: 4 }
-        }
+            text: ["ETH Zurich", "A"],
+            lon: [8.5476, 0],
+            lat: [47.3764, 47.3764],
+            marker: { color: "fuchsia", size: 10 }
+        },
     ];
     console.log(data)
     var layout = {
