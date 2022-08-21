@@ -1,7 +1,8 @@
 <template>
     <div>
         <div id="tester" class="mapview"></div>
-        <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items" alternating show-index class="resouce_table">
+        <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items"
+            alternating show-index class="resouce_table">
         </Vue3EasyDataTable>
     </div>
 </template>
@@ -9,7 +10,7 @@
 <script setup>
 import { onMounted } from 'vue';
 import * as Plotly from 'plotly.js-dist/plotly'
-import { get_site_status } from '../services/api'
+import { get_site_status, get_status_history, domain_to_name } from '../services/api'
 import { ref } from 'vue'
 import Vue3EasyDataTable from 'vue3-easy-data-table'
 
@@ -30,16 +31,7 @@ function update_site_stats() {
                 max_perfs = perf
             }
         }
-        items.value = []
         res.data.map(function (item) {
-            items.value.push({
-                'name': item.name,
-                'perf': item.stats.SiteStat.total_perfs,
-                'gpu': item.stats.SiteStat.num_gpu,
-                'cpu': item.stats.SiteStat.num_cpu,
-                'domain': item.identifier,
-                'created_at': item.created_at,
-            })
             data.push({
                 type: "scattermapbox",
                 name: item.name,
@@ -52,7 +44,6 @@ function update_site_stats() {
                 }
             })
         })
-        is_loaded.value = true
         var layout = {
             dragmode: "zoom",
             mapbox: { style: "open-street-map", center: { lat: 45, lon: 0 }, zoom: 0.8 },
@@ -60,9 +51,25 @@ function update_site_stats() {
         };
         Plotly.react('tester', data, layout)
 
-        
+
     }).catch(function (err) {
-        console.log(err)
+        console.error(err)
+    })
+    get_status_history().then(function (res) {
+        items.value = []
+        res.data.map(function (item) {
+            items.value.push({
+                'name': domain_to_name(item.site_identifier),
+                'perf': item.total_perfs,
+                'gpu': item.num_gpu,
+                'cpu': item.num_cpu,
+                'domain': item.site_identifier,
+                'created_at': item.created_at,
+            })
+            is_loaded.value = true
+        })
+    }).catch(function (err) {
+        console.error(err)
     })
 }
 
@@ -90,6 +97,7 @@ const headers = [
     width: 80%;
     height: 100%;
 }
+
 .resouce_table {
     margin-top: 2.5rem;
 }
