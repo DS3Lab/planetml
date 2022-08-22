@@ -1,11 +1,17 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@mdi/js': ^7.0.96
   '@vitejs/plugin-vue': ^3.0.3
   autoprefixer: ^10.4.8
   axios: ^0.27.2
+  chart.js: ^3.9.1
+  chartjs-adapter-date-fns: ^2.0.0
   d3: ^7.6.1
+  date-fns: ^2.29.2
   flowbite: ^1.5.2
+  numeral: ^2.0.6
+  pinia: ^2.0.20
   plotly.js-dist: ^2.14.0
   postcss: ^8.4.16
   tailwindcss: ^3.1.8
@@ -16,9 +22,15 @@ specifiers:
   vue3-easy-data-table: ^1.4.14
 
 dependencies:
+  '@mdi/js': 7.0.96
   axios: 0.27.2
+  chart.js: 3.9.1
+  chartjs-adapter-date-fns: 2.0.0_chart.js@3.9.1
   d3: 7.6.1
+  date-fns: 2.29.2
   flowbite: 1.5.2
+  numeral: 2.0.6
+  pinia: 2.0.20_vue@3.2.37
   plotly.js-dist: 2.14.0
   vue: 3.2.37
   vue-json-pretty: 2.2.0_vue@3.2.37
@@ -65,6 +77,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@mdi/js/7.0.96:
+    resolution: {integrity: sha512-lNqhkV3cpPfYb/Avh+vXLFukUTbHbyHoFo4Jdc7Oc9UvURGVhamFIpgOVvEf2bNA78zvjXTZeVWExUTR+DLBfQ==}
+    dev: false
 
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -270,6 +286,18 @@ packages:
   /caniuse-lite/1.0.30001379:
     resolution: {integrity: sha512-zXf+qxuN8OJrK5Bl5HbJg8cc5/Zm01WNW4ooVWUh92YlKqQZW3fwN5lXLB+kI8wkP5vTWkIIN+rutZuJhf4ykw==}
     dev: true
+
+  /chart.js/3.9.1:
+    resolution: {integrity: sha512-Ro2JbLmvg83gXF5F4sniaQ+lTbSv18E+TIf2cOeiH1Iqd2PGFOtem+DUufMZsCJwFE7ywPOpfXFBwRTGq7dh6w==}
+    dev: false
+
+  /chartjs-adapter-date-fns/2.0.0_chart.js@3.9.1:
+    resolution: {integrity: sha512-rmZINGLe+9IiiEB0kb57vH3UugAtYw33anRiw5kS2Tu87agpetDDoouquycWc9pRsKtQo5j+vLsYHyr8etAvFw==}
+    peerDependencies:
+      chart.js: ^3.0.0
+    dependencies:
+      chart.js: 3.9.1
+    dev: false
 
   /chokidar/3.5.3:
     resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
@@ -557,6 +585,11 @@ packages:
       d3-timer: 3.0.1
       d3-transition: 3.0.1_d3-selection@3.0.0
       d3-zoom: 3.0.0
+    dev: false
+
+  /date-fns/2.29.2:
+    resolution: {integrity: sha512-0VNbwmWJDS/G3ySwFSJA3ayhbURMTJLtwM2DTxf9CWondCnh6DTNlO9JgRSq6ibf4eD0lfMJNBxUdEAHHix+bA==}
+    engines: {node: '>=0.11'}
     dev: false
 
   /defined/1.0.0:
@@ -1005,6 +1038,10 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /numeral/2.0.6:
+    resolution: {integrity: sha512-qaKRmtYPZ5qdw4jWJD6bxEf1FJEqllJrwxCLIm0sQU/A7v2/czigzOb+C2uSiFsa9lBUzeH7M1oK+Q+OLxL3kA==}
+    dev: false
+
   /object-hash/3.0.0:
     resolution: {integrity: sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==}
     engines: {node: '>= 6'}
@@ -1026,6 +1063,23 @@ packages:
     resolution: {integrity: sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog==}
     engines: {node: '>=0.10.0'}
     dev: true
+
+  /pinia/2.0.20_vue@3.2.37:
+    resolution: {integrity: sha512-fdHHumXW/0U5HhxmY1emo3I4z85p8NJPdbtFQSlmJXFe3ktuF0pYNVgVtk2q+j2zCtTufY763xzaEMx0t6T59g==}
+    peerDependencies:
+      '@vue/composition-api': ^1.4.0
+      typescript: '>=4.4.4'
+      vue: ^2.6.14 || ^3.2.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      '@vue/devtools-api': 6.2.1
+      vue: 3.2.37
+      vue-demi: 0.13.8_vue@3.2.37
+    dev: false
 
   /plotly.js-dist/2.14.0:
     resolution: {integrity: sha512-yZU01CCu/aKlfVaouNBH2EGYUBPziFZD5eTECmIrnsR9RHHUfH7GEyVV4tawNtDoQRTA5rvCI5iXR5YuWc43XA==}
@@ -1263,6 +1317,21 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
+
+  /vue-demi/0.13.8_vue@3.2.37:
+    resolution: {integrity: sha512-Vy1zbZhCOdsmvGR6tJhAvO5vhP7eiS8xkbYQSoVa7o6KlIy3W8Rc53ED4qI4qpeRDjv3mLfXSEpYU6Yq4pgXRg==}
+    engines: {node: '>=12'}
+    hasBin: true
+    requiresBuild: true
+    peerDependencies:
+      '@vue/composition-api': ^1.0.0-rc.1
+      vue: ^3.0.0-0 || ^2.6.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      vue: 3.2.37
+    dev: false
 
   /vue-json-pretty/2.2.0_vue@3.2.37:
     resolution: {integrity: sha512-Jah7kWV+ZEFPIvf1NCAntUzcmtNYAbkkj2l5WHJotz97BE7YRJ3hx5ecBcaCPkW6bYBugm1ditZjKAdX8AQZMA==}
