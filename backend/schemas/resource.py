@@ -4,8 +4,8 @@ import uuid as uuid_pkg
 from typing import Optional
 from sqlalchemy import Column
 from sqlalchemy.types import Enum, DateTime, String
-from sqlmodel import Field, SQLModel, Relationship
-from typing import List
+from sqlmodel import Field, SQLModel, Relationship, JSON
+from typing import List, Dict
 
 class Site(SQLModel, table=True):
     id: Optional[uuid_pkg.UUID] = Field(
@@ -36,7 +36,7 @@ class SiteStat(SQLModel, table=True):
     avail_tflops: float
     total_gpus: int
     avail_gpus: int
-    resources: str
+    resources: Dict = Field(default={}, sa_column=Column(JSON))
     scheduler_type: str
     site_identifier: Optional[str] = Field(default=None, foreign_key="site.identifier")
     site: Optional[Site] = Relationship(back_populates="stats")

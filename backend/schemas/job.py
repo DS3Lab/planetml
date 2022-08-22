@@ -4,7 +4,7 @@ import uuid as uuid_pkg
 from typing import Optional, Dict
 from sqlalchemy import Column
 from sqlalchemy.types import Enum, DateTime
-from sqlmodel import Field, SQLModel, create_engine,JSON
+from sqlmodel import Field, SQLModel,JSON
 
 class JobStatus(str, enum.Enum):
     FINISHED = "finished"
