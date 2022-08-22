@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="tester" class="mapview"></div>
+        <div id="world_map_view" class="mapview"></div>
         <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items"
             alternating show-index class="resouce_table">
         </Vue3EasyDataTable>
@@ -23,7 +23,7 @@ function update_site_stats() {
         let min_perfs = 99999999
         let max_perfs = 0
         for (let i = 0; i < res.data.length; i++) {
-            let perf = res.data[i].stats.SiteStat.total_perfs
+            let perf = res.data[i].stats.SiteStat.avail_tflops
             if (perf < min_perfs) {
                 min_perfs = perf
             }
@@ -37,10 +37,15 @@ function update_site_stats() {
                 name: item.name,
                 lon: [parseFloat(item.lon)],
                 lat: [parseFloat(item.lat)],
-                text: ["<b>" + item.name + "</b><br>" + item.stats.SiteStat.total_perfs + " TFlops<br>" + item.stats.SiteStat.num_gpu + " GPUs" + "<br>" + item.stats.SiteStat.num_cpu + " CPUs"],
+                text: [
+                    "<b>" + item.name + "</b><br>" + item.stats.SiteStat.avail_tflops + " Available TFlops<br>" + 
+                    item.stats.SiteStat.total_gpus + " GPUs" + "<br>" + 
+                    item.stats.SiteStat.avail_gpus + " Available GPUs" + "<br>"+
+                    item.stats.SiteStat.total_tflops + " Total TFlops"
+                ],
                 marker: {
-                    size: (item.stats.SiteStat.total_perfs - min_perfs) / (max_perfs - min_perfs) * 2 + 10,
-
+                    size: (item.stats.SiteStat.avail_tflops - min_perfs) / (max_perfs - min_perfs) * 15 + 10,
+                    color: item.color,
                 }
             })
         })
@@ -49,7 +54,7 @@ function update_site_stats() {
             mapbox: { style: "open-street-map", center: { lat: 45, lon: 0 }, zoom: 0.8 },
             margin: { r: 0, t: 0, b: 0, l: 0 }
         };
-        Plotly.react('tester', data, layout)
+        Plotly.react('world_map_view', data, layout)
 
 
     }).catch(function (err) {
@@ -60,9 +65,9 @@ function update_site_stats() {
         res.data.map(function (item) {
             items.value.push({
                 'name': domain_to_name(item.site_identifier),
-                'perf': item.total_perfs,
-                'gpu': item.num_gpu,
-                'cpu': item.num_cpu,
+                'total_tflops': item.total_tflops,
+                'total_gpu': item.total_gpus,
+                'avail_gpu': item.avail_gpus,
                 'domain': item.site_identifier,
                 'created_at': item.created_at,
             })
@@ -81,9 +86,9 @@ onMounted(() => {
 const headers = [
     { text: "Name", value: "name" },
     { text: "Domain", value: "domain" },
-    { text: "Total Perfs", value: "perf", sortable: true },
-    { text: "# GPU", value: "gpu", sortable: true },
-    { text: "# CPU", value: "cpu", sortable: true },
+    { text: "Total TFlops", value: "total_tflops", sortable: true },
+    { text: "# GPU", value: "total_gpu", sortable: true },
+    { text: "# Available GPU", value: "avail_gpu", sortable: true },
     { text: "Last Updated", value: "created_at", sortable: true },
 ];
 

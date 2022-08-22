@@ -49,7 +49,6 @@ onMounted(() => {
         res.data.map(item => {
             items.value.push(item)
         })
-        console.log(items.value)
         is_loaded.value = true
     })
 })
