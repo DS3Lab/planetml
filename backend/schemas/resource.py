@@ -32,12 +32,15 @@ class SiteStat(SQLModel, table=True):
         nullable=False,
     )
     created_at: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), nullable=False, default=datetime.datetime.utcnow))
-    total_perfs: float
-    num_gpu: int
-    num_cpu: int
-    note: str
+    total_tflops: float
+    avail_tflops: float
+    total_gpus: int
+    avail_gpus: int
+    resources: str
+    scheduler_type: str
     site_identifier: Optional[str] = Field(default=None, foreign_key="site.identifier")
     site: Optional[Site] = Relationship(back_populates="stats")
+    note: str
 
     class Config:
         arbitrary_types_allowed = True
