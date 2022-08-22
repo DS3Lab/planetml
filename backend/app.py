@@ -105,6 +105,20 @@ def get_jobs():
     with Session(engine) as session:
         return session.query(Job).all()
 
+@app.patch("/jobs/{id}", response_model=Job)
+def update_job(id: str, job: Job):
+    """
+    Update a job
+    """
+    with Session(engine) as session:
+        job_to_update = session.query(Job).filter(Job.id == id).first()
+        if job_to_update is None:
+            return {"message": "Job not found"}
+        job_to_update = job
+        session.add(job)
+        session.commit()
+        session.refresh(job_to_update)
+        return job_to_update
 
 if __name__=="__main__":
     settings = Settings()
