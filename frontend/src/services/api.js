@@ -17,7 +17,7 @@ function get_status_history() {
 
 function domain_to_name(domain) {
     if (domain === 'ethz.ch') {
-        return 'ETH Zurich'
+        return 'ETH Zürich'
     } else if (domain === 'stanford.edu') {
         return 'Stanford University'
     } else if (domain === 'osg-htc.org') {
