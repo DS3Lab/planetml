@@ -34,6 +34,8 @@ import { ref } from 'vue'
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
                     href="/status">Status</a>
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
+                    href="https://planetd.shift.ml/redoc">API</a>
+                <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
                     href="/jobs">Jobs</a>
             </div>
         </nav>
