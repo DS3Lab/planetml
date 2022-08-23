@@ -1,6 +1,5 @@
 <script setup>
 import { useRoute } from 'vue-router'
-const route = useRoute();
 import PMHeader from './components/PMHeader.vue';
 import PMFooter from './components/PMFooter.vue';
 // This starter template is using Vue 3 <script setup> SFCs

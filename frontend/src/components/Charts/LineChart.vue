@@ -5,14 +5,22 @@ import {
   LineElement,
   PointElement,
   LineController,
+  TimeScale,
   LinearScale,
   CategoryScale,
   Tooltip,
+Legend,
+Title,
 } from "chart.js";
 import 'chartjs-adapter-date-fns';
+
 const props = defineProps({
   data: {
     type: Object,
+    required: true,
+  },
+  title: {
+    type: String,
     required: true,
   },
 });
@@ -22,12 +30,15 @@ const root = ref(null);
 let chart;
 
 Chart.register(
+  TimeScale,
   LineElement,
   PointElement,
   LineController,
   LinearScale,
   CategoryScale,
-  Tooltip
+  Tooltip,
+  Legend,
+  Title,
 );
 
 onMounted(() => {
@@ -35,6 +46,15 @@ onMounted(() => {
     type: "line",
     data: props.data,
     options: {
+      plugins: {
+        legend: {
+          display: true,
+        },
+        title: {
+          display: true,
+          text: props.title
+        }
+      },
       responsive: true,
       maintainAspectRatio: false,
       scales: {
@@ -42,12 +62,11 @@ onMounted(() => {
           display: true,
         },
         x: {
-          display: false,
-        },
-      },
-      plugins: {
-        legend: {
           display: true,
+          type: "time",
+          time: {
+            unit: 'hour'
+          }
         },
       },
     },

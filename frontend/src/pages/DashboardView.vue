@@ -4,7 +4,6 @@ import {
   mdiChartTimelineVariant,
   mdiChartPie,
 } from "@mdi/js";
-import * as chartConfig from "@/components/Charts/chart.config.js";
 import LineChart from "@/components/Charts/LineChart.vue";
 import SectionMain from "@/components/SectionMain.vue";
 import CardBoxWidget from "@/components/CardBoxWidget.vue";
@@ -19,27 +18,91 @@ let is_loaded = ref(false)
 let total_tflops = ref(0)
 let avail_gpus = ref(0)
 let avail_tflops = ref(0)
+let site_color_mapping = ref({})
+let t_tflops_chartData = ref(null)
+let t_gpus_chartData = ref(null)
+let a_tflops_chartData = ref(null)
+let a_gpus_chartData = ref(null)
 
+function generate_chartData() {
+  let t_tflops_datasets = []
+  let t_gpus_datasets = []
+  let a_tflops_datasets = []
+  let a_gpus_datasets = []
 
-const chartData = ref(null);
-const fillChartData = () => {
-  var days = ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"];//x axes
-  var litres = [150, 90, 95, 130, 85, 180, 85];//y axes
-  chartData.value = {
-    labels: days, //x-axes data 
-    datasets: [{
-      label: "Bar Chart",
-      data: litres, //y-axes data 
-    }]
-  }
-};
+  let labels = items.value.map(item => item.created_at)
+  // find the unique site_identifiers from item
+  let comp_sites = items.value.reduce((sites, item) => {
+    if (sites.indexOf(item.name) === -1) {
+      sites.push(item.name)
+    }
+    return sites
+  }, [])
+  // for each site in sites
+  comp_sites.forEach(site => {
+    let site_items = items.value.filter(item => item.name === site)
+    let t_tflops_data = site_items.map(item => ({ "x": item.created_at, "y": item.total_tflops }))
+    let a_tflops_data = site_items.map(item => ({ "x": item.created_at, "y": item.avail_tflops }))
+    let t_gpus_data = site_items.map(item => ({ "x": item.created_at, "y": item.total_gpu }))
+    let a_gpus_data = site_items.map(item => ({ "x": item.created_at, "y": item.avail_gpu }))
+    // I am sure I will re-write this at some point... but leave it for now
+    t_tflops_datasets.push({
+      label: site,
+      data: t_tflops_data,
+      backgroundColor: site_color_mapping.value[site],
+      borderColor: site_color_mapping.value[site],
+      borderWidth: 1,
+      fill: false,
+    })
+    a_tflops_datasets.push({
+      label: site,
+      data: a_tflops_data,
+      backgroundColor: site_color_mapping.value[site],
+      borderColor: site_color_mapping.value[site],
+      borderWidth: 1,
+      fill: false,
+    })
+    t_gpus_datasets.push({
+      label: site,
+      data: t_gpus_data,
+      backgroundColor: site_color_mapping.value[site],
+      borderColor: site_color_mapping.value[site],
+      borderWidth: 1,
+      fill: false,
+    })
+    a_gpus_datasets.push({
+      label: site,
+      data: a_gpus_data,
+      backgroundColor: site_color_mapping.value[site],
+      borderColor: site_color_mapping.value[site],
+      borderWidth: 1,
+      fill: false,
+    })
+  })
+  t_tflops_chartData.value = {
+    labels: labels,
+    datasets: t_tflops_datasets
+  };
+  t_gpus_chartData.value = {
+    labels: labels,
+    datasets: t_gpus_datasets
+  };
+  a_tflops_chartData.value = {
+    labels: labels,
+    datasets: a_tflops_datasets
+  };
+  a_gpus_chartData.value = {
+    labels: labels,
+    datasets: a_gpus_datasets
+  };
+}
 
 function update_site_stats() {
-  total_tflops.value = 0
-  avail_gpus.value = 0
-  avail_tflops.value = 0
   get_site_status().then(function (res) {
     let data = []
+    total_tflops.value = 0
+    avail_gpus.value = 0
+    avail_tflops.value = 0
     let min_perfs = 99999999
     let max_perfs = 0
     for (let i = 0; i < res.data.length; i++) {
@@ -55,6 +118,7 @@ function update_site_stats() {
       total_tflops.value += item.stats.SiteStat.total_tflops
       avail_gpus.value += item.stats.SiteStat.avail_gpus
       avail_tflops.value += item.stats.SiteStat.avail_tflops
+      site_color_mapping.value[item.name] = item.color
       data.push({
         type: "scattermapbox",
         name: item.name,
@@ -83,38 +147,20 @@ function update_site_stats() {
   })
 
   get_status_history().then(function (res) {
-    let labels = []
     items.value = []
-    let a_tflops = []
-    let t_tflops = []
-
     res.data.map(function (item) {
       items.value.push({
         'name': domain_to_name(item.site_identifier),
         'total_tflops': item.total_tflops,
+        'avail_tflops': item.avail_tflops,
         'total_gpu': item.total_gpus,
         'avail_gpu': item.avail_gpus,
         'domain': item.site_identifier,
         'created_at': item.created_at,
       })
-      labels.push(item.created_at)
-      a_tflops.push(item.avail_tflops)
-      t_tflops.push(item.total_tflops)
       is_loaded.value = true
     })
-    let datasets = [{
-      label: "Available TFlops",
-      data: a_tflops, //y-axes data 
-      backgroundColor: "rgba(54, 162, 235, 0.9)",
-    }, {
-      label: "Total TFlops",
-      data: t_tflops, //y-axes data 
-      backgroundColor: "rgba(255, 99, 132, 0.9)",
-    }]
-    chartData.value = {
-      labels: labels, //x-axes data 
-      datasets: datasets
-    }
+    generate_chartData()
   }).catch(function (err) {
     console.error(err)
   })
@@ -123,7 +169,6 @@ function update_site_stats() {
 onMounted(() => {
   update_site_stats()
   setInterval(update_site_stats, 10000)
-  fillChartData();
 })
 
 const headers = [
@@ -159,18 +204,50 @@ const headers = [
       <div id="world_map_view" class="mapview"></div>
     </CardBox>
 
-    <CardBox class="mb-6">
-      <div v-if="chartData">
-        <line-chart :data="chartData" class="h-96" />
-      </div>
-    </CardBox>
+    <SectionTitleLineWithButton :icon="mdiChartPie" title="TFlops Status">
+    </SectionTitleLineWithButton>
 
+    <div class="grid grid-cols-2 gap-1 lg:grid-cols-2 mb-6" v-if="is_loaded">
+      <CardBox class="mb-6">
+        <div v-if="t_tflops_chartData">
+          <line-chart :data="t_tflops_chartData" :title="'Total TFlops'"
+            class="h-96" />
+        </div>
+      </CardBox>
+      <CardBox class="mb-6">
+        <div v-if="a_tflops_chartData">
+          <line-chart :data="a_tflops_chartData" :title="'Available TFlops'"
+            class="h-96" />
+        </div>
+      </CardBox>
+    </div>
+
+    <SectionTitleLineWithButton :icon="mdiChartPie"
+      title="# GPUs Resources Status">
+    </SectionTitleLineWithButton>
+
+    <div class="grid grid-cols-2 gap-1 lg:grid-cols-2 mb-6" v-if="is_loaded">
+      <CardBox class="mb-6">
+        <div v-if="t_gpus_chartData">
+          <line-chart :data="t_gpus_chartData" :title="'Total GPUs'"
+            class="h-96" />
+        </div>
+      </CardBox>
+      <CardBox class="mb-6">
+        <div v-if="a_gpus_chartData">
+          <line-chart :data="a_gpus_chartData" :title="'Total GPUs'"
+            class="h-96" />
+        </div>
+      </CardBox>
+    </div>
+
+    <SectionTitleLineWithButton :icon="mdiChartPie" title="Raw Records">
+    </SectionTitleLineWithButton>
     <CardBox class="mb-6">
       <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items"
         alternating show-index class="resouce_table">
       </Vue3EasyDataTable>
     </CardBox>
-
 
   </SectionMain>
 </template>
