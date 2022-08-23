@@ -235,7 +235,7 @@ const headers = [
       </CardBox>
       <CardBox class="mb-6">
         <div v-if="a_gpus_chartData">
-          <line-chart :data="a_gpus_chartData" :title="'Total GPUs'"
+          <line-chart :data="a_gpus_chartData" :title="'Available GPUs'"
             class="h-96" />
         </div>
       </CardBox>
