@@ -4,4 +4,4 @@ pydantic[dotenv]
 uvicorn[standard]
 psycopg2-binary
 sqlalchemy
-sentry-sdk[fastapi]
+rollbar

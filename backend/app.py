@@ -5,36 +5,25 @@ from fastapi import FastAPI
 from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
+import rollbar
+from rollbar.contrib.fastapi import add_to as rollbar_add_to
 
-
-import sentry_sdk
-from sentry_sdk.integrations.starlette import StarletteIntegration
-from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 class Settings(BaseSettings):
     db_database: str
     db_username: str
     db_host: str
     db_password: str
-    sentry_dsn: str
+    rollbar_key: str
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
 
-sentry_sdk.init(
-    dsn=Settings().sentry_dsn,
-    integrations=[
-        StarletteIntegration(),
-        FastApiIntegration(),
-    ],
-
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    # We recommend adjusting this value in production,
-    traces_sample_rate=1.0,
-)
+rollbar.init(Settings().rollbar_key)
 
 app = FastAPI(title="TOMA API", description="Together Open Inference Program", version="0.1.0")
+rollbar_add_to(app)
+
 
 app.add_middleware(
     CORSMiddleware,
