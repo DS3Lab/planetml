@@ -5,8 +5,25 @@ from fastapi import FastAPI
 from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
+import rollbar
+from rollbar.contrib.fastapi import add_to as rollbar_add_to
+
+
+class Settings(BaseSettings):
+    db_database: str
+    db_username: str
+    db_host: str
+    db_password: str
+    rollbar_key: str
+    class Config:
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
+
+rollbar.init(Settings().rollbar_key)
 
 app = FastAPI(title="TOMA API", description="Together Open Inference Program", version="0.1.0")
+rollbar_add_to(app)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,15 +31,6 @@ app.add_middleware(
 )
 
 engine = None
-
-class Settings(BaseSettings):
-    db_database: str
-    db_username: str
-    db_host: str
-    db_password: str
-    class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
 
 @app.on_event("startup")
 def on_startup():
@@ -83,10 +91,8 @@ def get_sites():
             statement = select(SiteStat).where(SiteStat.site_identifier == site.identifier).order_by(SiteStat.created_at.desc())
             stats = session.execute(statement).first()
             site_dict = site.dict()
-            print(stats)
             site_dict["stats"] = stats
             results.append(site_dict)
-        print(results)
         return results
 
 @app.get("/site_stats", response_model=List[SiteStat])
