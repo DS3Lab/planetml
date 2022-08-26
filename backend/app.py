@@ -34,10 +34,10 @@ engine = None
 
 @app.on_event("startup")
 def on_startup():
-    
     global engine
     settings = Settings()
-    engine = create_engine(f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
+    if engine is None:
+        engine = create_engine(f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
 
 @app.get("/")
 async def root():
@@ -101,7 +101,7 @@ def get_site_stats():
     Get all site stats
     """
     with Session(engine) as session:
-        return session.query(SiteStat).all()
+        return session.query(SiteStat).order_by(SiteStat.created_at.desc()).limit(150).all()
 
 @app.get("/jobs", response_model=List[Job])
 def get_jobs():
