@@ -148,9 +148,10 @@ function update_site_stats() {
 
   get_status_history().then(function (res) {
     items.value = []
-    // take first 100 records
+    // sort the data by its value
+    let sorted_data = res.data.sort(function(a,b){return new Date(a.created_at) - new Date(b.created_at)});
 
-    res.data.map(function (item) {
+    sorted_data.map(function (item) {
       items.value.push({
         'name': domain_to_name(item.site_identifier),
         'total_tflops': item.total_tflops,
