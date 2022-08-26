@@ -148,6 +148,8 @@ function update_site_stats() {
 
   get_status_history().then(function (res) {
     items.value = []
+    // take first 100 records
+
     res.data.map(function (item) {
       items.value.push({
         'name': domain_to_name(item.site_identifier),
