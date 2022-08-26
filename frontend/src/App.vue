@@ -1,5 +1,4 @@
 <script setup>
-import { useRoute } from 'vue-router'
 import PMHeader from './components/PMHeader.vue';
 import PMFooter from './components/PMFooter.vue';
 // This starter template is using Vue 3 <script setup> SFCs
@@ -23,9 +22,9 @@ import PMFooter from './components/PMFooter.vue';
 
 <style scoped>
 .main_view {
-    margin-left: auto;
-    margin-right: auto;
-    width: 80%;
-    height: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  height: 100%;
 }
 </style>

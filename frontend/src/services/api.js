@@ -18,7 +18,7 @@ function get_status_history() {
 function domain_to_name(domain) {
     if (domain === 'ethz.ch') {
         return 'ETH Zürich'
-    } else if (domain === 'stanford.edu') {
+    } else if (domain === 'nlp.stanford.edu') {
         return 'Stanford University'
     } else if (domain === 'osg-htc.org') {
         return 'Open Science Grid'

@@ -1,4 +1,4 @@
-from schemas.resource import Site,SiteStat
+from schemas.resource import Site, SiteStat
 from schemas.job import Job
 from typing import List
 from fastapi import FastAPI
@@ -7,6 +7,7 @@ from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
 import rollbar
 from rollbar.contrib.fastapi import add_to as rollbar_add_to
+from sqlalchemy.orm import load_only
 
 
 class Settings(BaseSettings):
@@ -15,13 +16,16 @@ class Settings(BaseSettings):
     db_host: str
     db_password: str
     rollbar_key: str
+
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
 
+
 rollbar.init(Settings().rollbar_key)
 
-app = FastAPI(title="TOMA API", description="Together Open Inference Program", version="0.1.0")
+app = FastAPI(title="TOMA API",
+              description="Together Open Inference Program", version="0.1.0")
 rollbar_add_to(app)
 
 
@@ -32,16 +36,20 @@ app.add_middleware(
 
 engine = None
 
+
 @app.on_event("startup")
 def on_startup():
     global engine
     settings = Settings()
     if engine is None:
-        engine = create_engine(f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
+        engine = create_engine(
+            f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
+
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 
 @app.post("/sites", response_model=Site)
 def add_site(site: Site):
@@ -53,6 +61,7 @@ def add_site(site: Site):
         session.commit()
         session.refresh(site)
         return site
+
 
 @app.post("/site_stats", response_model=SiteStat)
 def add_resource(stat: SiteStat):
@@ -67,6 +76,7 @@ def add_resource(stat: SiteStat):
         session.refresh(stat)
         return stat
 
+
 @app.post("/jobs", response_model=Job)
 def add_job(job: Job):
     """
@@ -78,6 +88,7 @@ def add_job(job: Job):
         session.refresh(job)
         return job
 
+
 @app.get("/sites")
 def get_sites():
     """
@@ -88,14 +99,34 @@ def get_sites():
         results = []
         for site in sites:
             # this should be done automatically by sqlalchemy, maybe in the future
-            statement = select(SiteStat).where(SiteStat.site_identifier == site.identifier).order_by(SiteStat.created_at.desc())
+            statement = select(SiteStat).where(
+                SiteStat.site_identifier == site.identifier).order_by(SiteStat.created_at.desc())
             stats = session.execute(statement).first()
             site_dict = site.dict()
             site_dict["stats"] = stats
             results.append(site_dict)
         return results
 
+
 @app.get("/site_stats", response_model=List[SiteStat])
+def get_site_stats():
+    """
+    Get all site stats
+    """
+    with Session(engine) as session:
+        return session.exec(select(
+            SiteStat.id,
+            SiteStat.created_at,
+            SiteStat.total_tflops,
+            SiteStat.avail_tflops,
+            SiteStat.total_gpus,
+            SiteStat.avail_gpus,
+            SiteStat.scheduler_type,
+            SiteStat.note,
+            SiteStat.site_identifier,
+        ).order_by(SiteStat.created_at.desc()).limit(150)).all()
+
+@app.get("/site_stats_full", response_model=List[SiteStat])
 def get_site_stats():
     """
     Get all site stats
@@ -110,6 +141,7 @@ def get_jobs():
     """
     with Session(engine) as session:
         return session.query(Job).all()
+
 
 @app.patch("/jobs/{id}", response_model=Job)
 def update_job(id: str, job: Job):
@@ -126,7 +158,9 @@ def update_job(id: str, job: Job):
         session.refresh(job_to_update)
         return job_to_update
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     settings = Settings()
-    engine = create_engine(f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
+    engine = create_engine(
+        f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
     SQLModel.metadata.create_all(engine)

@@ -42,7 +42,7 @@ class SiteStat(SQLModel, table=True):
     avail_tflops: float
     total_gpus: int
     avail_gpus: int
-    resources: Dict = Field(default={}, sa_column=Column(JSON))
+    resources: Optional[Dict] = Field(default={}, sa_column=Column(JSON))
     scheduler_type: str
     site_identifier: Optional[str] = Field(
         default=None, foreign_key="site.identifier"

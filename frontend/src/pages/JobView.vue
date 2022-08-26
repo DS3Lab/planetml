@@ -1,6 +1,7 @@
 <template>
     <div class="">
-        <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items" alternating show-index>
+        <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items"
+            alternating show-index>
             <template #expand="item">
                 <div style="padding: 15px">
                     Payload
@@ -57,7 +58,6 @@ onMounted(() => {
 
 <style>
 span.header {
-    justify-content: center;    
+    justify-content: center;
 }
-
 </style>

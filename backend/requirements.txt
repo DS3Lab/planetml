@@ -5,3 +5,4 @@ uvicorn[standard]
 psycopg2-binary
 sqlalchemy
 rollbar
+python-multipart
