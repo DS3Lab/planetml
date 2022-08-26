@@ -1,10 +1,10 @@
-import datetime
 import enum
+import datetime
 import uuid as uuid_pkg
-from typing import Optional, Dict
 from sqlalchemy import Column
-from sqlalchemy.types import Enum, DateTime
+from typing import Optional, Dict
 from sqlmodel import Field, SQLModel,JSON
+from sqlalchemy.types import Enum, DateTime
 
 class JobStatus(str, enum.Enum):
     FINISHED = "finished"

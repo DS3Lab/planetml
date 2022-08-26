@@ -10,7 +10,7 @@ import CardBoxWidget from "@/components/CardBoxWidget.vue";
 import CardBox from "@/components/CardBox.vue";
 import SectionTitleLineWithButton from "@/components/SectionTitleLineWithButton.vue";
 import * as Plotly from 'plotly.js-dist/plotly'
-import { get_site_status, get_status_history, domain_to_name } from '../services/api'
+import { get_site_status, get_status_history } from '../services/api'
 import Vue3EasyDataTable from 'vue3-easy-data-table'
 
 let items = ref([])
@@ -19,35 +19,37 @@ let total_tflops = ref(0)
 let avail_gpus = ref(0)
 let avail_tflops = ref(0)
 let site_color_mapping = ref({})
+let domain_name_mapping = ref({})
 let t_tflops_chartData = ref(null)
 let t_gpus_chartData = ref(null)
 let a_tflops_chartData = ref(null)
 let a_gpus_chartData = ref(null)
 
-function generate_chartData() {
+function generate_chartData(items) {
   let t_tflops_datasets = []
   let t_gpus_datasets = []
   let a_tflops_datasets = []
   let a_gpus_datasets = []
-
   let labels = items.value.map(item => item.created_at)
+  
   // find the unique site_identifiers from item
+  
   let comp_sites = items.value.reduce((sites, item) => {
-    if (sites.indexOf(item.name) === -1) {
-      sites.push(item.name)
+    if (sites.indexOf(item.domain) === -1) {
+      sites.push(item.domain)
     }
     return sites
   }, [])
   // for each site in sites
   comp_sites.forEach(site => {
-    let site_items = items.value.filter(item => item.name === site)
+    let site_items = items.value.filter(item => item.domain === site)
     let t_tflops_data = site_items.map(item => ({ "x": item.created_at, "y": item.total_tflops }))
     let a_tflops_data = site_items.map(item => ({ "x": item.created_at, "y": item.avail_tflops }))
     let t_gpus_data = site_items.map(item => ({ "x": item.created_at, "y": item.total_gpu }))
     let a_gpus_data = site_items.map(item => ({ "x": item.created_at, "y": item.avail_gpu }))
     // I am sure I will re-write this at some point... but leave it for now
     t_tflops_datasets.push({
-      label: site,
+      label: domain_name_mapping.value[site],
       data: t_tflops_data,
       backgroundColor: site_color_mapping.value[site],
       borderColor: site_color_mapping.value[site],
@@ -55,7 +57,7 @@ function generate_chartData() {
       fill: false,
     })
     a_tflops_datasets.push({
-      label: site,
+      label: domain_name_mapping.value[site],
       data: a_tflops_data,
       backgroundColor: site_color_mapping.value[site],
       borderColor: site_color_mapping.value[site],
@@ -63,7 +65,7 @@ function generate_chartData() {
       fill: false,
     })
     t_gpus_datasets.push({
-      label: site,
+      label: domain_name_mapping.value[site],
       data: t_gpus_data,
       backgroundColor: site_color_mapping.value[site],
       borderColor: site_color_mapping.value[site],
@@ -71,7 +73,7 @@ function generate_chartData() {
       fill: false,
     })
     a_gpus_datasets.push({
-      label: site,
+      label: domain_name_mapping.value[site],
       data: a_gpus_data,
       backgroundColor: site_color_mapping.value[site],
       borderColor: site_color_mapping.value[site],
@@ -118,7 +120,8 @@ function update_site_stats() {
       total_tflops.value += item.stats.SiteStat.total_tflops
       avail_gpus.value += item.stats.SiteStat.avail_gpus
       avail_tflops.value += item.stats.SiteStat.avail_tflops
-      site_color_mapping.value[item.name] = item.color
+      site_color_mapping.value[item.identifier] = item.color
+      domain_name_mapping.value[item.identifier] = item.name
       data.push({
         type: "scattermapbox",
         name: item.name,
@@ -142,18 +145,21 @@ function update_site_stats() {
       margin: { r: 0, t: 0, b: 0, l: 0 }
     };
     Plotly.react('world_map_view', data, layout)
+    replot_chart()
   }).catch(function (err) {
     console.error(err)
   })
+}
 
+function replot_chart() {
   get_status_history().then(function (res) {
     items.value = []
     // sort the data by its value
-    let sorted_data = res.data.sort(function(a,b){return new Date(a.created_at) - new Date(b.created_at)});
-
+    let sorted_data = res.data.sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at) });
+    console.log(domain_name_mapping)
     sorted_data.map(function (item) {
       items.value.push({
-        'name': domain_to_name(item.site_identifier),
+        'name': domain_name_mapping.value[item.site_identifier],
         'total_tflops': item.total_tflops,
         'avail_tflops': item.avail_tflops,
         'total_gpu': item.total_gpus,
@@ -163,7 +169,7 @@ function update_site_stats() {
       })
       is_loaded.value = true
     })
-    generate_chartData()
+    generate_chartData(items)
   }).catch(function (err) {
     console.error(err)
   })
@@ -171,7 +177,7 @@ function update_site_stats() {
 
 onMounted(() => {
   update_site_stats()
-  setInterval(update_site_stats, 10000)
+  setInterval(update_site_stats, 15000)
 })
 
 const headers = [
