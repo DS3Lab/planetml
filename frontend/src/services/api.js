@@ -22,6 +22,8 @@ function domain_to_name(domain) {
         return 'Stanford University'
     } else if (domain === 'osg-htc.org') {
         return 'Open Science Grid'
+    } else if (domain === 'chtc.cs.wisc.edu') {
+        return 'University of Wisconsin'
     }
 }
 

@@ -9,8 +9,8 @@ import {
   LinearScale,
   CategoryScale,
   Tooltip,
-Legend,
-Title,
+  Legend,
+  Title,
 } from "chart.js";
 import 'chartjs-adapter-date-fns';
 
@@ -65,7 +65,11 @@ onMounted(() => {
           display: true,
           type: "time",
           time: {
-            unit: 'hour'
+            unit: 'hour',
+            displayFormats: {
+              hour: 'MMM-dd ha'
+            }
+
           }
         },
       },
