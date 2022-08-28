@@ -7,8 +7,6 @@ from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
 import rollbar
 from rollbar.contrib.fastapi import add_to as rollbar_add_to
-from sqlalchemy.orm import load_only
-
 
 class Settings(BaseSettings):
     db_database: str
@@ -45,12 +43,6 @@ def on_startup():
         engine = create_engine(
             f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}/{settings.db_database}")
 
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
 @app.post("/sites", response_model=Site)
 def add_site(site: Site):
     """
@@ -61,7 +53,6 @@ def add_site(site: Site):
         session.commit()
         session.refresh(site)
         return site
-
 
 @app.post("/site_stats", response_model=SiteStat)
 def add_resource(stat: SiteStat):
@@ -76,7 +67,6 @@ def add_resource(stat: SiteStat):
         session.refresh(stat)
         return stat
 
-
 @app.post("/jobs", response_model=Job)
 def add_job(job: Job):
     """
@@ -87,7 +77,6 @@ def add_job(job: Job):
         session.commit()
         session.refresh(job)
         return job
-
 
 @app.get("/sites")
 def get_sites():
@@ -107,11 +96,13 @@ def get_sites():
             results.append(site_dict)
         return results
 
-
 @app.get("/site_stats", response_model=List[SiteStat])
 def get_site_stats():
     """
     Get all site stats
+    This only returns the essential information, including: 
+     id, created_at, site_identifier, note, scheduler_type, and 
+     total_gpus, total_tflops, avail_gpus, avail_tflops
     """
     with Session(engine) as session:
         return session.exec(select(
@@ -130,6 +121,7 @@ def get_site_stats():
 def get_site_stats():
     """
     Get all site stats
+    This returns full information
     """
     with Session(engine) as session:
         return session.query(SiteStat).order_by(SiteStat.created_at.desc()).limit(150).all()
