@@ -7,14 +7,16 @@ from sqlmodel import Field, SQLModel,JSON
 from sqlalchemy.types import Enum, DateTime
 
 class JobStatus(str, enum.Enum):
-    FINISHED = "finished"
+    SUBMITTED = "submitted"
     QUEUED = "queued"
+    RUNNING = "running"
+    FINISHED = "finished"
     FAILED = "failed"
 
 class JobType(str, enum.Enum):
     INFERENCE = 'inference'
     CLASSIFICATION = 'classification'
-
+    GENERAL = 'general'
 class JobSource(str, enum.Enum):
     DALLE = 'dalle'
     DATAPERF = 'dataperf'
