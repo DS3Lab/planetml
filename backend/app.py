@@ -145,7 +145,7 @@ def update_job(id: str, job: Job):
         if job_to_update is None:
             return {"message": "Job not found"}
         job_to_update = job
-        session.add(job)
+        session.add(job_to_update)
         session.commit()
         session.refresh(job_to_update)
         return job_to_update

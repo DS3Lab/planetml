@@ -6,3 +6,6 @@ psycopg2-binary
 sqlalchemy
 rollbar
 python-multipart
+sqlalchemy
+dstool
+paramiko
