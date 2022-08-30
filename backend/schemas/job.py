@@ -14,9 +14,10 @@ class JobStatus(str, enum.Enum):
     FAILED = "failed"
 
 class JobType(str, enum.Enum):
+    GENERAL = 'general'
     INFERENCE = 'inference'
     CLASSIFICATION = 'classification'
-    GENERAL = 'general'
+
 class JobSource(str, enum.Enum):
     DALLE = 'dalle'
     DATAPERF = 'dataperf'
