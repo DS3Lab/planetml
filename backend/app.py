@@ -141,10 +141,12 @@ def update_job(id: str, job: Job):
     Update a job
     """
     with Session(engine) as session:
-        job_to_update = session.query(Job).filter(Job.id == id).first()
+        job_to_update = select(Job).where(Job.id == job.id)
+        job_to_update = session.exec(job_to_update).one()
         if job_to_update is None:
             return {"message": "Job not found"}
-        job_to_update = job
+        job_to_update.processed_by = job.processed_by
+        job_to_update.status = job.status
         session.add(job_to_update)
         session.commit()
         session.refresh(job_to_update)
