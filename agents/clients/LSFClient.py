@@ -47,13 +47,15 @@ class LSFClient(object):
 
     def execute(self, command):
         parsed_command = f"cd {self.wd} && {self.init} ;{command}"
-        print(parsed_command)
-        stdin, stdout, stderr = self.ssh_client.exec_command(parsed_command, environment={
-            "PATH":"/cluster/home/xiayao/.local/bin/"
-        })
-        if stderr:
-            logger.error(stderr.read().decode("utf-8"))
-        return stdout.read().decode("utf-8")
+        return self.execute_raw(parsed_command)
+
+    def execute_raw(self, command):
+        stdin, stdout, stderr = self.ssh_client.exec_command(command)
+        out = stdout.read().decode("utf-8").strip()
+        error = stderr.read().decode("utf-8").strip()
+        if error:
+            logger.error(error)
+        return out
 
     def submit_job(self, job):
         command = "bsub /cluster/home/xiayao/.local/bin/mls.py"
@@ -79,4 +81,3 @@ if __name__=="__main__":
         wd=settings.lsf_wd,
         init=settings.lsf_init,
     )
-    lsf_client.execute("/cluster/home/xiayao/.local/bin/mls.py")
