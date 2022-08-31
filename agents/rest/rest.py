@@ -1,5 +1,5 @@
 import requests
-endpoint = "http://127.0.0.1:5000"
+endpoint = "https://planetd.shift.ml"
 
 def update_job_status(job_id, 
             processed_by: str,
