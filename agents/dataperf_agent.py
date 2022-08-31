@@ -35,7 +35,7 @@ def dispatch_job(lsf_client, job):
     )
     image_path = "/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/xiayao/projects/dataperf/images/"
     
-    results = lsf_client.execute(f"cd {job['payload']['submission_id']} && bsub -R singularity -n 32 /cluster/home/xiayao/.local/bin/mls.py run-pipeline --image-path {image_path}")
+    results = lsf_client.execute(f"cd {job['payload']['submission_id']} && bsub -R singularity -n 16 /cluster/home/xiayao/.local/bin/mls.py run-pipeline --image-path {image_path}")
     
     job_id = results.split("<")[1].split(">")[0]
     queue_id = results.split("<")[2].split(">")[0]
@@ -54,7 +54,7 @@ def harvest_finished_run(lsf_client, job_id, submission_id, euler_job_id):
     # now check if the job is done successfully
     is_successful = lsf_client.is_successful(submission_id, euler_job_id)
     if is_successful:
-        lsf_client.execute(f"cd {lsf_client.wd}/{submission_id} && mls.py upload-results --bucket dataperf-results --filename {submission_id}.zip")
+        lsf_client.execute(f"cd {lsf_client.wd}/{submission_id} && /cluster/home/xiayao/.local/bin/mls.py upload-results --bucket dataperf-results --filename {submission_id}")
         typer.echo(f"Updating job {job_id} to finished")
         update_job_status(job_id, processed_by=f"{euler_job_id}:euler.ethz.ch", status='finished')
     else:
@@ -129,13 +129,14 @@ def watch():
                     typer.echo(f"Updating job {job_id} to {new_status}")
                     update_job_status(job_id, processed_by=processed_by, status=new_status)
         # harvest finished runs
-        for each in watch_job_map:
+        for each in watch_job_map.copy():
             processed_by = watch_job_map[each]['processed_by']
             euler_jobid = processed_by.split(":")[0]
             running_jobs = [x['JOBID'] for x in status_records]
             if euler_jobid not in running_jobs:
                 typer.echo(f"Harvesting job {each}")
                 harvest_finished_run(lsf_client,each, watch_job_map[each]['submission_id'], euler_jobid)
+                del watch_job_map[each]
         typer.echo(f"Sleeping for 10 seconds")
         time.sleep(10)
 
