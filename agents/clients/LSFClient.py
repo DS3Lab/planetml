@@ -57,10 +57,13 @@ class LSFClient(object):
             logger.error(error)
         return out
 
-    def submit_job(self, job):
-        command = "bsub /cluster/home/xiayao/.local/bin/mls.py"
-        return self.execute(command)
-
+    def is_successful(self, work_dir, job_id):
+        file_content = self.execute_raw(f"cd {self.wd}/{work_dir} && cat lsf.o{job_id}")
+        print(file_content)
+        if 'Successfully completed.' in file_content:
+            return True
+        return False
+        
 if __name__=="__main__":
     from pydantic import BaseSettings
 
