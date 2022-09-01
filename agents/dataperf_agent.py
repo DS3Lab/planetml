@@ -137,8 +137,9 @@ def watch():
                 typer.echo(f"Harvesting job {each}")
                 harvest_finished_run(lsf_client,each, watch_job_map[each]['submission_id'], euler_jobid)
                 del watch_job_map[each]
-        typer.echo(f"Sleeping for 10 seconds")
-        time.sleep(10)
+        
+        typer.echo(f"Sleeping for 30 seconds")
+        time.sleep(30)
 
 if __name__ == "__main__":
     agent()
