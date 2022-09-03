@@ -5,9 +5,6 @@ class LocalCoordinator(object):
         self.name = name
         self.rest_client = PlanetML()
 
-    def watch(self, interval=60):
-        raise NotImplementedError
-
     def dispatch(self):
         raise NotImplementedError
 
