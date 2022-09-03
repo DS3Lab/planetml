@@ -1,8 +1,8 @@
-
 """
 This bot is used to consume tasks published to the queue, but only with the source=dataperf.
 It handles valid mlsphere configuration, runs the pipeline defined in the configuration and returns the results.
 """
+
 import time
 import json
 import typer
