@@ -1,15 +1,18 @@
+
 """
 This bot is used to consume tasks published to the queue, but only with the source=dataperf.
 It handles valid mlsphere configuration, runs the pipeline defined in the configuration and returns the results.
 """
+
+import time
 import json
 import typer
 import requests
 from pydantic import BaseSettings
 from clients.LSFClient import LSFClient
-import time
 from utils.rest import update_job_status
 from utils.pprint import print_table
+
 planetml_url = 'https://planetd.shift.ml/jobs'
 
 agent = typer.Typer()
