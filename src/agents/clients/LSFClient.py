@@ -1,4 +1,3 @@
-import requests
 import paramiko
 from loguru import logger
 from dstool.class_utils import singleton
