@@ -3,7 +3,7 @@
 from typing import OrderedDict
 from pydantic import BaseSettings
 from loguru import logger
-
+import json
 from src.agents.clients.LSFClient import LSFClient
 from .._base import LocalCoordinator
 
@@ -53,24 +53,45 @@ class BatchInferenceCoordinator(LocalCoordinator):
         """
         logger.info(f"dispatching job {job}")
         if not self.submit_lock:
+            logger.info("acquiring submit lock")
             self.submit_lock = True
         job_payload = job['payload']
-        machine_size, world_size = job_payload["machine_size"], job_payload["world_size"]
+        if "machine_size" in job_payload and "world_size" in job_payload:
+            machine_size, world_size = job_payload["machine_size"], job_payload["world_size"]
+        else:
+            logger.warning("Using default parameters for machine_size=1 and world_size=1")
+            machine_size = 1
+            world_size = 1
+        
         if machine_size < 0 or world_size < 0:
             raise ValueError(
                 f"Invalid machine_size or world_size, expected positive integers, got {machine_size} and {world_size}")
-
+        print('start to prepare files')
+        # place payload in a file
+        job_payload['_id'] = job['id']
+        job_payload_str = json.dumps(job_payload)
+        self.client.execute_raw_in_wd(
+            f"cd working_dir/{job_payload['model']} && echo \'{job_payload_str}\' > input_{job['id']}.json"
+        )
+        
         demand_worker_num = machine_size
         for i in range(demand_worker_num):
-            # generate bsub file on the fly
             result = self.client.execute_raw_in_wd(f"cd runner/src/agents/runner/batch_inference/submit_cache && cp ../submission_template.jinja ./submit_{i+1}.bsub")
             print('copied template to submit.bsub')
-            result = self.client.execute_raw_in_wd(f"cd runner/src/agents/runner/batch_inference/submit_cache && ls && echo \'--lsf-job-no {self._allocate_index()} --infer-data {job_payload['infer_data']}\' >> submit_{i + 1}.bsub")
+            result = self.client.execute_raw_in_wd(f"cd runner/src/agents/runner/batch_inference/submit_cache && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub")
 
             logger.info(f"submission file for worker {i} is prepared...")
             result = self.client.execute_raw_in_wd(
                 f"cd runner/src/agents/runner/batch_inference/submit_cache && bsub < submit_{i + 1}.bsub"
             )
-            print(result)
             job_id = result.split("<")[1].split(">")[0]
             queue_id = result.split("<")[2].split(">")[0]
+            logger.info(f"job submitted, job_id: {job_id}, queue_id: {queue_id}")
+
+    def check_job_status(lsf_client):
+        results = lsf_client.execute_raw("bjobs -json -o 'jobid stat queue'")
+        records = json.loads(results)
+        return records['RECORDS']
+
+    def harvest_finished_run(lsf_client, job_id, submission_id, euler_job_id):
+        pass

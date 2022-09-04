@@ -68,13 +68,11 @@ class LSFClient(object):
     
     def execute_raw_in_wd(self, command):
         command = f"cd {self.wd} && {command}"
-        print(command)
         return self._execute_raw(command)
 
     def is_successful(self, work_dir, job_id):
         file_content = self._execute_raw(
             f"cd {self.wd}/{work_dir} && cat lsf.o{job_id}")
-        print(file_content)
         if 'Successfully completed.' in file_content:
             return True
         return False
