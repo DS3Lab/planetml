@@ -26,7 +26,7 @@ async def node_join():
     return {"message": "ok"}
 
 @lc_app.on_event("startup")
-@repeat_every(seconds=60)  # fetch jobs every 5 seconds
+@repeat_every(seconds=60)  # fetch jobs every $ seconds
 def fetch_failed_or_submitted_jobs():
     logger.info("Fetching and dispatching jobs")
     jobs = planetml_client.get_jobs()
