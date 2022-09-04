@@ -1,0 +1,28 @@
+#!/bin/bash
+#BSUB -n 1                     # 1 cores
+#BSUB -W 3:59                   # 3 hours run-time
+#BSUB -R "rusage[mem=8000]"     # 8 GB per core
+#BSUB -R "rusage[ngpus_excl_p=1]"
+#BSUB -R "select[gpu_mtotal0>=10000]"
+#BSUB -o /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/exec_log/out.%J
+#BSUB -e /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/exec_log/err.%J
+. /cluster/apps/local/env2lmod.sh
+
+# Load modules from Euler setup
+module load gcc/8.2.0 python_gpu/3.9.9 cuda/11.0.3 eth_proxy zsh/5.8 
+
+source /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/planetml_env/bin/activate
+
+cd /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/runner/src/agents/runner/batch_inference/
+
+nvidia-smi
+
+COOR_CONF="--coordinator-server-ip 10.6.7.244"
+#!/bin/bash
+
+# export http_proxy=http://proxy.ethz.ch:3128
+# export https_proxy=https://proxy.ethz.ch:3128
+# export NCCL_IB_DISABLE=1
+# export NCCL_P2P_DISABLE=1
+export HF_HOME=/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/cache/HF
+python -u local_latency_inference_stable_diffussion.py $COOR_CONF \
