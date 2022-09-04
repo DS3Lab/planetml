@@ -1,3 +1,4 @@
+from typing import Dict
 import requests
 from dstool.class_utils import singleton
 
@@ -12,17 +13,31 @@ class PlanetML():
 
     def update_job_status(self,
                           job_id: str,
-                          processed_by: str,
-                          status: str,
-                          source: str,
-                          type: str
-                          ):
+                          processed_by: str=None,
+                          status: str=None,
+                          source: str=None,
+                          type: str=None,
+                          returned_payload: Dict=None):
         data = {
             "id": job_id,
             "processed_by": processed_by,
             "status": status,
             "type": type,
             "source": source,
+            "returned_payload": returned_payload
         }
+        if processed_by:
+            data['processed_by'] = processed_by
+        if status:
+            data['status'] = status
+        if source:
+            data['source'] = source
+        if type:
+            data["type"] = type
+        if returned_payload:
+            data['returned_payload'] = returned_payload
+        else:
+            data['returned_payload'] = {}
+        print(data)
         res = requests.patch(self.endpoint+f"/jobs/{job_id}", json=data)
         return res

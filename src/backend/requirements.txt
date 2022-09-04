@@ -9,4 +9,3 @@ python-multipart
 sqlalchemy
 dstool
 paramiko
-boto3
