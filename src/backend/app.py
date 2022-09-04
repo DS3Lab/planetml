@@ -1,4 +1,5 @@
 import boto3
+import boto3
 from schemas.resource import Site, SiteStat
 from schemas.job import Job
 from typing import List
@@ -7,8 +8,10 @@ from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse
 import rollbar
 from rollbar.contrib.fastapi import add_to as rollbar_add_to
+from fastapi import FastAPI, HTTPException
 from fastapi import FastAPI, HTTPException
 
 class Settings(BaseSettings):
@@ -153,6 +156,22 @@ def get_unfinished_jobs():
     """
     with Session(engine) as session:
         return session.query(Job).all()
+@app.get("/jobs/unfinished", response_model=List[Job])
+def get_unfinished_jobs():
+    """
+    Get all unfinished jobs
+    # TODO: add a filter to the query
+    """
+    with Session(engine) as session:
+        return session.query(Job).all()
+@app.get("/jobs/unfinished", response_model=List[Job])
+def get_unfinished_jobs():
+    """
+    Get all unfinished jobs
+    # TODO: add a filter to the query
+    """
+    with Session(engine) as session:
+        return session.query(Job).all()
 
 @app.patch("/jobs/{id}", response_model=Job)
 def update_job(id: str, job: Job):
@@ -173,6 +192,19 @@ def update_job(id: str, job: Job):
         session.refresh(job_to_update)
         return job_to_update
 
+@app.get("/files/{filename}")
+def access_s3(filename: str):
+    try:
+        result = s3.get_object(Bucket="toma-all", Key=filename)
+        return StreamingResponse(content=result["Body"].iter_chunks())
+    except Exception as e:
+        if hasattr(e, "message"):
+            raise HTTPException(
+                status_code=e.message["response"]["Error"]["Code"],
+                detail=e.message["response"]["Error"]["Message"],
+            )
+        else:
+            raise HTTPException(status_code=500, detail=str(e))
 @app.get("/files/{filename}")
 def access_s3(filename: str):
     try:
