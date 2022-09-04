@@ -145,6 +145,14 @@ def get_unfinished_jobs():
     """
     with Session(engine) as session:
         return session.query(Job).all()
+@app.get("/jobs/unfinished", response_model=List[Job])
+def get_unfinished_jobs():
+    """
+    Get all unfinished jobs
+    # TODO: add a filter to the query
+    """
+    with Session(engine) as session:
+        return session.query(Job).all()
 
 @app.patch("/jobs/{id}", response_model=Job)
 def update_job(id: str, job: Job):
