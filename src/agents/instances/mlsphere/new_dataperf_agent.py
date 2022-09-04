@@ -8,7 +8,7 @@ import typer
 import requests
 from pydantic import BaseSettings
 from clients.LSFClient import LSFClient
-from src.agents.utils.planetml import update_job_status
+from src.agents.utils.planetml import PlanetML
 from utils.pprint import print_table
 
 planetml_url = 'https://planetd.shift.ml/jobs'
