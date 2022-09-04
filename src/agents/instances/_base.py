@@ -5,11 +5,8 @@ class LocalCoordinator(object):
         self.name = name
         self.rest_client = PlanetML()
 
-    def dispatch(self):
+    def dispatch(self, job):
         raise NotImplementedError
 
     def check_status(self):
         raise NotImplementedError
-    
-    def fetch_jobs(self):
-        return self.rest_client.get_jobs()

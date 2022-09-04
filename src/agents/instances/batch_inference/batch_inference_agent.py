@@ -1,8 +1,11 @@
+# This handles batch inference jobs
+
 from typing import OrderedDict
+from pydantic import BaseSettings
+from loguru import logger
 
 from src.agents.clients.LSFClient import LSFClient
 from .._base import LocalCoordinator
-from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -28,34 +31,41 @@ class BatchInferenceCoordinator(LocalCoordinator):
         self.worker_nodes = OrderedDict()
         self.prime_worker_ip = None
         self.jobs = []
-        
+        self.submit_lock = False
         self.client = LSFClient(
-            host=settings.lsf_host,
-            username=settings.lsf_username,
-            password=settings.lsf_password,
-            wd=settings.lsf_wd,
-            init=settings.lsf_init,
+            host=settings.euler_lsf_host,
+            username=settings.euler_lsf_username,
+            password=settings.euler_lsf_password,
+            wd=settings.euler_lsf_wd,
+            init=settings.euler_lsf_init,
         )
+        self.client._connect()
+
+    def _allocate_index(self):
+        self.allocated_index = (self.allocated_index + 1) % 10000
+        return self.allocated_index
 
     def dispatch(self, job):
         """
         job: fields: machine_size, world_size, infer_data, job_name
         """
+        logger.info(f"dispatching job {job}")
         if not self.submit_lock:
             self.submit_lock = True
-        machine_size, world_size = job["machine_size"], job["world_size"]
+        job_payload = job['payload']
+        machine_size, world_size = job_payload["machine_size"], job_payload["world_size"]
         if machine_size < 0 or world_size < 0:
             raise ValueError(
                 f"Invalid machine_size or world_size, expected positive integers, got {machine_size} and {world_size}")
 
         demand_worker_num = machine_size
-
         for i in range(demand_worker_num):
             # generate bsub file on the fly
-            self.client.execute(
-                f"echo \'--lsf-job-no {self._allocate_index()} --infer-data {job['infer_data']}\' >> {settings().lsf_init}/submit_cache/{job['job_name']}_{i + 1}.bsub")
+            result = self.client.execute("ls")
+            print(result)
             result = self.client.execute(
-                f"cd {settings().lsf_init}/submit_cache/ && && bsub < {job['job_name']}_{i + 1}.bsub"
+                f"cd {settings().lsf_init}/batch_inference/submit_cache/ && && bsub < {job['job_name']}_{i + 1}.bsub"
             )
+            print(result)
             job_id = result.split("<")[1].split(">")[0]
             queue_id = result.split("<")[2].split(">")[0]
