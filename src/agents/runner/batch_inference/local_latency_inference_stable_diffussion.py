@@ -1,27 +1,33 @@
-from datetime import datetime
 import time
 import base64
-from io import BytesIO
 import argparse
+from io import BytesIO
+from datetime import datetime
+
 import torch
 from torch import autocast
+from loguru import logger
 from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
+
 from utils.dist_args_utils import *
 from utils.coordinator_client import LocalCoordinatorClient
 
 def main():
 
     parser = argparse.ArgumentParser(description='Inference Runner with coordinator.')
-    parser.add_argument('--infer-data', type=str, default='foo', metavar='S',
-                        help='data path')
+    parser.add_argument('--infer-data', type=str, default='foo', metavar='S',help='data path')
+    
     add_global_coordinator_arguments(parser)
     add_lsf_coordinator_arguments(parser)
     args = parser.parse_args()
     print_arguments(args)
 
-    lsf_coordinator_client = LocalCoordinatorClient("/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/xiayao/projects/planetml", 'stable_diffusion')
+    lsf_coordinator_client = LocalCoordinatorClient(
+        "/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir/",
+        'stable_diffusion'
+    )
     lsf_coordinator_client.notify_inference_join()
-
+    logger.info("Loading Stable Diffusion model...")
     lms = LMSDiscreteScheduler(
         beta_start=0.00085,
         beta_end=0.012,
@@ -36,7 +42,7 @@ def main():
         revision="fp16"
     ).to("cuda:0")
 
-    print("Load Stable Diffusion Model is done.")
+    logger.info("Stable Diffusion model loaded.")
 
     lsf_coordinator_client.notify_inference_heartbeat()
     last_timestamp = time.time()
@@ -52,7 +58,7 @@ def main():
         return_msg = lsf_coordinator_client.load_input_job_from_dfs()
 
         if return_msg is not None:
-            print(f"Handel request: <{return_msg['_id']}>")
+            logger.info(f"Received a new job. {return_msg}")
 
             job_request = return_msg
 
