@@ -23,10 +23,10 @@
                 </div>
             </template>
             <template #item-status="{ status }">
-                <span v-if="status == 'submitted' || status=='pending'"
-                    class="bg-blue-100 text-blue-800 text-xs font-medium
+                <span v-if="status == 'submitted' || status=='queued'"
+                    class="bg-yellow-100 text-yellow-800 text-xs font-medium
                     inline-flex items-center px-2.5 py-0.5 rounded
-                    dark:bg-blue-200 dark:text-blue-800">
+                    dark:bg-yellow-200 dark:text-yellow-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 32 32" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
@@ -36,7 +36,7 @@
                     {{ status }}
                 </span>
                 <span v-if="status == 'finished'"
-                    class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                    class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 32 32" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
@@ -47,6 +47,16 @@
                 </span>
                 <span v-if="status == 'running'"
                     class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 32 32" stroke-width="1.5"
+                        stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                    </svg>
+                    {{ status }}
+                </span>
+                <span v-if="status == 'failed'"
+                    class="bg-red-100 text-red-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-red-200 dark:text-red-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 32 32" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
