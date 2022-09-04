@@ -9,6 +9,10 @@ sys.path.append('./')
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 from src.agents.utils.planetml import PlanetML
 
+
+bi_coordinator = BatchInferenceCoordinator("batch_inference")
+planetml_client = PlanetML()
+
 @lc_app.get("/heartbeat/:id")
 async def root():
     return {"message": "ok"}
@@ -22,9 +26,10 @@ async def node_join():
     return {"message": "ok"}
 
 @lc_app.on_event("startup")
-@repeat_every(seconds=5)  # fetch jobs every 5 seconds
+@repeat_every(seconds=60)  # fetch jobs every 5 seconds
 def fetch_failed_or_submitted_jobs():
     logger.info("Fetching and dispatching jobs")
-    planetml_client = PlanetML()
     jobs = planetml_client.get_jobs()
-    print(jobs)
+    bi_jobs = [x for x in jobs if x['source']=='dalle']
+    for each in bi_jobs:
+        bi_coordinator.dispatch(each)
