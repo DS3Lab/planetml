@@ -1,3 +1,4 @@
+import boto3
 from schemas.resource import Site, SiteStat
 from schemas.job import Job
 from typing import List
@@ -5,8 +6,10 @@ from fastapi import FastAPI
 from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 import rollbar
 from rollbar.contrib.fastapi import add_to as rollbar_add_to
+from fastapi import FastAPI, HTTPException
 
 class Settings(BaseSettings):
     db_database: str
@@ -33,6 +36,7 @@ app.add_middleware(
 )
 
 engine = None
+s3 = boto3.client("s3")
 
 @app.on_event("startup")
 def on_startup():
@@ -160,12 +164,19 @@ def update_job(id: str, job: Job):
         session.refresh(job_to_update)
         return job_to_update
 
-@app.get("s3/{filename}")
+@app.get("/files/{filename}")
 def access_s3(filename: str):
-    """
-    Access S3
-    """
-    return {"message": "Not implemented"}
+    try:
+        result = s3.get_object(Bucket="toma-all", Key=filename)
+        return StreamingResponse(content=result["Body"].iter_chunks())
+    except Exception as e:
+        if hasattr(e, "message"):
+            raise HTTPException(
+                status_code=e.message["response"]["Error"]["Code"],
+                detail=e.message["response"]["Error"]["Message"],
+            )
+        else:
+            raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     settings = Settings()
