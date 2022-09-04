@@ -1,5 +1,16 @@
+
 <template>
     <div class="">
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-4 mb-3" v-if="is_loaded">
+            <CardBoxWidget color="text-emerald-500" :number="running_jobs"
+                suffix=" TFlops" label="Running Jobs" />
+            <CardBoxWidget color="text-blue-500" :number="finished_jobs"
+                prefix="# " label="Finished Jobs" />
+            <CardBoxWidget color="text-red-500" :number="pending_jobs"
+                suffix=" TFlops" label="Pending Jobs" />
+                <CardBoxWidget color="text-red-500" :number="failed_jobs"
+                suffix=" TFlops" label="Failed Jobs" />
+        </div>
         <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items"
             alternating show-index>
             <template #expand="item">
@@ -34,9 +45,14 @@ import Vue3EasyDataTable from 'vue3-easy-data-table'
 import { ref } from 'vue'
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
+import CardBoxWidget from "@/components/CardBoxWidget.vue";
 
 let items = ref([])
 let is_loaded = ref(false)
+let running_jobs = ref(0)
+let failed_jobs = ref(0)
+let pending_jobs = ref(0)
+let finished_jobs = ref(0)
 
 const headers = [
     { text: "ID", value: "id" },
@@ -45,13 +61,33 @@ const headers = [
     { text: "Status", value: "status", sortable: true }
 ];
 
-onMounted(() => {
-    get_jobs_list().then(res => {
-        res.data.map(item => {
-            items.value.push(item)
+function update_jobs_list() {
+    running_jobs.value = 0
+    failed_jobs.value = 0
+    pending_jobs.value = 0
+    finished_jobs.value = 0
+    get_jobs_list().then((response) => {
+        items.value = response.data
+        items.value.map((item) => {
+            if (item.status == "running") {
+                running_jobs.value += 1
+            } else if (item.status == "failed") {
+                failed_jobs.value += 1
+            } else if (item.status == "pending") {
+                pending_jobs.value += 1
+            } else if (item.status == "finished") {
+                finished_jobs.value += 1
+            }
         })
         is_loaded.value = true
     })
+}
+
+onMounted(() => {
+    update_jobs_list()
+    setInterval(() => {
+        update_jobs_list()
+    }, 10000)
 })
 
 </script>
