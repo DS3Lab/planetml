@@ -13,6 +13,9 @@ class LocalCoordinatorClient:
 
     def notify_inference_heartbeat(self):
         pass
+    
+    def notify_inference_join(self):
+        pass
 
     def load_input_job_from_dfs(self):
         for filename in os.listdir(self.dir_path):
