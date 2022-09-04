@@ -6,9 +6,8 @@ import argparse
 import torch
 from torch import autocast
 from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
-from coordinator.lsf.lsf_coordinate_client import CoordinatorInferenceClient
 from utils.dist_args_utils import *
-
+from utils.coordinator_client import LocalCoordinatorClient
 
 def main():
 
@@ -20,7 +19,7 @@ def main():
     args = parser.parse_args()
     print_arguments(args)
 
-    lsf_coordinator_client = CoordinatorInferenceClient(args, 'stable_diffusion')
+    lsf_coordinator_client = LocalCoordinatorClient("/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/xiayao/projects/planetml", 'stable_diffusion')
     lsf_coordinator_client.notify_inference_join()
 
     lms = LMSDiscreteScheduler(
@@ -73,7 +72,6 @@ def main():
                     # print(img_str)
                     job_request['task_api']['outputs'] = img_results
                     lsf_coordinator_client.save_output_job_to_dfs(job_request)
-
 
 if __name__ == '__main__':
     main()
