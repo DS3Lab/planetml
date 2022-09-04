@@ -34,7 +34,6 @@ app.add_middleware(
 
 engine = None
 
-
 @app.on_event("startup")
 def on_startup():
     global engine
@@ -134,6 +133,14 @@ def get_jobs():
     with Session(engine) as session:
         return session.query(Job).all()
 
+@app.get("/jobs/unfinished", response_model=List[Job])
+def get_unfinished_jobs():
+    """
+    Get all unfinished jobs
+    # TODO: add a filter to the query
+    """
+    with Session(engine) as session:
+        return session.query(Job).all()
 
 @app.patch("/jobs/{id}", response_model=Job)
 def update_job(id: str, job: Job):
@@ -147,6 +154,7 @@ def update_job(id: str, job: Job):
             return {"message": "Job not found"}
         job_to_update.processed_by = job.processed_by
         job_to_update.status = job.status
+        job_to_update.returned_payload = job.returned_payload
         session.add(job_to_update)
         session.commit()
         session.refresh(job_to_update)
