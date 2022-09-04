@@ -1,1 +1,1 @@
-uvicorn app:app --port 5000 --host 0.0.0.0 --workers 2 --reload --app-dir ./backend --reload
+uvicorn app:app --port 5005 --host 0.0.0.0 --workers 2 --reload --app-dir src/backend --reload

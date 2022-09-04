@@ -21,13 +21,13 @@ class LSFClient(object):
         self.wd = wd
         self.init = init
         self.is_connected = False
+        self.ssh_client = None
         if self.wd is not None:
             print("Working directory: ", self.wd)
         
     def _connect(self):
         # Todo: use a context manager to auto-connect, and close the connection
         logger.info(f"Connecting to host: {self.username}@{self.host}")
-
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -48,54 +48,33 @@ class LSFClient(object):
             password=self.password,
             sock=sock,
         )
-
         client.connect(**kwargs)
         self.ssh_client = client
         logger.info(f"Connected to host {self.username}@{self.host}")
         self.is_connected = True
 
-    def _execute_raw(self, command):
-        stdin, stdout, stderr = self.ssh_client.exec_command(command)
-        out = stdout.read().decode("utf-8").strip()
-        error = stderr.read().decode("utf-8").strip()
-        if error:
-            logger.error(error)
-        return out
-
+    def execute_raw(self, command):
+        try:
+            stdin, stdout, stderr = self.ssh_client.exec_command(command)
+            out = stdout.read().decode("utf-8").strip()
+            error = stderr.read().decode("utf-8").strip()
+            if error:
+                logger.error(error)
+            return out
+        except Exception as e:
+            logger.error(e)
+            return None
     def execute(self, command):
         parsed_command = f"cd {self.wd} && {self.init} ;{command}"
-        return self._execute_raw(parsed_command)
+        return self.execute_raw(parsed_command)
     
     def execute_raw_in_wd(self, command):
         command = f"cd {self.wd} && {command}"
-        return self._execute_raw(command)
+        return self.execute_raw(command)
 
-    def is_successful(self, work_dir, job_id):
-        file_content = self._execute_raw(
-            f"cd {self.wd}/{work_dir} && cat lsf.o{job_id}")
+    def is_successful(self, work_dir, filename):
+        file_content = self.execute_raw(
+            f"cd {self.wd}/{work_dir} && cat {filename}")
         if 'Successfully completed.' in file_content:
             return True
         return False
-
-
-if __name__ == "__main__":
-    from pydantic import BaseSettings
-
-    class Settings(BaseSettings):
-        lsf_host: str
-        lsf_username: str
-        lsf_password: str
-        lsf_wd: str
-        lsf_init: str
-
-        class Config:
-            env_file = '.env'
-            env_file_encoding = 'utf-8'
-    settings = Settings()
-    lsf_client = LSFClient(
-        host=settings.lsf_host,
-        username=settings.lsf_username,
-        password=settings.lsf_password,
-        wd=settings.lsf_wd,
-        init=settings.lsf_init,
-    )
