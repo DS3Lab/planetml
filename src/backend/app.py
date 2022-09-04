@@ -160,6 +160,12 @@ def update_job(id: str, job: Job):
         session.refresh(job_to_update)
         return job_to_update
 
+@app.get("s3/{filename}")
+def access_s3(filename: str):
+    """
+    Access S3
+    """
+    return {"message": "Not implemented"}
 
 if __name__ == "__main__":
     settings = Settings()
