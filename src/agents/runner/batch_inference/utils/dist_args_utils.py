@@ -8,7 +8,6 @@ def add_device_arguments(parser):
     parser.add_argument('--debug-mem', default=True, type=lambda x: (str(x).lower() == 'true'),
                         help='if this is set to True, we will print some memory stats.')
 
-
 def add_torch_distributed_arguments(parser):
     parser.add_argument('--dist-backend', type=str, default='cupy_nccl', metavar='S',
                         help='backend type for distributed PyTorch (default: cupy_nccl)')
