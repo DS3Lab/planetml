@@ -1,15 +1,16 @@
 
 <template>
     <div class="">
-        <div class="grid grid-cols-1 gap-3 lg:grid-cols-4 mb-3" v-if="is_loaded">
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-4 mb-3"
+            v-if="is_loaded">
             <CardBoxWidget color="text-emerald-500" :number="running_jobs"
-                suffix=" TFlops" label="Running Jobs" />
+                prefix="# " label="Running Jobs" />
             <CardBoxWidget color="text-blue-500" :number="finished_jobs"
                 prefix="# " label="Finished Jobs" />
             <CardBoxWidget color="text-red-500" :number="pending_jobs"
-                suffix=" TFlops" label="Pending Jobs" />
-                <CardBoxWidget color="text-red-500" :number="failed_jobs"
-                suffix=" TFlops" label="Failed Jobs" />
+                prefix="# " label="Pending Jobs" />
+            <CardBoxWidget color="text-red-500" :number="failed_jobs"
+                prefix="# " label="Failed Jobs" />
         </div>
         <Vue3EasyDataTable v-if="is_loaded" :headers="headers" :items="items"
             alternating show-index>
@@ -22,15 +23,40 @@
                 </div>
             </template>
             <template #item-status="{ status }">
-                <span
-                    class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
-                    <svg aria-hidden="true" class="mr-1 w-3 h-3"
-                        fill="currentColor" viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                            clip-rule="evenodd"></path>
+                <span v-if="status == 'submitted' || status=='pending'">
+                    class="bg-blue-100 text-blue-800 text-xs font-medium
+                    inline-flex items-center px-2.5 py-0.5 rounded
+                    dark:bg-blue-200 dark:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 32 32" stroke-width="1.5"
+                        stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
+                    {{ status }}
+                </span>
+                <span v-if="status == 'finished'"
+                    class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 32 32" stroke-width="1.5"
+                        stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+                    </svg>
+                    {{ status }}
+                </span>
+                <span v-if="status == 'running'"
+                    class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 32 32" stroke-width="1.5"
+                        stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                    </svg>
+                    {{ status }}
+                </span>
+                <span v-else
+                    class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
                     {{ status }}
                 </span>
             </template>
@@ -62,18 +88,19 @@ const headers = [
 ];
 
 function update_jobs_list() {
-    running_jobs.value = 0
-    failed_jobs.value = 0
-    pending_jobs.value = 0
-    finished_jobs.value = 0
+    
     get_jobs_list().then((response) => {
         items.value = response.data
+        running_jobs.value = 0
+        failed_jobs.value = 0
+        pending_jobs.value = 0
+        finished_jobs.value = 0
         items.value.map((item) => {
             if (item.status == "running") {
                 running_jobs.value += 1
             } else if (item.status == "failed") {
                 failed_jobs.value += 1
-            } else if (item.status == "pending") {
+            } else if (item.status == "queued" || item.status == "submitted") {
                 pending_jobs.value += 1
             } else if (item.status == "finished") {
                 finished_jobs.value += 1
@@ -95,5 +122,9 @@ onMounted(() => {
 <style>
 span.header {
     justify-content: center;
+}
+
+span {
+    text-transform: capitalize;
 }
 </style>
