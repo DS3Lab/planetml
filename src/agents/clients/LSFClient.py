@@ -23,7 +23,7 @@ class LSFClient(object):
         self.is_connected = False
         if self.wd is not None:
             print("Working directory: ", self.wd)
-
+        
     def _connect(self):
         # Todo: use a context manager to auto-connect, and close the connection
         logger.info(f"Connecting to host: {self.username}@{self.host}")
@@ -54,11 +54,7 @@ class LSFClient(object):
         logger.info(f"Connected to host {self.username}@{self.host}")
         self.is_connected = True
 
-    def execute(self, command):
-        parsed_command = f"cd {self.wd} && {self.init} ;{command}"
-        return self.execute_raw(parsed_command)
-
-    def execute_raw(self, command):
+    def _execute_raw(self, command):
         stdin, stdout, stderr = self.ssh_client.exec_command(command)
         out = stdout.read().decode("utf-8").strip()
         error = stderr.read().decode("utf-8").strip()
@@ -66,8 +62,17 @@ class LSFClient(object):
             logger.error(error)
         return out
 
+    def execute(self, command):
+        parsed_command = f"cd {self.wd} && {self.init} ;{command}"
+        return self._execute_raw(parsed_command)
+    
+    def execute_raw_in_wd(self, command):
+        command = f"cd {self.wd} && {command}"
+        print(command)
+        return self._execute_raw(command)
+
     def is_successful(self, work_dir, job_id):
-        file_content = self.execute_raw(
+        file_content = self._execute_raw(
             f"cd {self.wd}/{work_dir} && cat lsf.o{job_id}")
         print(file_content)
         if 'Successfully completed.' in file_content:
