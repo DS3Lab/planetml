@@ -31,6 +31,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
         self.worker_nodes = OrderedDict()
         self.prime_worker_ip = None
         self.jobs = []
+        self.allocated_index = 0
         self.submit_lock = False
         self.client = LSFClient(
             host=settings.euler_lsf_host,
@@ -39,13 +40,14 @@ class BatchInferenceCoordinator(LocalCoordinator):
             wd=settings.euler_lsf_wd,
             init=settings.euler_lsf_init,
         )
-        self.client._connect()
+        
 
     def _allocate_index(self):
         self.allocated_index = (self.allocated_index + 1) % 10000
         return self.allocated_index
 
     def dispatch(self, job):
+        self.client._connect()
         """
         job: fields: machine_size, world_size, infer_data, job_name
         """
@@ -61,10 +63,13 @@ class BatchInferenceCoordinator(LocalCoordinator):
         demand_worker_num = machine_size
         for i in range(demand_worker_num):
             # generate bsub file on the fly
-            result = self.client.execute("ls")
-            print(result)
-            result = self.client.execute(
-                f"cd {settings().lsf_init}/batch_inference/submit_cache/ && && bsub < {job['job_name']}_{i + 1}.bsub"
+            result = self.client.execute_raw_in_wd(f"cd runner/src/agents/runner/batch_inference/submit_cache && cp ../submission_template.jinja ./submit_{i+1}.bsub")
+            print('copied template to submit.bsub')
+            result = self.client.execute_raw_in_wd(f"cd runner/src/agents/runner/batch_inference/submit_cache && ls && echo \'--lsf-job-no {self._allocate_index()} --infer-data {job_payload['infer_data']}\' >> submit_{i + 1}.bsub")
+
+            logger.info(f"submission file for worker {i} is prepared...")
+            result = self.client.execute_raw_in_wd(
+                f"cd runner/src/agents/runner/batch_inference/submit_cache && bsub < submit_{i + 1}.bsub"
             )
             print(result)
             job_id = result.split("<")[1].split(">")[0]
