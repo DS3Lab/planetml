@@ -18,7 +18,6 @@ class BatchInferenceCoordinator(LocalCoordinator):
         super().__init__(name)
         self.name = "batch_inference"
         self.allocated_index = 0
-        self.watch_job_map = {}
         self.planetml = PlanetML()
         self.client = client
 
@@ -70,11 +69,6 @@ class BatchInferenceCoordinator(LocalCoordinator):
             job_id = result.split("<")[1].split(">")[0]
             queue_id = result.split("<")[2].split(">")[0]
             logger.info(f"job submitted, job_id: {job_id}, queue_id: {queue_id}")
-            self.watch_job_map[job['id']] = {
-                "processed_by": f"{job_id}:{queue_id}:euler.ethz.ch",
-                "status": "queued",
-                "job_data": job,
-            }
             self.planetml.update_job_status(
                 job_id=job['id'],
                 processed_by=f"{job_id}:{queue_id}:euler.ethz.ch",
@@ -83,8 +77,3 @@ class BatchInferenceCoordinator(LocalCoordinator):
                 type=job['type'],
                 returned_payload={}
             )
-
-    def check_job_status(self):
-        results = self.client.execute_raw("bjobs -json -o 'jobid stat queue'")
-        records = json.loads(results)
-        return records['RECORDS']

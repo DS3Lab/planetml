@@ -8,7 +8,7 @@ import torch
 from torch import autocast
 from loguru import logger
 from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
-
+import random
 from utils.dist_args_utils import *
 from utils.coordinator_client import LocalCoordinatorClient
 from utils.s3 import upload_file
@@ -76,11 +76,15 @@ def main():
         with torch.no_grad():
             with autocast("cuda"):
                 img_results = []
+                generated_image_ids = []
                 for i in range(len(text)):
                     for j in range(num_return_sequences[i]):
                         image = pipe(text[i])["sample"][0]
-                        image.save(os.path.join(output_dir, "test.png"))
-                        succ, img_id = upload_file(os.path.join(output_dir, "test.png"))
+                        # randomly generate a image id
+                        image_id = random.randint(0, 100000000)
+                        image.save(os.path.join(output_dir, f"{image_id}.png"))
+                        generated_image_ids.append(os.path.join(output_dir, f"{image_id}.png"))
+                        succ, img_id = upload_file(os.path.join(output_dir, f"{image_id}.png"))
                         if succ:
                             img_results.append("https://planetd.shift.ml/files/"+img_id)
                         else:
@@ -92,5 +96,8 @@ def main():
                     "finished",
                     returned_payload=results
                 )
+                # clear cache
+                for image_id in generated_image_ids:
+                    os.remove(image_id)
 if __name__ == '__main__':
     main()
