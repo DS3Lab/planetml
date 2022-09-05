@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.0",
+    "@codemirror/theme-one-dark": "^6.0.0",
     "@mdi/js": "^7.0.96",
     "axios": "^0.27.2",
     "chart.js": "^3.9.1",
@@ -17,12 +19,15 @@
     "date-fns": "^2.29.2",
     "flowbite": "^1.5.3",
     "highlight.js": "^11.6.0",
+    "lodash": "^4.17.21",
     "numeral": "^2.0.6",
     "pinia": "^2.0.21",
     "plotly.js-dist": "^2.14.0",
-    "simple-code-editor": "^1.2.2",
+    "prismjs": "^1.29.0",
+    "sass": "^1.54.8",
     "vue": "^3.2.38",
     "vue-json-pretty": "^2.2.2",
+    "vue-prism-editor": "2.0.0-alpha.2",
     "vue-router": "^4.1.5",
     "vue3-easy-data-table": "^1.4.17"
   },
