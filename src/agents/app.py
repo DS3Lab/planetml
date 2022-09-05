@@ -98,7 +98,3 @@ def fetch_failed_or_submitted_jobs():
 
     except Exception as e:
         logger.error(e)
-
-if __name__=='__main__':
-    import requests
-    requests.post("http://coordinator.shift.ml/eth/rank/1", json={"ip":"xxx", "rank": 0})
