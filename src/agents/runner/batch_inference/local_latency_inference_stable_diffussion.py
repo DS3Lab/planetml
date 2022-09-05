@@ -1,6 +1,10 @@
+import time
+import base64
+import argparse
+from io import BytesIO
+from datetime import datetime
 import os
 import torch
-import argparse
 from torch import autocast
 from loguru import logger
 from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
@@ -53,21 +57,36 @@ def main():
 
         job_request = return_msg
 
-        num_return_sequences = job_request['num_returns']
-        text = [job_request['input']]
+        
+        if isinstance(job_request['input'], str):
+            text = [job_request['input']]
+            num_return_sequences = [job_request['num_returns']]
+        
+        elif isinstance(job_request['input'], list):
+            text = job_request['input']
+            if isinstance(job_request['num_returns'], int):
+                num_return_sequences = [job_request['num_returns']]*len(text)
+            else:
+                num_return_sequences = job_request['num_returns']
+        
+        if len(text)!=len(num_return_sequences):
+            raise ValueError("The length of text and num_return_sequences (if given as a list) should be the same.")
+
         results = job_request.copy()
+        results['output'] = []
         with torch.no_grad():
             with autocast("cuda"):
                 img_results = []
-                for i in range(num_return_sequences):
-                    image = pipe(text)["sample"][0]
-                    image.save(os.path.join(output_dir, "test.png"))
-                    succ, img_id = upload_file(os.path.join(output_dir, "test.png"))
-                    if succ:
-                        img_results.append("https://planetd.shift.ml/files/"+img_id)
-                    else:
-                        logger.error("Upload image failed")
-                results["output"] = img_results
+                for i in range(len(text)):
+                    for j in range(num_return_sequences[i]):
+                        image = pipe(text[i])["sample"][0]
+                        image.save(os.path.join(output_dir, "test.png"))
+                        succ, img_id = upload_file(os.path.join(output_dir, "test.png"))
+                        if succ:
+                            img_results.append("https://planetd.shift.ml/files/"+img_id)
+                        else:
+                            logger.error("Upload image failed")
+                    results["output"].append(img_results)
                 lsf_coordinator_client.save_output_job_to_dfs(results)
                 update_status(
                     args.job_id,
