@@ -15,6 +15,10 @@ function get_status_history() {
     return axios.get(tomaapi_endpoint + '/site_stats')
 }
 
+function get_job_status(job_id) {
+    return axios.get(tomaapi_endpoint + '/job/' + job_id)
+}
+
 function add_new_job(job_payload) {
     let request_json = {
         "type": "general",
@@ -49,5 +53,6 @@ export {
     get_jobs_list,
     get_status_history,
     domain_to_name,
-    add_new_job
+    add_new_job,
+    get_job_status,
 }

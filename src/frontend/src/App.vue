@@ -14,9 +14,9 @@ import PMFooter from './components/PMFooter.vue';
     <router-view />
   </main>
 
-  <footer class="fixed inset-x-0 bottom-0">
+  <!--<footer class="fixed inset-x-0 bottom-0">
     <PMFooter />
-  </footer>
+  </footer>-->
 
 </template>
 
