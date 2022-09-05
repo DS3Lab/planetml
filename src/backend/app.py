@@ -22,15 +22,18 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8'
 
 
-# rollbar.init(Settings().rollbar_key)
+rollbar.init(Settings().rollbar_key)
 
 app = FastAPI(title="TOMA API",
               description="Together Open Inference Program", version="0.1.0")
-#rollbar_add_to(app)
+rollbar_add_to(app)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*']
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 engine = None
@@ -102,6 +105,7 @@ def add_job(job: Job):
             session.commit()
             session.refresh(job)
     return job
+
 @app.get("/sites")
 def get_sites():
     """
@@ -157,6 +161,17 @@ def get_jobs():
     """
     with Session(engine) as session:
         return session.query(Job).all()
+
+@app.get("/job/{id}", response_model=Job)
+def get_job(id):
+    """
+    Get a job by id
+    """
+    with Session(engine) as session:
+        job = session.get(Job, id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return job
 
 @app.get("/jobs/submitted", response_model=List[Job])
 def get_unfinished_jobs():
