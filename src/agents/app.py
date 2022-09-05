@@ -4,12 +4,16 @@ from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 from loguru import logger
 from pydantic import BaseSettings
+
 import sys
+import random
 sys.path.append('./')
-from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
-from src.agents.utils.planetml import PlanetML
-from src.agents.utils.pprint import print_table
+
 from src.agents.clients.LSFClient import LSFClient
+from src.agents.utils.pprint import print_table
+from src.agents.utils.planetml import PlanetML
+from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
+
 
 class Settings(BaseSettings):
     euler_lsf_host: str
@@ -22,24 +26,32 @@ class Settings(BaseSettings):
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
 
-lc_app = FastAPI(debug=True, docs_url="/eth/docs", openapi_url="/eth/api/v1/openapi.json")
+
+lc_app = FastAPI(debug=True, docs_url="/eth/docs",
+                 openapi_url="/eth/api/v1/openapi.json")
 
 watched_jobs = {}
+watched_ports = {}
+occupied_port = set()
 settings = Settings()
 
 planetml_client = PlanetML()
+
 
 @lc_app.get("/eth/heartbeat/:id")
 async def root():
     return {"message": "ok"}
 
+
 @lc_app.get("/eth/health")
 async def health():
     return {"message": "ok"}
 
+
 @lc_app.post("/eth/node_join")
 async def node_join():
     return {"message": "ok"}
+
 
 @lc_app.post("/eth/rank/{job_id}")
 async def post_rank(job_id, req: Request):
@@ -47,10 +59,20 @@ async def post_rank(job_id, req: Request):
     req: {"ip":"xxx"}
     """
     if job_id not in watched_jobs:
-        watched_jobs[job_id] = [await req.json()]
+        # randomly generate a port
+        port = random.randint(10000, 60000)
+        job_info = await req.json()
+        watched_ports[job_id] = port
+        watched_jobs[job_id] = [job_info]
     else:
+        job_info = await req.json()
         watched_jobs[job_id].append(await req.json())
-    return {"prime_ip":watched_jobs[job_id][0], "rank":len(watched_jobs[job_id])-1}
+    return {
+        "prime_ip": watched_jobs[job_id][0]['ip'],
+        "rank": len(watched_jobs[job_id])-1,
+        "nccl_port": watched_ports[job_id],
+    }
+
 
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
@@ -60,7 +82,7 @@ async def update_status(id, req: Request):
         res = planetml_client.update_job_status(
             id,
             status=request_json['status'],
-            returned_payload = request_json['returned_payload'],
+            returned_payload=request_json['returned_payload'],
             type="general",
             source='dalle'
         )
@@ -72,6 +94,7 @@ async def update_status(id, req: Request):
             source='dalle'
         )
     return {"message": "ok"}
+
 
 @lc_app.on_event("startup")
 @repeat_every(seconds=60)  # fetch jobs every $ seconds
@@ -86,13 +109,15 @@ def fetch_failed_or_submitted_jobs():
         )
         logger.info("Fetching and dispatching jobs")
         jobs = planetml_client.get_jobs()
-        bi_jobs = [x for x in jobs if x['source']=='dalle' and x['status']=='submitted']
+        bi_jobs = [x for x in jobs if x['source'] ==
+                   'dalle' and x['status'] == 'submitted']
 
         logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
-        
+
         if len(bi_jobs) > 0:
             lsf_client._connect()
-            bi_coordinator = BatchInferenceCoordinator("batch_inference", lsf_client)
+            bi_coordinator = BatchInferenceCoordinator(
+                "batch_inference", lsf_client)
         for each in bi_jobs:
             bi_coordinator.dispatch(each)
 
