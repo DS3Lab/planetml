@@ -9,9 +9,8 @@ import sys
 import random
 sys.path.append('./')
 
-from src.agents.clients.LSFClient import LSFClient
-from src.agents.utils.pprint import print_table
 from src.agents.utils.planetml import PlanetML
+from src.agents.clients.LSFClient import LSFClient
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 
 

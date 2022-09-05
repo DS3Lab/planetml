@@ -24,7 +24,7 @@
             </template>
             <template #item-status="{ status }">
                 <span v-if="status == 'submitted' || status=='queued'"
-                    class="bg-yellow-100 text-yellow-800 text-xs font-medium
+                    class="job_status bg-yellow-100 text-yellow-800 text-xs font-medium
                     inline-flex items-center px-2.5 py-0.5 rounded
                     dark:bg-yellow-200 dark:text-yellow-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -36,7 +36,7 @@
                     {{ status }}
                 </span>
                 <span v-if="status == 'finished'"
-                    class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-800">
+                    class="job_status bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 32 32" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
@@ -46,7 +46,7 @@
                     {{ status }}
                 </span>
                 <span v-if="status == 'running'"
-                    class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                    class="job_status bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 32 32" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
@@ -56,7 +56,7 @@
                     {{ status }}
                 </span>
                 <span v-if="status == 'failed'"
-                    class="bg-red-100 text-red-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-red-200 dark:text-red-800">
+                    class="job_status bg-red-100 text-red-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-red-200 dark:text-red-800">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 32 32" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
@@ -125,12 +125,12 @@ onMounted(() => {
 
 </script>
 
-<style>
+<style scoped>
 span.header {
     justify-content: center;
 }
 
-span {
+span .job_status {
     text-transform: capitalize;
 }
 </style>
