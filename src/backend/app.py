@@ -1,18 +1,14 @@
 import boto3
-import boto3
+import rollbar
 from schemas.resource import Site, SiteStat
 from schemas.job import Job
 from typing import List
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from fastapi.responses import StreamingResponse
-import rollbar
 from rollbar.contrib.fastapi import add_to as rollbar_add_to
-from fastapi import FastAPI, HTTPException
-from fastapi import FastAPI, HTTPException
 
 class Settings(BaseSettings):
     db_database: str
@@ -26,12 +22,11 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8'
 
 
-rollbar.init(Settings().rollbar_key)
+# rollbar.init(Settings().rollbar_key)
 
 app = FastAPI(title="TOMA API",
               description="Together Open Inference Program", version="0.1.0")
-rollbar_add_to(app)
-
+#rollbar_add_to(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,17 +68,44 @@ def add_resource(stat: SiteStat):
         session.refresh(stat)
         return stat
 
-@app.post("/jobs", response_model=Job)
+#@app.post("/jobs", response_model=Job)
+@app.post("/jobs")
 def add_job(job: Job):
     """
     Adding a new job to the database
+    
+    * If jobs is too large, then splits it into multiple jobs, the old job will be marked as type=shadow. Threshold is fixed now to be 1000 (rows), or 10 MB (if file is provided, not implemented yet)
+    * The slice should be determined dynamically, but now it is set to be 100
+    """
+    with Session(engine) as session:
+        split_threshold = 10
+        split_step = 5
+        if isinstance(job.payload, list) and len(job.payload) > split_threshold:
+            job.subjobs = []
+            for i in range(0, len(job.payload), split_step):
+                sub_job:Job = Job(
+                    payload = job.payload[i:i+split_step],
+                    type = job.type,
+                    status = job.status,
+                    processed_by = job.processed_by,
+                    source= job.source,
+                )
+                session.add(sub_job)
+                
+                job.subjobs.append(str(sub_job.id))
+            job.type = "shadow"
+            session.add(job)
+            session.commit()
+            session.refresh(job)
+            print(job)
+    return job
     """
     with Session(engine) as session:
         session.add(job)
         session.commit()
         session.refresh(job)
         return job
-
+    """
 @app.get("/sites")
 def get_sites():
     """
@@ -127,7 +149,7 @@ def get_site_stats():
 def get_site_stats():
     """
     Get all site stats
-    This returns full information
+    This returns full information, including resources
     """
     with Session(engine) as session:
         return session.query(SiteStat).order_by(SiteStat.created_at.desc()).limit(150).all()
@@ -140,38 +162,13 @@ def get_jobs():
     with Session(engine) as session:
         return session.query(Job).all()
 
-@app.get("/jobs/unfinished", response_model=List[Job])
+@app.get("/jobs/submitted", response_model=List[Job])
 def get_unfinished_jobs():
     """
-    Get all unfinished jobs
-    # TODO: add a filter to the query
+    Get only submitted jobs (for local coordinators to dispatch)
     """
     with Session(engine) as session:
-        return session.query(Job).all()
-@app.get("/jobs/unfinished", response_model=List[Job])
-def get_unfinished_jobs():
-    """
-    Get all unfinished jobs
-    # TODO: add a filter to the query
-    """
-    with Session(engine) as session:
-        return session.query(Job).all()
-@app.get("/jobs/unfinished", response_model=List[Job])
-def get_unfinished_jobs():
-    """
-    Get all unfinished jobs
-    # TODO: add a filter to the query
-    """
-    with Session(engine) as session:
-        return session.query(Job).all()
-@app.get("/jobs/unfinished", response_model=List[Job])
-def get_unfinished_jobs():
-    """
-    Get all unfinished jobs
-    # TODO: add a filter to the query
-    """
-    with Session(engine) as session:
-        return session.query(Job).all()
+        return session.query(Job).where(Job.status=='submitted').all()
 
 @app.patch("/jobs/{id}", response_model=Job)
 def update_job(id: str, job: Job):
@@ -192,19 +189,6 @@ def update_job(id: str, job: Job):
         session.refresh(job_to_update)
         return job_to_update
 
-@app.get("/files/{filename}")
-def access_s3(filename: str):
-    try:
-        result = s3.get_object(Bucket="toma-all", Key=filename)
-        return StreamingResponse(content=result["Body"].iter_chunks())
-    except Exception as e:
-        if hasattr(e, "message"):
-            raise HTTPException(
-                status_code=e.message["response"]["Error"]["Code"],
-                detail=e.message["response"]["Error"]["Message"],
-            )
-        else:
-            raise HTTPException(status_code=500, detail=str(e))
 @app.get("/files/{filename}")
 def access_s3(filename: str):
     try:
