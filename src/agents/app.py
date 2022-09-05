@@ -44,13 +44,13 @@ async def node_join():
 @lc_app.post("/eth/rank/{job_id}")
 async def post_rank(job_id, req: Request):
     """
-    req: {"ip":"xxx", "rank": 0}
+    req: {"ip":"xxx"}
     """
     if job_id not in watched_jobs:
         watched_jobs[job_id] = [await req.json()]
     else:
         watched_jobs[job_id].append(await req.json())
-    return watched_jobs[job_id][0]
+    return {"prime_ip":watched_jobs[job_id][0], "rank":len(watched_jobs[job_id])-1}
 
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
@@ -87,7 +87,9 @@ def fetch_failed_or_submitted_jobs():
         logger.info("Fetching and dispatching jobs")
         jobs = planetml_client.get_jobs()
         bi_jobs = [x for x in jobs if x['source']=='dalle' and x['status']=='submitted']
+
         logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
+        
         if len(bi_jobs) > 0:
             lsf_client._connect()
             bi_coordinator = BatchInferenceCoordinator("batch_inference", lsf_client)
