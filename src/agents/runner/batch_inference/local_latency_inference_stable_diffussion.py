@@ -57,7 +57,6 @@ def main():
 
         job_request = return_msg
 
-        
         if isinstance(job_request['input'], str):
             text = [job_request['input']]
             num_return_sequences = [job_request['num_returns']]

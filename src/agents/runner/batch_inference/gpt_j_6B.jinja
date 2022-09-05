@@ -1,20 +1,15 @@
 #!/bin/bash
-#BSUB -n 1                     # 1 cores
+#BSUB -n 1                      # 1 cores
 #BSUB -W 3:59                   # 3 hours run-time
 #BSUB -R "rusage[mem=8000]"     # 8 GB per core
 #BSUB -R "rusage[ngpus_excl_p=1]"
 #BSUB -R "select[gpu_mtotal0>=10000]"
-#BSUB -o /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/exe_log/gptj.out.%J
-#BSUB -e /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/exe_log/gptj.err.%J
+#BSUB -o /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/exec_log/out.%J
+#BSUB -e /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/exec_log/err.%J
 . /cluster/apps/local/env2lmod.sh
 module load gcc/8.2.0 python_gpu/3.9.9 cuda/11.0.3 eth_proxy zsh/5.8
 source /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/planetml_env/bin/activate
 cd /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/GPT-home-private      # Change directory
-
-
-
-nvidia-smi
-ifconfig
 
 world_size=2
 

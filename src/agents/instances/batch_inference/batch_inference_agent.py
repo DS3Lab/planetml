@@ -9,7 +9,6 @@ from .._base import LocalCoordinator
 from src.agents.clients.LSFClient import LSFClient
 from src.agents.utils.planetml import PlanetML
 
-
 class BatchInferenceCoordinator(LocalCoordinator):
     def __init__(self,
                  name,

@@ -97,15 +97,11 @@ def add_job(job: Job):
             session.add(job)
             session.commit()
             session.refresh(job)
-            print(job)
+        else:
+            session.add(job)
+            session.commit()
+            session.refresh(job)
     return job
-    """
-    with Session(engine) as session:
-        session.add(job)
-        session.commit()
-        session.refresh(job)
-        return job
-    """
 @app.get("/sites")
 def get_sites():
     """
