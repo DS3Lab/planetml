@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import SectionMain from "@/components/SectionMain.vue";
 import CardBox from "@/components/CardBox.vue";
 import FormField from "@/components/FormField.vue";
@@ -12,19 +12,17 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism-tomorrow.css';
 import { add_new_job, get_job_status } from '@/services/api';
 
-const request_json = ref(`
-{
-    "input": "The answer to the universe, and everything",
+const request_json = ref(`{
+    "input": "a super computer",
     "model": "stable_diffusion",
-    "num_returns": 10
-}
-`)
+    "num_returns": 2
+}`)
 
 const job_status = ref({
     "id": "",
     "status": "",
     "processed_by": "",
-    "returned_payload": {"output":[[]]}
+    "returned_payload": { "output": [[]] }
 })
 
 function update_job_status(job_id) {
@@ -51,6 +49,10 @@ function highlighter(code) {
     return highlight(code, languages.json);
 }
 
+onMounted(() => {
+    update_job_status("3fa85f64-5717-4562-b3fc-2c963f66afa6")
+})
+
 </script>
 
     <template>
@@ -73,63 +75,35 @@ function highlighter(code) {
             </CardBox>
             <CardBox>
                 <div>
-                    <p v-if="job_status.id!==''"> >>> Your job is submitted, with the id {{ job_status.id
-                    }}</p>
-                    <p v-if="job_status.processed_by !=='' "> >>> Your job is running, on the queue {{ job_status.processed_by }}</p>
-                    <p v-if="job_status.status==='finished'"> >>> Your job is finished </p>
-                    <p v-if="job_status.status==='finished'"> >>> Your job returned {{ job_status.returned_payload }}
+                    <p class="status_indicator" v-if="job_status.id !== ''"> >>>
+                        Your job is submitted,
+                        with the id {{ job_status.id }}</p>
+                    <p class="status_indicator"
+                        v-if="job_status.status === 'running'"> >>> Your job is
+                        running</p>
+                    <p class="status_indicator"
+                        v-if="job_status.status === 'finished'"> >>> Your job is
+                        finished </p>
+                    <p class="status_indicator"
+                        v-if="job_status.status === 'finished'"> >>> Your job
+                        returned {{ job_status.returned_payload }}
                     </p>
                 </div>
 
             </CardBox>
         </div>
-        <div v-if="job_status.status==='finished'" id="animation-carousel" class="relative" data-carousel="static">
-            <!-- Carousel wrapper -->
-            <div class="relative h-56 overflow-hidden rounded-lg md:h-96" v-for="img_src in job_status.returned_payload.output[0]">
-                <div class="hidden duration-200 ease-linear" data-carousel-item>
-                    <img :src="img_src"
-                        class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                        alt="...">
-                </div>
-            </div>
-            <!-- Slider controls -->
-            <button type="button"
-                class="absolute top-0 left-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
-                data-carousel-prev>
-                <span
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-full sm:w-10 sm:h-10 bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
-                    <svg aria-hidden="true"
-                        class="w-5 h-5 text-white sm:w-6 sm:h-6 dark:text-gray-800"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                    <span class="sr-only">Previous</span>
-                </span>
-            </button>
-            <button type="button"
-                class="absolute top-0 right-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
-                data-carousel-next>
-                <span
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-full sm:w-10 sm:h-10 bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
-                    <svg aria-hidden="true"
-                        class="w-5 h-5 text-white sm:w-6 sm:h-6 dark:text-gray-800"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                    <span class="sr-only">Next</span>
-                </span>
-            </button>
+        <div v-for="img_src in job_status.returned_payload.output[0]"
+            class="max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+            <a href="#">
+                <img class="rounded-t-lg" :src="img_src"
+                    alt="" />
+            </a>
         </div>
-
     </SectionMain>
 </template>
 
 
-<style>
+<style scoped>
 /* required class */
 .my-editor {
     /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
@@ -146,5 +120,9 @@ function highlighter(code) {
 /* optional class for removing the outline */
 .prism-editor__textarea:focus {
     outline: none;
+}
+
+.status_indicator {
+    text-align: left;
 }
 </style>
