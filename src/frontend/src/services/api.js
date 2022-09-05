@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const tomaapi_endpoint = 'https://planetd.shift.ml'
-// const tomaapi_endpoint = 'http://localhost:5000/'
+// const tomaapi_endpoint = 'https://planetd.shift.ml'
+const tomaapi_endpoint = 'http://192.168.191.9:5005'
 
 function get_site_status() {
     return axios.get(tomaapi_endpoint + '/sites')
@@ -16,15 +16,20 @@ function get_status_history() {
 }
 
 function add_new_job(job_payload) {
-    return axios.post(tomaapi_endpoint + '/jobs', {
+    let request_json = {
         "type": "general",
         "payload": job_payload,
         "returned_payload": {},
         "status": "submitted",
         "source": "dalle",
         "processed_by": ""
-        }
-    )
+    }
+    const headers = {
+        'Content-Type': 'application/json',
+      }
+    return axios.post(tomaapi_endpoint + '/jobs', request_json, {
+        headers: headers
+      })
 }
 
 function domain_to_name(domain) {

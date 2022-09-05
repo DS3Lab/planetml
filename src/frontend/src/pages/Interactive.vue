@@ -21,7 +21,7 @@ const request_json = ref(`
 
 const submitPass = () => {
     let request_payload = JSON.parse(request_json.value)
-    console.log(request_payload)
+    
     add_new_job(request_payload).then((response) => {
         console.log(response)
     })
