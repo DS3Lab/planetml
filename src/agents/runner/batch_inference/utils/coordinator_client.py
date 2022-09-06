@@ -14,9 +14,8 @@ class LocalCoordinatorClient:
     def load_input_job_from_dfs(self, job_id):
         doc_path = os.path.join(self.working_directory, 'input_' + job_id + '.json')
         if os.path.exists(doc_path):
-            with self.model_lock:
-                with open(doc_path, 'r') as infile:
-                    doc = json.load(infile)
+            with open(doc_path, 'r') as infile:
+                doc = json.load(infile)
             return doc
         else:
             return None
