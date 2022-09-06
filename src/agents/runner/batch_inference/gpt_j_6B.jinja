@@ -1,7 +1,7 @@
 #!/bin/bash
 #BSUB -n 1                      # 1 cores
 #BSUB -W 3:59                   # 3 hours run-time
-#BSUB -R "rusage[mem=8000]"     # 8 GB per core
+#BSUB -R "rusage[mem=11000]"     # 11 GB per core
 #BSUB -R "rusage[ngpus_excl_p=1]"
 #BSUB -R "select[gpu_mtotal0>=10000]"
 #BSUB -o /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/exec_log/out.%J
