@@ -1,8 +1,4 @@
-import time
-import base64
 import argparse
-from io import BytesIO
-from datetime import datetime
 import os
 import torch
 from torch import autocast
@@ -81,7 +77,7 @@ def main():
                     for j in range(num_return_sequences[i]):
                         image = pipe(text[i])["sample"][0]
                         # randomly generate a image id
-                        image_id = random.randint(0, 100000000)
+                        image_id = random.randint(0, 1000000)
                         image.save(os.path.join(output_dir, f"{image_id}.png"))
                         generated_image_ids.append(os.path.join(output_dir, f"{image_id}.png"))
                         succ, img_id = upload_file(os.path.join(output_dir, f"{image_id}.png"))

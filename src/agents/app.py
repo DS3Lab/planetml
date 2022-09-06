@@ -4,15 +4,15 @@ from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 from loguru import logger
 from pydantic import BaseSettings
-
+import requests
 import sys
 import random
+import json
 sys.path.append('./')
 
 from src.agents.utils.planetml import PlanetML
 from src.agents.clients.LSFClient import LSFClient
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
-
 
 class Settings(BaseSettings):
     euler_lsf_host: str
@@ -25,17 +25,30 @@ class Settings(BaseSettings):
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
 
-
 lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 
 watched_jobs = {}
 watched_ports = {}
+job_payload = {}
 occupied_port = set()
 settings = Settings()
 
 planetml_client = PlanetML()
 
+def preprocess_job(job):
+    if 'url' in job['payload']:
+        res = requests.get(job['payload']['url']).text.strip()
+        for x in res.split("\n"):
+            print(json.loads(x))
+        req_payload_from_file = [json.loads(x) for x in res.split("\n")]
+        job['payload'] = {
+            "input": [ x['input'] for x in req_payload_from_file],
+            "num_returns": [ x['num_returns'] for x in req_payload_from_file],
+            # global coordinator will ensure there is only one model in each batch
+            "model": req_payload_from_file[0]['model'],
+        }
+    return job
 
 @lc_app.get("/eth/heartbeat/:id")
 async def root():
@@ -76,7 +89,6 @@ async def post_rank(job_id, req: Request):
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
     request_json = await req.json()
-    print(request_json)
     if request_json['returned_payload']:
         res = planetml_client.update_job_status(
             id,
@@ -94,6 +106,9 @@ async def update_status(id, req: Request):
         )
     return {"message": "ok"}
 
+@lc_app.get("/eth/job_payload/{job_id}")
+async def get_job_payload(job_id):
+    return job_payload[job_id]
 
 @lc_app.on_event("startup")
 @repeat_every(seconds=60)  # fetch jobs every $ seconds
@@ -108,8 +123,9 @@ def fetch_failed_or_submitted_jobs():
         )
         logger.info("Fetching and dispatching jobs")
         jobs = planetml_client.get_jobs()
-        bi_jobs = [x for x in jobs if x['source'] ==
-                   'dalle' and x['status'] == 'submitted']
+        bi_jobs = [x for x in jobs 
+            if x['source'] == 'dalle' and x['status'] == 'submitted'
+        ]
 
         logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
 
@@ -118,7 +134,10 @@ def fetch_failed_or_submitted_jobs():
             bi_coordinator = BatchInferenceCoordinator(
                 "batch_inference", lsf_client)
         for each in bi_jobs:
+            each = preprocess_job(each)
+            job_payload[each['id']] = each['payload']
             bi_coordinator.dispatch(each)
 
     except Exception as e:
         logger.error(e)
+        raise e.with_traceback()

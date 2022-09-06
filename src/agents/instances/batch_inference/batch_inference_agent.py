@@ -51,7 +51,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
         job_payload_str = json.dumps(job_payload)
 
         self.client.execute_raw_in_wd(
-            f"cd working_dir/{job_payload['model']} && echo \'{job_payload_str}\' > input_{job['id']}.json"
+            f"cd working_dir/{job_payload['model']} && curl -X 'GET' 'https://coordinator.shift.ml/eth/job_payload/{job['id']}' -o input_{job['id']}.json"
         )
         demand_worker_num = machine_size
         for i in range(demand_worker_num):
