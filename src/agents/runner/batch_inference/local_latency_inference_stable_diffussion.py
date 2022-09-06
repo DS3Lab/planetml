@@ -55,7 +55,7 @@ def main():
             if isinstance(job_request['input'], str):
                 text = [job_request['input']]
                 num_return_sequences = [job_request['num_returns']]
-            
+
             elif isinstance(job_request['input'], list):
                 text = job_request['input']
                 if isinstance(job_request['num_returns'], int):
@@ -85,7 +85,6 @@ def main():
                             else:
                                 logger.error("Upload image failed")
                         results["output"].append(img_results)
-                    lsf_coordinator_client.save_output_job_to_dfs(results)
                     update_status(
                         args.job_id,
                         "finished",
@@ -94,5 +93,6 @@ def main():
                     # clear cache
                     for image_id in generated_image_ids:
                         os.remove(image_id)
+
 if __name__ == '__main__':
     main()
