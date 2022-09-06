@@ -10,3 +10,4 @@ sqlalchemy
 dstool
 paramiko
 boto3
+aiobotocore

@@ -1,14 +1,16 @@
+from uuid import uuid4
 import boto3
 import rollbar
 from schemas.resource import Site, SiteStat
 from schemas.job import Job
 from typing import List
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from pydantic import BaseSettings
 from sqlmodel import create_engine, SQLModel, Session, select
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from rollbar.contrib.fastapi import add_to as rollbar_add_to
+from fastapi.datastructures import UploadFile
 
 class Settings(BaseSettings):
     db_database: str
@@ -71,12 +73,10 @@ def add_resource(stat: SiteStat):
         session.refresh(stat)
         return stat
 
-#@app.post("/jobs", response_model=Job)
-@app.post("/jobs")
+@app.post("/jobs", response_model=Job)
 def add_job(job: Job):
     """
     Adding a new job to the database
-    
     * If jobs is too large, then splits it into multiple jobs, the old job will be marked as type=shadow. Threshold is fixed now to be 1000 (rows), or 10 MB (if file is provided, not implemented yet)
     * The slice should be determined dynamically, but now it is set to be 100
     """
@@ -94,7 +94,6 @@ def add_job(job: Job):
                     source= job.source,
                 )
                 session.add(sub_job)
-                
                 job.subjobs.append(str(sub_job.id))
             job.type = "shadow"
             session.add(job)
@@ -213,6 +212,16 @@ def access_s3(filename: str):
             )
         else:
             raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/file",)
+def process_job_local(file: UploadFile = File(...)):
+    with file.file as bytestream:
+        try:
+            filename = f"{str(uuid4())}.jsonl"
+            s3.upload_fileobj(bytestream, "toma-all", filename)
+        except Exception as e:
+            return {"status":"error","message": str(e)}
+    return {"message":"ok", "filename": f"https://planetd.shift.ml/files/{filename}"}
 
 if __name__ == "__main__":
     settings = Settings()
