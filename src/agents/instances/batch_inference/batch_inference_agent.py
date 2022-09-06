@@ -1,10 +1,5 @@
 # This handles batch inference jobs
-
-from tkinter import E
-from typing import OrderedDict
-from pydantic import BaseSettings
 from loguru import logger
-import json
 from .._base import LocalCoordinator
 
 from src.agents.clients.LSFClient import LSFClient
@@ -39,6 +34,8 @@ class BatchInferenceCoordinator(LocalCoordinator):
         else:
             lsf_script_path = job['lsf_script_path']
         job_payload = job['payload']
+        logger.info("job_payload: {}", job_payload[0])
+        
         if "machine_size" in job_payload[0] and "world_size" in job_payload[0]:
             machine_size, world_size = job_payload[0]["machine_size"], job_payload["world_size"][0]
         elif "model" in job_payload[0]:
@@ -46,11 +43,12 @@ class BatchInferenceCoordinator(LocalCoordinator):
             machine_size = 1
             world_size = 1
         else:
-            machine_size, world_size = machine_size_mapping[job_payload[0]['engine']]
+            machine_size, world_size = machine_size_mapping[job_payload[0]['engine']], machine_size_mapping[job_payload[0]['engine']]
 
         if machine_size < 0 or world_size < 0:
             raise ValueError(
                 f"Invalid machine_size or world_size, expected positive integers, got {machine_size} and {world_size}")
+        logger.info("fetching job payload..")
         self.client.execute_raw_in_wd(
             f"cd working_dir && curl -X 'GET' 'https://coordinator.shift.ml/eth/job_payload/{job['id']}' -o input_{job['id']}.json"
         )
@@ -58,7 +56,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
         for i in range(demand_worker_num):
             logger.info("preparing files")
             if 'model' in job_payload[0]:
-                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload['model']}.jinja ./submit_{i + 1}.bsub")
+                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.jinja ./submit_{i + 1}.bsub")
             else:
                 result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['engine']}.jinja ./submit_{i + 1}.bsub")
             print('copied template to submit.bsub')
