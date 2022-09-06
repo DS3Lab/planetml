@@ -1,5 +1,6 @@
 # This handles batch inference jobs
 
+from tkinter import E
 from typing import OrderedDict
 from pydantic import BaseSettings
 from loguru import logger
@@ -9,6 +10,9 @@ from .._base import LocalCoordinator
 from src.agents.clients.LSFClient import LSFClient
 from src.agents.utils.planetml import PlanetML
 
+machine_size_mapping = {
+    'gpt_j_6B': 2
+}
 
 class BatchInferenceCoordinator(LocalCoordinator):
     def __init__(self,
@@ -34,33 +38,33 @@ class BatchInferenceCoordinator(LocalCoordinator):
             lsf_script_path = 'runner/src/agents/runner/batch_inference/submit_cache'
         else:
             lsf_script_path = job['lsf_script_path']
-        logger.info(f"dispatching job {job}")
         job_payload = job['payload']
-        if "machine_size" in job_payload and "world_size" in job_payload:
-            machine_size, world_size = job_payload["machine_size"], job_payload["world_size"]
-        else:
+        if "machine_size" in job_payload[0] and "world_size" in job_payload[0]:
+            machine_size, world_size = job_payload[0]["machine_size"], job_payload["world_size"][0]
+        elif "model" in job_payload[0]:
             logger.warning("Using default parameters for machine_size=1 and world_size=1")
             machine_size = 1
             world_size = 1
+        else:
+            machine_size, world_size = machine_size_mapping[job_payload[0]['engine']]
 
         if machine_size < 0 or world_size < 0:
             raise ValueError(
                 f"Invalid machine_size or world_size, expected positive integers, got {machine_size} and {world_size}")
-        # place payload in a file
-        job_payload['_id'] = job['id']
-        job_payload_str = json.dumps(job_payload)
-
         self.client.execute_raw_in_wd(
-            f"cd working_dir/{job_payload['model']} && curl -X 'GET' 'https://coordinator.shift.ml/eth/job_payload/{job['id']}' -o input_{job['id']}.json"
+            f"cd working_dir && curl -X 'GET' 'https://coordinator.shift.ml/eth/job_payload/{job['id']}' -o input_{job['id']}.json"
         )
         demand_worker_num = machine_size
         for i in range(demand_worker_num):
             logger.info("preparing files")
-            result = self.client.execute_raw_in_wd(
-                f"cd {lsf_script_path} && cp ../{job_payload['model']}.jinja ./submit_{i + 1}.bsub")
+            if 'model' in job_payload[0]:
+                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload['model']}.jinja ./submit_{i + 1}.bsub")
+            else:
+                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['engine']}.jinja ./submit_{i + 1}.bsub")
             print('copied template to submit.bsub')
             result = self.client.execute_raw_in_wd(
-                f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub")
+                f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
+            )
 
             logger.info(f"submission file for worker {i} is prepared...")
             result = self.client.execute_raw_in_wd(
