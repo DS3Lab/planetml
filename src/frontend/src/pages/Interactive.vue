@@ -30,8 +30,8 @@ function update_job_status(job_id) {
         job_status.value.status = response.data.status
         job_status.value.processed_by = response.data.processed_by
         job_status.value.returned_payload = response.data.returned_payload
-        if (!('output' in myObj)) {
-            job_status.value.returned_payload.output = [[]]
+        if (!('output' in job_status.value.returned_payload)) {
+            job_status.value.returned_payload = { "output": [[]] }
         }
     })
 }
