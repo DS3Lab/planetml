@@ -23,11 +23,9 @@ def main():
 
     lsf_coordinator_client = LocalCoordinatorClient(
         "/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir/",
-        'stable_diffusion'
     )
     output_dir = os.path.join(
-        "/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir/", 
-        'stable_diffusion'
+        "/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir/",
     )
     # lsf_coordinator_client.notify_inference_join()
     logger.info("Loading Stable Diffusion model...")

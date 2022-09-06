@@ -39,15 +39,16 @@ planetml_client = PlanetML()
 def preprocess_job(job):
     if 'url' in job['payload']:
         res = requests.get(job['payload']['url']).text.strip()
-        for x in res.split("\n"):
-            print(json.loads(x))
         req_payload_from_file = [json.loads(x) for x in res.split("\n")]
-        job['payload'] = {
-            "input": [ x['input'] for x in req_payload_from_file],
-            "num_returns": [ x['num_returns'] for x in req_payload_from_file],
-            # global coordinator will ensure there is only one model in each batch
-            "model": req_payload_from_file[0]['model'],
-        }
+        if 'model' in req_payload_from_file[0]:
+            job['payload'] = {
+                "input": [ x['input'] for x in req_payload_from_file],
+                "num_returns": [ x['num_returns'] for x in req_payload_from_file],
+                # global coordinator will ensure there is only one model in each batch
+                "model": req_payload_from_file[0]['model'],
+            }
+        else:
+            job['payload'] = req_payload_from_file
     return job
 
 @lc_app.get("/eth/heartbeat/:id")
@@ -132,7 +133,8 @@ def fetch_failed_or_submitted_jobs():
         if len(bi_jobs) > 0:
             lsf_client._connect()
             bi_coordinator = BatchInferenceCoordinator(
-                "batch_inference", lsf_client)
+                "batch_inference", lsf_client
+            )
         for each in bi_jobs:
             each = preprocess_job(each)
             job_payload[each['id']] = each['payload']
