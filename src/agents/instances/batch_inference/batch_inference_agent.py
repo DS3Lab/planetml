@@ -63,7 +63,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
             result = self.client.execute_raw_in_wd(
                 f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
             )
-
+            
             logger.info(f"submission file for worker {i} is prepared...")
             result = self.client.execute_raw_in_wd(
                 f"cd {lsf_script_path} && bsub < submit_{i + 1}.bsub"
