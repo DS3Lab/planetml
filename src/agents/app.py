@@ -41,14 +41,16 @@ def preprocess_job(job):
         res = requests.get(job['payload']['url']).text.strip()
         req_payload_from_file = [json.loads(x) for x in res.split("\n")]
         if 'model' in req_payload_from_file[0]:
-            job['payload'] = {
+            job['payload'] = [{
                 "input": [ x['input'] for x in req_payload_from_file],
                 "num_returns": [ x['num_returns'] for x in req_payload_from_file],
                 # global coordinator will ensure there is only one model in each batch
                 "model": req_payload_from_file[0]['model'],
-            }
+            }]
         else:
             job['payload'] = req_payload_from_file
+    else:
+        job['payload'] = [job['payload']]
     return job
 
 @lc_app.get("/eth/heartbeat/:id")
