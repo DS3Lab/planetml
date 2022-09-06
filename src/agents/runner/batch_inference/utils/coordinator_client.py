@@ -24,9 +24,8 @@ class LocalCoordinatorClient:
     def save_output_job_to_dfs(self, result_doc):
         output_filename = 'output_' + result_doc['_id'] + '.json'
         output_path = os.path.join(self.working_directory, output_filename)
-        with self.model_lock:
-            with open(output_path, 'w') as outfile:
-                json.dump(result_doc, outfile)
+        with open(output_path, 'w') as outfile:
+            json.dump(result_doc, outfile)
         input_filename = 'input_' + result_doc['_id'] + '.json'
         input_path = os.path.join(self.working_directory, input_filename)
         assert os.path.exists(input_path)
