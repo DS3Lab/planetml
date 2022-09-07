@@ -59,9 +59,7 @@ const expandPass = () => {
 
 const submitPass = () => {
     let request_payload
-    console.log(file_mode.value)
-    console.log(file_uploader.value.files)
-    if (file_mode.value) {
+    if (false) {
         upload_file_to_planetd(selected_file.value).then((response) => {
             request_payload = {
                 "url": response.data.filename,
@@ -172,7 +170,7 @@ function highlighter(code) {
                     <p class="status_indicator" v-if="job_status.id !== ''"> >>>
                         Your job is submitted,
                         with the id <a
-                            :href='"http://localhost:5173/report/" + job_status.id'>{{
+                            :href='"/report/" + job_status.id'>{{
                             job_status.id }}</a></p>
                     <p class="status_indicator"
                         v-if="job_status.status === 'running'"> >>> Your job is
