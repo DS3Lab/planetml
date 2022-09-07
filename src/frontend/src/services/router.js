@@ -10,7 +10,7 @@ const routes = [
     { path: '/jobs', component: JobView},
     { path: '/status', component: DashboardView},
     { path: '/interactive', component: InteractiveView},
-    { path: '/report', component: ReportView},
+    { path: '/report/:jobid', component: ReportView},
 ]
 
 const router = createRouter({
