@@ -47,8 +47,8 @@ function update_job_status() {
         source.value = response.data.source
         type.value = response.data.type
         returned_payload.value = response.data.returned_payload['result'].map(function(res){
-            return res['result']
-        })
+            return res['result']['choices'][0]['text']
+        })[0]
         download.value = `https://planetd.shift.ml/job/${job_id.value}`
 
         outputs.value = []
@@ -140,7 +140,7 @@ function highlighter(code) {
                         <dt class="text-sm font-medium text-gray-500">Output</dt>
                         <dd
                             class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                            {{ returned_payload }}
+                            <pre>{{ returned_payload }}</pre>
                         </dd>
                     </div>
                     <div
