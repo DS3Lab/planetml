@@ -4,8 +4,6 @@
             <h1
                 class="text-3xl font-bold text-gray-800 dark:text-white md:text-4xl">
                 Running Batch Inference</h1>
-            
-
                     <p class="mt-6 text-gray-500 dark:text-gray-300">Lorem ipsum
                     dolor sit, amet consectetur adipisicing elit. Libero
                     similique
