@@ -56,7 +56,7 @@ def preprocess_job(job):
         else:
             job['payload'] = req_payload_from_file
     else:
-        job['payload'] = [job['payload']]
+        job['payload'] = [job['payload']] if type(job['payload']) != list else job['payload']
     return job
 
 @lc_app.get("/eth/heartbeat/:id")
@@ -156,8 +156,8 @@ def fetch_failed_or_submitted_jobs():
             # release submit lock
             submit_lock = False
         except Exception as e:
+            submit_lock = False
             logger.error(e)
             raise e.with_traceback()
     else:
-        submit_lock = False
         logger.info("Submit lock is on, skipping this round")

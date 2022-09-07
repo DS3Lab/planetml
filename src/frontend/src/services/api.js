@@ -19,6 +19,14 @@ function get_job_status(job_id) {
     return axios.get(tomaapi_endpoint + '/job/' + job_id)
 }
 
+function upload_file_to_planetd(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    console.log(formData);
+    const headers = { 'Content-Type': 'multipart/form-data' };
+    return axios.post(tomaapi_endpoint + '/file', formData, { headers })
+}
+
 function add_new_job(job_payload) {
     let request_json = {
         "type": "general",
@@ -55,4 +63,5 @@ export {
     domain_to_name,
     add_new_job,
     get_job_status,
+    upload_file_to_planetd,
 }
