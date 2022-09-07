@@ -39,9 +39,13 @@
     const expandPass = () => {
     
         let json_input = JSON.parse(request_json.value);
-        json_input["input"] = eval(json_input["jsinput"])
-        request_json.value = JSON.stringify(json_input, null, 4);
-    
+        try {
+            json_input["input"] = eval(json_input["jsinput"])
+            request_json.value = JSON.stringify(json_input, null, 4);
+        } catch (error) {
+            alert(`Error Expanding jsinput: ${error}`);
+        }
+
     };
     
     const submitPass = () => {

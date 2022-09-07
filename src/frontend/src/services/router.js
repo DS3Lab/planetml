@@ -3,6 +3,7 @@ import Landing from '../pages/Landing.vue';
 import JobView from '../pages/JobView.vue';
 import DashboardView from '../pages/DashboardView.vue';
 import InteractiveView from '../pages/Interactive.vue';
+import ReportView from '../pages/ReportView.vue';
 
 const routes = [
     { path: '/', component: Landing },
