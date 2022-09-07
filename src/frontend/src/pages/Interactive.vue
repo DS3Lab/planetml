@@ -51,13 +51,17 @@
     const submitPass = () => {
         let request_payload = JSON.parse(request_json.value)
     
-        add_new_job(request_payload).then((response) => {
-            job_status.value.id = response.data.id
-            job_status.value.status = response.data.status
-            setInterval(() => {
-                update_job_status(job_status.value.id)
-            }, 5000)
-        })
+        if (request_payload.input === undefined){
+            alert("Cannot find `input` field! If you are providing `jsinput`, did you forget to click 'Evaluate Programmable Prompts'?")
+        }else{
+            add_new_job(request_payload).then((response) => {
+                job_status.value.id = response.data.id
+                job_status.value.status = response.data.status
+                setInterval(() => {
+                    update_job_status(job_status.value.id)
+                }, 5000)
+            })
+        }
     };
     
     function highlighter(code) {
@@ -81,7 +85,7 @@
     
                         <BaseButtons>
                             <BaseButton @click="expandPass" color="info"
-                                type="submit" label="Expand" />
+                                type="submit" label="Evaluate Programmable Prompts" />
                             <BaseButton @click="submitPass" color="info"
                                 type="submit" label="Submit" />
     
