@@ -21,7 +21,7 @@
     "highlight.js": "^11.6.0",
     "lodash": "^4.17.21",
     "numeral": "^2.0.6",
-    "pinia": "^2.0.21",
+    "pinia": "^2.0.22",
     "plotly.js-dist": "^2.14.0",
     "prismjs": "^1.29.0",
     "sass": "^1.54.8",
