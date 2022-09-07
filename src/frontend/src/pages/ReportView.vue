@@ -38,7 +38,7 @@ function update_job_status() {
 
         if (response.data.status == "finished") {
             rendered_finished = true
-            
+
         }
         console.log(returned_payload)
         job_status.value = response.data.status
@@ -46,9 +46,11 @@ function update_job_status() {
         created_at.value = response.data.created_at
         source.value = response.data.source
         type.value = response.data.type
-        returned_payload.value = response.data.returned_payload['result'].map(function(res){
-            return res['result']['choices'][0]['text']
-        })[0]
+        if ('result' in response.data.returned_payload) {
+            returned_payload.value = response.data.returned_payload['result'].map(function (res) {
+                return res['result']['choices'][0]['text']
+            })[0]
+        }
         download.value = `https://planetd.shift.ml/job/${job_id.value}`
 
         outputs.value = []
@@ -136,8 +138,9 @@ function highlighter(code) {
                 </div>
                 <div v-if="job_status === 'finished'">
                     <div
-                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Output</dt>
+                        class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Output
+                        </dt>
                         <dd
                             class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                             <pre>{{ returned_payload }}</pre>
