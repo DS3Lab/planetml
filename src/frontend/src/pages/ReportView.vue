@@ -72,33 +72,6 @@ function update_job_status() {
             }
         //}
         console.log(outputs.value)
-        
-        
-        /*
-        let nprompt = 0
-        for (const prompt_id in response.data.returned_payload.output) {
-            nprompt = nprompt + 1
-            let prompt = ""
-            if(typeof(response.data.payload.input) == "string"){
-                prompt = response.data.payload.input
-            }else{
-                prompt = response.data.payload.input[prompt_id]
-            }
-            let noutput = 0
-            let outputvalues = []
-            for (const output_id in response.data.returned_payload.output[prompt_id]){
-                noutput = noutput + 1
-                outputvalues.push(response.data.returned_payload.output[prompt_id][output_id]) 
-                if(noutput == 10){
-                    break
-                }
-            }
-            outputs.value.push([prompt, outputvalues])
-            if(nprompt == 10){
-                break
-            }
-        }
-        */
 
     });
 
@@ -150,15 +123,6 @@ function highlighter(code) {
                     style="float:left; padding:5px" width="200" height="200" :src='o' /> 
             </div>
 
-            <!--
-            <div v-for="output of outputs">
-                <div> <p>Prompt: {{ output[0] }}</p> </div>
-                <div>
-                    <img v-for="o of output[1]"
-                        style="float:left; padding:5px" width="200" height="200" :src='o' /> 
-                </div>
-            </div>
-            -->
         </div>
     </div>
 </template>

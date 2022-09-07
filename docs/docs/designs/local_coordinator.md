@@ -6,4 +6,4 @@ Local coordinator is responsible for
 * Dispatch jobs to workers.
 * Collect results from workers, and send them back to global coordinator when necessary.
 
-
+Local coordinator is assumed to be running 

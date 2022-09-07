@@ -29,8 +29,7 @@ class Settings(BaseSettings):
 
 rollbar.init(Settings().rollbar_key)
 
-app = FastAPI(title="TOMA API",
-              description="Together Open Inference Program", version="0.1.0")
+app = FastAPI(title="TOMA API", description="Together Open Inference Program", version="0.1.0")
 rollbar_add_to(app)
 
 app.add_middleware(
@@ -208,6 +207,7 @@ def update_job(id: str, job: Job):
     with Session(engine) as session:
         job_to_update = select(Job).where(Job.id == job.id)
         job_to_update = session.exec(job_to_update).one()
+        print(job)
         if job_to_update is None:
             return {"message": "Job not found"}
         if job.processed_by != "":
@@ -216,6 +216,7 @@ def update_job(id: str, job: Job):
             job_to_update.status = job.status
         if job.returned_payload != {}:
             job_to_update.returned_payload = job.returned_payload
+        
         session.add(job_to_update)
         session.commit()
         session.refresh(job_to_update)
