@@ -1,22 +1,13 @@
 <script setup>
 import { onMounted } from 'vue';
 import { get_job_status } from '../services/api'
-import Vue3EasyDataTable from 'vue3-easy-data-table'
 import { ref } from 'vue'
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
-import CardBoxWidget from "@/components/CardBoxWidget.vue";
 import { useRoute } from 'vue-router';
-import { PrismEditor } from 'vue-prism-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
+import { PaperClipIcon } from '@heroicons/vue/20/solid'
 
-let items = ref([])
-let is_loaded = ref(false)
-let running_jobs = ref(0)
-let failed_jobs = ref(0)
-let pending_jobs = ref(0)
-let finished_jobs = ref(0)
-let jobstat = ref("")
 let job_status = ref("")
 let job_id = ref("")
 let request_json = ref("")
@@ -39,13 +30,13 @@ const headers = [
 
 function update_job_status() {
 
-    if (rendered_finished == true){ // this means that the job has finished, and we rendered it already
+    if (rendered_finished == true) { // this means that the job has finished, and we rendered it already
         return
     }
 
     get_job_status(job_id.value).then((response) => {
 
-        if(response.data.status == "finished"){
+        if (response.data.status == "finished") {
             rendered_finished = true
         }
 
@@ -63,13 +54,13 @@ function update_job_status() {
         let nimg = 0
         //for (const trial_id in response.data.returned_payload.output){
         let trial_id = 0
-            for (const prompt_id in response.data.returned_payload.output[trial_id]){
-                nimg = nimg + 1;
-                outputs.value.push(response.data.returned_payload.output[trial_id][prompt_id])
-                if(nimg > 500){
-                    break
-                }
+        for (const prompt_id in response.data.returned_payload.output[trial_id]) {
+            nimg = nimg + 1;
+            outputs.value.push(response.data.returned_payload.output[trial_id][prompt_id])
+            if (nimg > 500) {
+                break
             }
+        }
         //}
         console.log(outputs.value)
 
@@ -92,37 +83,96 @@ function highlighter(code) {
 </script>
 
 <template>
-    <div class="">
-
-        Job ID: {{ job_id }}
-        Status: {{ job_status }}
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <CardBox>
-                <div class="content">
-                    <prism-editor class="my-editor-small" v-model="request_json"
-                        :highlight="highlighter" line-numbers>
-                    </prism-editor>
-                </div>
-            </CardBox>
-            <CardBox>
-                <div>
-                    Created at: {{ created_at }} <br/>
-                    Source: {{ source }} <br/>
-                    Type: {{ type }} <br/>     
-                    Full Response: <a target='_blank' :href='download' >Download here</a>
-                </div>
-            </CardBox>
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Your Job
+                Report</h3>
         </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Job ID</dt>
+                    <dd
+                        class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {{job_id}}</dd>
+                </div>
+                <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd
+                        class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {{job_status}}</dd>
+                </div>
+                <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Created at
+                    </dt>
+                    <dd
+                        class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {{ created_at }}</dd>
+                </div>
+                <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Source</dt>
+                    <dd
+                        class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {{source}}</dd>
+                </div>
+                <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Type</dt>
+                    <dd
+                        class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {{type}}</dd>
+                </div>
+                <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Input</dt>
+                    <dd
+                        class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <!--<vue-json-pretty :data="request_json.trim()" />-->
+                        {{ request_json }}
+                    </dd>
+                </div>
+                <div v-if="job_status == 'finished'">
+                    <div
+                        class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Images
+                        </dt>
+                        <img v-for="o of outputs"
+                            style="float:left; padding:5px" width="200"
+                            height="200" :src='o' />
+                    </div>
+                </div>
 
-        <div v-if="job_status == 'finished'">
-            <h2>Output Snippets (First 500 Results)</h2>
 
-            <div>
-                <img v-for="o of outputs"
-                    style="float:left; padding:5px" width="200" height="200" :src='o' /> 
-            </div>
-
+                <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Attachments
+                    </dt>
+                    <dd
+                        class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <ul role="list"
+                            class="divide-y divide-gray-200 rounded-md border border-gray-200">
+                            <li
+                                class="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
+                                <div class="flex w-0 flex-1 items-center">
+                                    <PaperClipIcon
+                                        class="h-5 w-5 flex-shrink-0 text-gray-400"
+                                        aria-hidden="true" />
+                                    <span
+                                        class="ml-2 w-0 flex-1 truncate">raw_output.json</span>
+                                </div>
+                                <div class="ml-4 flex-shrink-0">
+                                    <a :href="'https://planetd.shift.ml/job/'+job_id"
+                                        class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </dd>
+                </div>
+            </dl>
         </div>
     </div>
 </template>
@@ -156,5 +206,4 @@ span .job_status {
 .prism-editor__textarea:focus {
     outline: none;
 }
-
 </style>

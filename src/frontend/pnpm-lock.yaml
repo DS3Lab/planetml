@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@codemirror/lang-json': ^6.0.0
   '@codemirror/theme-one-dark': ^6.0.0
+  '@heroicons/vue': ^2.0.10
   '@mdi/js': ^7.0.96
   '@vitejs/plugin-vue': ^3.1.0
   autoprefixer: ^10.4.8
@@ -31,6 +32,7 @@ specifiers:
 dependencies:
   '@codemirror/lang-json': 6.0.0
   '@codemirror/theme-one-dark': 6.0.0
+  '@heroicons/vue': 2.0.10_vue@3.2.38
   '@mdi/js': 7.0.96
   axios: 0.27.2
   chart.js: 3.9.1
@@ -130,6 +132,14 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@heroicons/vue/2.0.10_vue@3.2.38:
+    resolution: {integrity: sha512-K32WvSqsuWQrxqAAGCaTELW6VCOgg7OeVP+VBwCMbyeflnguJlCfHNlJ+0z4aPpgJCWB2RESRy3x59t+2byKSg==}
+    peerDependencies:
+      vue: '>= 3'
+    dependencies:
+      vue: 3.2.38
+    dev: false
 
   /@lezer/common/1.0.1:
     resolution: {integrity: sha512-8TR5++Q/F//tpDsLd5zkrvEX5xxeemafEaek7mUp7Y+bI8cKQXdSqhzTOBaOogETcMOVr0pT3BBPXp13477ciw==}
