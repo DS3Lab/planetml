@@ -17,7 +17,7 @@ world_size=16
 
 DIST_CONF="--pp-mode pipe_async_sample_enc_dec_mask --pipeline-group-size $world_size --cuda-id 0"
 MODEL_CONF="--model-type t5 --model-name /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/pretrained_models/ul2-new --num-iters 99999999999"
-INFERENCE_CONF="--budget 20800 --num-layers 2"
+INFERENCE_CONF="--budget 10800 --num-layers 2"
 COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir --profiling no-profiling"
 #!/bin/bash
 

@@ -16,7 +16,7 @@ world_size=8
 
 DIST_CONF="--pp-mode pipe_sync_sample_mask_token_pipe --pipeline-group-size $world_size --cuda-id 0"
 MODEL_CONF="--model-type gptneox --model-name /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/pretrained_models/gpt-neox-20b-new --num-iters 99999999999"
-INFERENCE_CONF="--fp16 --budget 6097 --micro-batch-size 1 --num-layers 6 --max-layers 44"
+INFERENCE_CONF="--fp16 --budget 4000 --micro-batch-size 1 --num-layers 6 --max-layers 44"
 COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir --profiling no-profiling"
 #!/bin/bash
 
