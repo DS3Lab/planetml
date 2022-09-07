@@ -6,7 +6,11 @@ from src.agents.clients.LSFClient import LSFClient
 from src.agents.utils.planetml import PlanetML
 
 machine_size_mapping = {
-    'gpt_j_6B': 2
+    'gpt_j_6B': 2,
+    'gpt_neox': 8,
+    't0_pp': 6,
+    't5': 6,
+    'ul2': 16
 }
 
 class BatchInferenceCoordinator(LocalCoordinator):
@@ -25,7 +29,6 @@ class BatchInferenceCoordinator(LocalCoordinator):
         return self.allocated_index
 
     def dispatch(self, job):
-
         """
         job: fields: machine_size, world_size, infer_data, job_name
         """
@@ -56,9 +59,9 @@ class BatchInferenceCoordinator(LocalCoordinator):
         for i in range(demand_worker_num):
             logger.info("preparing files")
             if 'model' in job_payload[0]:
-                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.jinja ./submit_{i + 1}.bsub")
+                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.lsf.jinja ./submit_{i + 1}.bsub")
             else:
-                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['engine']}.jinja ./submit_{i + 1}.bsub")
+                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['engine']}.lsf.jinja ./submit_{i + 1}.bsub")
             print('copied template to submit.bsub')
             result = self.client.execute_raw_in_wd(
                 f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"

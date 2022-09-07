@@ -66,7 +66,7 @@ def main():
             if len(text)!=len(num_return_sequences):
                 raise ValueError("The length of text and num_return_sequences (if given as a list) should be the same.")
 
-            results = job_request.copy()
+            results = {}
             results['output'] = []
             with torch.no_grad():
                 with autocast("cuda"):

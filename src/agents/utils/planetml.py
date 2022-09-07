@@ -2,10 +2,9 @@ from typing import Dict
 import requests
 from dstool.class_utils import singleton
 
-
 @singleton
 class PlanetML():
-    def __init__(self, endpoint="https://planetd.shift.ml") -> None:
+    def __init__(self, endpoint="http://localhost:5005") -> None:
         self.endpoint = endpoint
 
     def get_jobs(self):
@@ -13,18 +12,16 @@ class PlanetML():
 
     def update_job_status(self,
                           job_id: str,
-                          processed_by: str=None,
-                          status: str=None,
-                          source: str=None,
-                          type: str=None,
+                          processed_by: str="",
+                          status: str="",
+                          source: str="",
+                          type: str="",
                           returned_payload: Dict=None):
         data = {
             "id": job_id,
-            "processed_by": processed_by,
             "status": status,
             "type": type,
             "source": source,
-            "returned_payload": returned_payload
         }
         if processed_by:
             data['processed_by'] = processed_by
@@ -38,6 +35,5 @@ class PlanetML():
             data['returned_payload'] = returned_payload
         else:
             data['returned_payload'] = {}
-        print(data)
         res = requests.patch(self.endpoint+f"/jobs/{job_id}", json=data)
         return res

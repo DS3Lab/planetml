@@ -8,6 +8,7 @@ import requests
 import sys
 import random
 import json
+from typing import Optional
 sys.path.append('./')
 
 from src.agents.utils.planetml import PlanetML
@@ -15,12 +16,16 @@ from src.agents.clients.LSFClient import LSFClient
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 
 class Settings(BaseSettings):
-    euler_lsf_host: str
-    euler_lsf_username: str
-    euler_lsf_password: str
-    euler_lsf_wd: str
-    euler_lsf_init: str
-
+    euler_lsf_host: Optional[str]
+    euler_lsf_username: Optional[str]
+    euler_lsf_password: Optional[str]
+    euler_lsf_wd: Optional[str]
+    euler_lsf_init: Optional[str]
+    stanford_username: Optional[str]
+    stanford_password: Optional[str]
+    stanford_wd: Optional[str]
+    stanford_init: Optional[str]
+    stanford_gateway: Optional[str]
     class Config:
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
@@ -33,6 +38,7 @@ watched_ports = {}
 job_payload = {}
 occupied_port = set()
 settings = Settings()
+submit_lock = False
 
 planetml_client = PlanetML()
 
@@ -114,34 +120,44 @@ async def get_job_payload(job_id):
     return job_payload[job_id]
 
 @lc_app.on_event("startup")
-@repeat_every(seconds=60)  # fetch jobs every $ seconds
+@repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
 def fetch_failed_or_submitted_jobs():
-    try:
-        lsf_client = LSFClient(
-            host=settings.euler_lsf_host,
-            username=settings.euler_lsf_username,
-            password=settings.euler_lsf_password,
-            wd=settings.euler_lsf_wd,
-            init=settings.euler_lsf_init,
-        )
-        logger.info("Fetching and dispatching jobs")
-        jobs = planetml_client.get_jobs()
-        bi_jobs = [x for x in jobs 
-            if x['source'] == 'dalle' and x['status'] == 'submitted'
-        ]
-
-        logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
-
-        if len(bi_jobs) > 0:
-            lsf_client._connect()
-            bi_coordinator = BatchInferenceCoordinator(
-                "batch_inference", lsf_client
+    global submit_lock
+    if not submit_lock:
+        try:
+            lsf_client = LSFClient(
+                host=settings.euler_lsf_host,
+                username=settings.euler_lsf_username,
+                password=settings.euler_lsf_password,
+                wd=settings.euler_lsf_wd,
+                init=settings.euler_lsf_init,
             )
-        for each in bi_jobs:
-            each = preprocess_job(each)
-            job_payload[each['id']] = each['payload']
-            bi_coordinator.dispatch(each)
+            logger.info("Fetching and dispatching jobs")
+            jobs = planetml_client.get_jobs()
+            bi_jobs = [x for x in jobs 
+                if x['source'] == 'dalle' \
+                    and x['status'] == 'submitted' \
+                        and x['type'] == 'general'
+            ]
 
-    except Exception as e:
-        logger.error(e)
-        raise e.with_traceback()
+            logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
+
+            if len(bi_jobs) > 0:
+                lsf_client._connect()
+                bi_coordinator = BatchInferenceCoordinator(
+                    "batch_inference", lsf_client
+                )
+            for each in bi_jobs:
+                # acquire submit lock
+                submit_lock = True
+                each = preprocess_job(each)
+                job_payload[each['id']] = each['payload']
+                bi_coordinator.dispatch(each)
+            # release submit lock
+            submit_lock = False
+        except Exception as e:
+            logger.error(e)
+            raise e.with_traceback()
+    else:
+        submit_lock = False
+        logger.info("Submit lock is on, skipping this round")

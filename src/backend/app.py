@@ -1,17 +1,20 @@
-from uuid import uuid4
 import boto3
 import rollbar
-from schemas.resource import Site, SiteStat
-from schemas.job import Job
+import requests
+from uuid import uuid4
 from typing import List
-from fastapi import FastAPI, HTTPException, File, UploadFile
-from pydantic import BaseSettings
-from sqlmodel import create_engine, SQLModel, Session, select
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from rollbar.contrib.fastapi import add_to as rollbar_add_to
-from fastapi.datastructures import UploadFile
 
+from pydantic import BaseSettings
+from fastapi.datastructures import UploadFile
+from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, File, UploadFile
+from sqlmodel import create_engine, SQLModel, Session, select
+from rollbar.contrib.fastapi import add_to as rollbar_add_to
+
+from schemas.job import Job
+from schemas.resource import Site, SiteStat
+from constants import SPLIT_LAMBDA_URL
 class Settings(BaseSettings):
     db_database: str
     db_username: str
@@ -81,24 +84,41 @@ def add_job(job: Job):
     * The slice should be determined dynamically, but now it is set to be 100
     """
     with Session(engine) as session:
-        split_threshold = 10
-        split_step = 5
-        if isinstance(job.payload, list) and len(job.payload) > split_threshold:
-            job.subjobs = []
-            for i in range(0, len(job.payload), split_step):
-                sub_job:Job = Job(
-                    payload = job.payload[i:i+split_step],
-                    type = job.type,
-                    status = job.status,
-                    processed_by = job.processed_by,
-                    source= job.source,
-                )
-                session.add(sub_job)
-                job.subjobs.append(str(sub_job.id))
-            job.type = "shadow"
-            session.add(job)
-            session.commit()
-            session.refresh(job)
+        # if job payload contains url, and this url is managed by us
+        # dispatch a lambda function, which checks if the job is too large and needs to be split
+        if 'url' in job.payload:
+            if job.payload['url'].startswith('https://planetd.shift.ml'):
+                # later we will also check it here
+                res = requests.post(SPLIT_LAMBDA_URL, json={
+                    "file_id": job.payload['url'].rsplit('/')[-1],
+                    "bucket": "toma-all"
+                })
+                response = res.json()
+                if response['status_code'] == 100:
+                    # no split happened
+                    session.add(job)
+                    session.commit()
+                    session.refresh(job)
+                elif response['status_code'] == 200:
+                    # at this time, sub jobs will be added to the database
+                    file_ids = response['file_ids']
+                    job.subjobs = []
+                    for fid in file_ids:
+                        sub_job:Job = Job(
+                            payload = {
+                                "url": f"https://planetd.shift.ml/files/{fid}",
+                            },
+                            type = job.type,
+                            status = job.status,
+                            processed_by = job.processed_by,
+                            source= job.source,
+                        )
+                        job.subjobs.append(str(sub_job.id))
+                        session.add(sub_job)
+                    job.type = "shadow"
+                    session.add(job)
+                    session.commit()
+                    session.refresh(job)
         else:
             session.add(job)
             session.commit()
@@ -190,10 +210,12 @@ def update_job(id: str, job: Job):
         job_to_update = session.exec(job_to_update).one()
         if job_to_update is None:
             return {"message": "Job not found"}
-        job_to_update.processed_by = job.processed_by
-        job_to_update.status = job.status
-        job_to_update.returned_payload = job.returned_payload
-        job_to_update.returned_payload = job.returned_payload
+        if job.processed_by != "":
+            job_to_update.processed_by = job.processed_by
+        if job.status != "":
+            job_to_update.status = job.status
+        if job.returned_payload != {}:
+            job_to_update.returned_payload = job.returned_payload
         session.add(job_to_update)
         session.commit()
         session.refresh(job_to_update)
@@ -205,13 +227,7 @@ def access_s3(filename: str):
         result = s3.get_object(Bucket="toma-all", Key=filename)
         return StreamingResponse(content=result["Body"].iter_chunks())
     except Exception as e:
-        if hasattr(e, "message"):
-            raise HTTPException(
-                status_code=e.message["response"]["Error"]["Code"],
-                detail=e.message["response"]["Error"]["Message"],
-            )
-        else:
-            raise HTTPException(status_code=500, detail=str(e))
+        return {"status":"error","message": str(e)}
 
 @app.post("/file",)
 def process_job_local(file: UploadFile = File(...)):

@@ -1,0 +1,1 @@
+SPLIT_LAMBDA_URL="https://voamjgnhrxwtntki2v3s7oc7su0psqvz.lambda-url.us-west-2.on.aws/"
