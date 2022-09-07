@@ -74,9 +74,6 @@ const submitPass = () => {
         })
     } else {
         request_payload = JSON.parse(request_json.value)
-        if (request_payload.input === undefined || request_payload.prompt === undefined) {
-            alert("Cannot find `input` field! If you are providing `jsinput`, did you forget to click 'Evaluate Programmable Prompts'?")
-        }
         add_new_job(request_payload).then((response) => {
             job_status.value.id = response.data.id
             job_status.value.status = response.data.status

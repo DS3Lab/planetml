@@ -16,7 +16,7 @@ let source = ref("")
 let type = ref("")
 let download = ref("")
 let output = ref("")
-
+let returned_payload = ref("{}")
 let outputs = ref([])
 
 let rendered_finished = false // only render finished job once
@@ -38,16 +38,18 @@ function update_job_status() {
 
         if (response.data.status == "finished") {
             rendered_finished = true
+            
         }
-
+        console.log(returned_payload)
         job_status.value = response.data.status
         request_json.value = JSON.stringify(response.data.payload, null, 4)
         created_at.value = response.data.created_at
         source.value = response.data.source
         type.value = response.data.type
+        returned_payload.value = response.data.returned_payload['result'].map(function(res){
+            return res['result']
+        })
         download.value = `https://planetd.shift.ml/job/${job_id.value}`
-
-        console.log(response.data)
 
         outputs.value = []
 
@@ -61,9 +63,6 @@ function update_job_status() {
                 break
             }
         }
-        //}
-        console.log(outputs.value)
-
     });
 
 }
@@ -135,7 +134,15 @@ function highlighter(code) {
                         {{ request_json }}
                     </dd>
                 </div>
-                <div v-if="job_status == 'finished'">
+                <div v-if="job_status === 'finished'">
+                    <div
+                    class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Output</dt>
+                        <dd
+                            class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                            {{ returned_payload }}
+                        </dd>
+                    </div>
                     <div
                         class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">Images
