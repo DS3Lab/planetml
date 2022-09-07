@@ -59,31 +59,19 @@ function update_job_status() {
         console.log(response.data)
 
         outputs.value = []
-        
-        let nprompt = 0
 
-        for (const prompt_id in response.data.returned_payload.output) {
-            nprompt = nprompt + 1
-            let prompt = ""
-            if(typeof(response.data.payload.input[prompt_id]) == "string"){
-                prompt = response.data.payload.input
-            }else{
-                prompt = response.data.payload.input[prompt_id]
-            }
-            let noutput = 0
-            let outputvalues = []
-            for (const output_id in response.data.returned_payload.output[prompt_id]){
-                noutput = noutput + 1
-                outputvalues.push(response.data.returned_payload.output[prompt_id][output_id]) 
-                if(noutput == 10){
+        let nimg = 0
+        //for (const trial_id in response.data.returned_payload.output){
+        let trial_id = 0
+            for (const prompt_id in response.data.returned_payload.output[trial_id]){
+                nimg = nimg + 1;
+                outputs.value.push(response.data.returned_payload.output[trial_id][prompt_id])
+                if(nimg > 500){
                     break
                 }
             }
-            outputs.value.push([prompt, outputvalues])
-            if(nprompt == 10){
-                break
-            }
-        }
+        //}
+        console.log(outputs.value)
 
     });
 
@@ -128,15 +116,13 @@ function highlighter(code) {
         </div>
 
         <div v-if="job_status == 'finished'">
-            <h2>Output Snippets (First 10 Prompts, First 10 Result Each)</h2>
+            <h2>Output Snippets (First 500 Results)</h2>
 
-            <div v-for="output of outputs">
-                <div> <p>Prompt: {{ output[0] }}</p> </div>
-                <div>
-                    <img v-for="o of output[1]"
-                        style="float:left; padding:5px" width="200" height="200" :src='o' /> 
-                </div>
+            <div>
+                <img v-for="o of outputs"
+                    style="float:left; padding:5px" width="200" height="200" :src='o' /> 
             </div>
+
         </div>
     </div>
 </template>

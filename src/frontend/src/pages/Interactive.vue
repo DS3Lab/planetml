@@ -13,7 +13,7 @@
     import { add_new_job, get_job_status } from '@/services/api';
     
     const request_json = ref(`{
-        "jsinput": "['hippo', 'dog', 'cat', 'bee'].map(animal => \`Painting of a \$\{animal\} riding a bicycle on top of a train, raining, on the surface of the moon, cat in bicycle basket, trending on artstation\`)",
+        "jsinput": "['hippo', 'dog', 'cat', 'bee'].map(animal => ['beijing', 'tokyo', 'palo alto', 'zurich'].map(city => \`Painting of a \$\{animal\} riding a bicycle on the street of \$\{city\}, raining, cat in bicycle basket, trending on artstation\`)).flat()",
         "model": "stable_diffusion",
         "num_returns": 2
     }`)
