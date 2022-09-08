@@ -5,12 +5,15 @@ import CardBox from "@/components/CardBox.vue";
 import FormField from "@/components/FormField.vue";
 import BaseButton from "@/components/BaseButton.vue";
 import BaseButtons from "@/components/BaseButtons.vue";
-import { PrismEditor } from 'vue-prism-editor';
-import 'vue-prism-editor/dist/prismeditor.min.css';
-import { highlight, languages } from 'prismjs/components/prism-core';
-import 'prismjs/components/prism-json';
-import 'prismjs/themes/prism-tomorrow.css';
-import { add_new_job, get_job_status } from '@/services/api';
+import { add_new_job, get_job_status, upload_file_to_planetd } from '@/services/api';
+
+const file_uploader = ref(null)
+const selected_file = ref(null)
+
+
+function upload_file() {
+    selected_file.value = file_uploader.value.files[0];
+}
 
 const request_json = ref(`{
 "jsinput": "['hippo', 'dog', 'cat', 'bee'].map(animal => ['beijing', 'tokyo', 'palo alto', 'zurich'].map(city => \`Painting of a \$\{animal\} riding a bicycle on the street of \$\{city\}, raining, cat in bicycle basket, trending on artstation\`)).flat()",
@@ -48,14 +51,31 @@ const expandPass = () => {
 
 const submitPass = () => {
     let request_payload
-    request_payload = JSON.parse(request_json.value)
-    add_new_job(request_payload).then((response) => {
-        job_status.value.id = response.data.id
-        job_status.value.status = response.data.status
-        setInterval(() => {
-            update_job_status(job_status.value.id)
-        }, 5000)
-    })
+    console.log(file_mode.value)
+    if (file_mode.value) {
+        upload_file_to_planetd(selected_file.value).then((response) => {
+            request_payload = {
+                "url": response.data.filename,
+            }
+            add_new_job(request_payload).then((response) => {
+                job_status.value.id = response.data.id
+                job_status.value.status = response.data.status
+                setInterval(() => {
+                    update_job_status(job_status.value.id)
+                }, 5000)
+            })
+        })
+    } else {
+        request_payload = JSON.parse(request_json.value)
+        add_new_job(request_payload).then((response) => {
+            job_status.value.id = response.data.id
+            job_status.value.status = response.data.status
+            setInterval(() => {
+                update_job_status(job_status.value.id)
+            }, 5000)
+        })
+    }
+
 }
 
 function highlighter(code) {
@@ -70,16 +90,47 @@ function highlighter(code) {
             <CardBox>
                 <FormField label="Prompt" help="Required. Your Prompt">
                     <div class="content">
-                        <prism-editor class="my-editor" v-model="request_json"
-                            :highlight="highlighter" line-numbers>
-                        </prism-editor>
+
+                        <div class="flex justify-center items-center w-full">
+                            <label for="dropzone-file"
+                                class="flex flex-col justify-center items-center w-full h-64 bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed cursor-pointer dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                                <div
+                                    class="flex flex-col justify-center items-center pt-5 pb-6">
+                                    <svg aria-hidden="true"
+                                        class="mb-3 w-10 h-10 text-gray-400"
+                                        fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                        </path>
+                                    </svg>
+                                    <p
+                                        class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                        <span class="font-semibold">Click to
+                                            upload</span>
+                                    </p>
+                                    <p
+                                        class="text-xs text-gray-500 dark:text-gray-400">
+                                        Your file must be in <code>jsonl</code>
+                                        format.
+                                    </p>
+                                    <p v-if="selected_file"
+                                        class="text-xs text-gray-500 dark:text-gray-400">
+                                        Selected file: {{selected_file}}
+                                    </p>
+                                </div>
+                                <input id="dropzone-file" @change="upload_file"
+                                    type="file" class="hidden"
+                                    ref="file_uploader" />
+                            </label>
+                        </div>
                     </div>
                 </FormField>
                 <template #footer>
                     <BaseButtons>
-                        <BaseButton @click="expandPass" color="info"
-                            type="submit"
-                            label="Evaluate Programmable Prompts" />
                         <BaseButton @click="submitPass" color="info"
                             type="submit" label="Submit" />
                     </BaseButtons>

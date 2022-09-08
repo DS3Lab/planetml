@@ -10,7 +10,8 @@
                             Job Report</h1>
                         <p class="text-sm font-medium text-gray-500">ID
                             <a href="#" class="text-gray-900">{{job_id}}</a> on
-                            <time datetime="2020-08-25">{{created_at}}</time>
+                            <time
+                                datetime="2020-08-25">{{job_data.created_at}}</time>
                         </p>
                     </div>
                 </div>
@@ -45,76 +46,50 @@
                                             class="text-sm font-medium text-gray-500">
                                             Status</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{job_status}}</dd>
+                                            {{job_data.status}}</dd>
                                     </div>
                                     <div class="sm:col-span-1">
                                         <dt
                                             class="text-sm font-medium text-gray-500">
                                             CreatedAt</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{created_at}}</dd>
+                                            {{job_data.created_at}}</dd>
                                     </div>
                                     <div class="sm:col-span-1">
                                         <dt
                                             class="text-sm font-medium text-gray-500">
                                             Source</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{source}}</dd>
+                                            {{job_data.source}}</dd>
                                     </div>
                                     <div class="sm:col-span-1">
                                         <dt
                                             class="text-sm font-medium text-gray-500">
                                             Type</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{type}}</dd>
+                                            {{job_data.type}}</dd>
                                     </div>
                                     <div class="sm:col-span-1">
                                         <dt
                                             class="text-sm font-medium text-gray-500">
                                             Processed By</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{processed_by}}</dd>
+                                            {{job_data.processed_by}}</dd>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <dt
                                             class="text-sm font-medium text-gray-500">
                                             Input</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{ request_json }}</dd>
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <dt
-                                            class="text-sm font-medium text-gray-500">
-                                            Output</dt>
-                                        <dd
-                                            class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                                            <ul role="list"
-                                                class="divide-y divide-gray-200 rounded-md border border-gray-200">
-                                                <li
-                                                    class="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
-                                                    <div
-                                                        class="flex w-0 flex-1 items-center">
-                                                        <PaperClipIcon
-                                                            class="h-5 w-5 flex-shrink-0 text-gray-400"
-                                                            aria-hidden="true" />
-                                                        <span
-                                                            class="ml-2 w-0 flex-1 truncate">raw_output.json</span>
-                                                    </div>
-                                                    <div
-                                                        class="ml-4 flex-shrink-0">
-                                                        <a :href="'https://planetd.shift.ml/job/'+job_id"
-                                                            class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>
-                                                    </div>
-                                                </li>
-                                            </ul>
+                                            <vue-json-pretty :data="job_data.payload" />
                                         </dd>
                                     </div>
                                 </dl>
                             </div>
                             <div>
-                                <a href="#"
-                                    class="block bg-gray-50 px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg">Read
-                                    full application</a>
+                                <a :href="'https://planetd.shift.ml/job/'+job_id"
+                                    class="block bg-gray-50 shadow px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg">Read
+                                    full output</a>
                             </div>
                         </div>
                     </section>
@@ -151,7 +126,9 @@
                             <div
                                 class="w-full bg-gray-200 rounded-full dark:bg-gray-700">
                                 <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full"
-                                    :style="'width: '+(100*progress.finished/progress.total)+'%'"> {{progress.finished}}/{{progress.total}}</div>
+                                    :style="'width: '+(100*progress.finished/progress.total)+'%'">
+                                    {{progress.finished}}/{{progress.total}}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -169,7 +146,6 @@ import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import { useRoute } from 'vue-router';
 import { highlight, languages } from 'prismjs/components/prism-core';
-import { PaperClipIcon } from '@heroicons/vue/20/solid'
 
 let job_status = ref("")
 let job_id = ref("")
@@ -177,9 +153,10 @@ let request_json = ref("")
 let created_at = ref("")
 let source = ref("")
 let type = ref("")
+let job_data = ref({})
 let download = ref("")
 let progress = ref({})
-let returned_payload = ref("{}")
+let returned_payload = ref({})
 let outputs = ref([])
 let rendered_finished = false // only render finished job once
 
@@ -195,13 +172,9 @@ function update_job_status() {
             progress.value = response.data.returned_payload.progress
             console.log(progress)
         }
-        job_status.value = response.data.status
-        request_json.value = JSON.stringify(response.data.payload, null, 4)
-        created_at.value = response.data.created_at
-        source.value = response.data.source
-        type.value = response.data.type
-        if ('result' in response.data.returned_payload) {
-            returned_payload.value = response.data.returned_payload['result'].map(function (res) {
+        job_data.value = response.data
+        if ('result' in job_data.value.returned_payload) {
+            returned_payload.value = job_data.value.returned_payload['result'].map(function (res) {
                 return res['result']['choices'][0]['text']
             })[0]
         }
@@ -210,11 +183,13 @@ function update_job_status() {
         let nimg = 0
         //for (const trial_id in response.data.returned_payload.output){
         let trial_id = 0
-        for (const prompt_id in response.data.returned_payload.output[trial_id]) {
-            nimg = nimg + 1;
-            outputs.value.push(response.data.returned_payload.output[trial_id][prompt_id])
-            if (nimg > 500) {
-                break
+        if ('output' in job_data.value.returned_payload) {
+            for (const prompt_id in job_data.value.returned_payload.output[trial_id]) {
+                nimg = nimg + 1;
+                outputs.value.push(job_data.value.returned_payload.output[trial_id][prompt_id])
+                if (nimg > 500) {
+                    break
+                }
             }
         }
     });

@@ -43,12 +43,14 @@ target_cluster_mapping = {
     't0_pp_11B': 'euler',
     't5_11B': 'euler',
     'ul2_20B': 'euler',
+    'stable_diffusion':'euler',
     'opt_66B': 'stanford',
     'opt_175B': 'stanford',
     'bloom_175B': 'stanford',
     'yalm_100B': 'stanford',
-    'glm_130B': 'stanford'
+    'glm_130B': 'stanford',
 }
+
 settings = Settings()
 
 clients = {
@@ -111,12 +113,12 @@ class BatchInferenceCoordinator(LocalCoordinator):
                 machine_size, world_size = machine_size_mapping[job_payload[0]
                                                                 ['engine']], machine_size_mapping[job_payload[0]['engine']]
                 model_type = job_payload[0]['engine']
-                target_cluster = target_cluster_mapping[model_type]
-                logger.info(target_cluster)
-                self.client = clients[target_cluster]
-                self.client._connect()
             else:
                 raise ValueError("Cannot understand input!")
+            target_cluster = target_cluster_mapping[model_type]
+            logger.info(target_cluster)
+            self.client = clients[target_cluster]
+            self.client._connect()
             if machine_size < 0 or world_size < 0:
                 raise ValueError(
                     f"Invalid machine_size or world_size, expected positive integers, got {machine_size} and {world_size}")
