@@ -12,7 +12,7 @@
 
 source activate base                          # Activate my conda python environment
 cd /afs/cs.stanford.edu/u/biyuan/fm/new/gpt-home/     # Change directory
-ifconfig
+
 nvidia-smi
 
 ls -l /sys/class/net/
@@ -25,7 +25,7 @@ export NCCL_DEBUG=INFO
 export NCCL_IB_DISABLE=1
 export NCCL_P2P_DISABLE=1
 
-world_size=32
+world_size=8
 machine_size=8
 n_gpu_per_machine=$((world_size/machine_size))
 

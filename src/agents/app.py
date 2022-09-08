@@ -126,13 +126,13 @@ def fetch_failed_or_submitted_jobs():
     global submit_lock
     if not submit_lock:
         try:
-            lsf_client = LSFClient(
-                host=settings.euler_lsf_host,
-                username=settings.euler_lsf_username,
-                password=settings.euler_lsf_password,
-                wd=settings.euler_lsf_wd,
-                init=settings.euler_lsf_init,
-            )
+            # lsf_client = LSFClient(
+            #     host=settings.euler_lsf_host,
+            #     username=settings.euler_lsf_username,
+            #     password=settings.euler_lsf_password,
+            #     wd=settings.euler_lsf_wd,
+            #     init=settings.euler_lsf_init,
+            # )
             stanford_client = LSFClient(
                 host=settings.stanford_host,
                 username=settings.stanford_username,
@@ -155,17 +155,17 @@ def fetch_failed_or_submitted_jobs():
                 bi_coordinator = BatchInferenceCoordinator(
                     "batch_inference", lsf_client
                 )
-                stanford_client._connect()
-                bi_coordinator_stanford = BatchInferenceCoordinator(
-                    "batch_inference_stanford", stanford_client
-                )
+                # stanford_client._connect()
+                #bi_coordinator_stanford = BatchInferenceCoordinator(
+                #    "batch_inference_stanford", stanford_client
+                #)
             for each in bi_jobs:
                 # acquire submit lock
                 submit_lock = True
                 each = preprocess_job(each)
                 job_payload[each['id']] = each['payload']
-                # bi_coordinator.dispatch(each)
-                bi_coordinator_stanford.dispatch(each)
+                bi_coordinator.dispatch(each)
+                # bi_coordinator_stanford.dispatch(each)
             # release submit lock
             submit_lock = False
         except Exception as e:
