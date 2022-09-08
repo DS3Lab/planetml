@@ -81,7 +81,8 @@
                                             class="text-sm font-medium text-gray-500">
                                             Input</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            <vue-json-pretty :data="job_data.payload" />
+                                            <vue-json-pretty
+                                                :data="job_data.payload" />
                                         </dd>
                                     </div>
                                 </dl>
@@ -93,7 +94,7 @@
                             </div>
                         </div>
                     </section>
-                    <div v-if="job_status === 'finished'">
+                    <div v-if="job_data.status === 'finished'">
                         <div
                             class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500">Output
@@ -147,14 +148,8 @@ import 'vue-json-pretty/lib/styles.css';
 import { useRoute } from 'vue-router';
 import { highlight, languages } from 'prismjs/components/prism-core';
 
-let job_status = ref("")
 let job_id = ref("")
-let request_json = ref("")
-let created_at = ref("")
-let source = ref("")
-let type = ref("")
 let job_data = ref({})
-let download = ref("")
 let progress = ref({})
 let returned_payload = ref({})
 let outputs = ref([])
@@ -178,11 +173,11 @@ function update_job_status() {
                 return res['result']['choices'][0]['text']
             })[0]
         }
-        download.value = `https://planetd.shift.ml/job/${job_id.value}`
         outputs.value = []
         let nimg = 0
         //for (const trial_id in response.data.returned_payload.output){
         let trial_id = 0
+        console.log(response.data.returned_payload)
         if ('output' in job_data.value.returned_payload) {
             for (const prompt_id in job_data.value.returned_payload.output[trial_id]) {
                 nimg = nimg + 1;
