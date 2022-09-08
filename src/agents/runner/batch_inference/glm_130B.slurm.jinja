@@ -2,6 +2,7 @@
 #SBATCH --job-name=glm
 #
 #SBATCH --partition=sphinx
+#SBATCH --exclude=sphinx[1-3]
 #SBATCH --gres=gpu:1
 #SBATCH --time=3:59:00
 #SBATCH --ntasks=1
