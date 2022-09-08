@@ -119,7 +119,7 @@ function highlighter(code) {
                                     </p>
                                     <p v-if="selected_file"
                                         class="text-xs text-gray-500 dark:text-gray-400">
-                                        Selected file: {{selected_file}}
+                                        Selected file: {{selected_file.name}}
                                     </p>
                                 </div>
                                 <input id="dropzone-file" @change="upload_file"
