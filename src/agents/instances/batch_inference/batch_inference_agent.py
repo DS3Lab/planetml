@@ -27,28 +27,28 @@ class Settings(BaseSettings):
 
 machine_size_mapping = {
     'gpt_j_6B': 2,
-    'gpt_neox': 8,
-    't0_pp': 6,
-    't5': 6,
-    'ul2': 16,
+    'gpt_neox_20B': 8,
+    't0_pp_11B': 6,
+    't5_11B': 6,
+    'ul2_20B': 16,
     'opt_66B': 8,
     'opt_175B': 8,
-    'bloom': 8,
-    'yalm': 8,
-    'glm': 8
+    'bloom_175B': 8,
+    'yalm_100B': 8,
+    'glm_130B': 8
 }
 
 target_cluster_mapping = {
     'gpt_j_6B': 'euler',
-    'gpt_neox': 'euler',
-    't0_pp': 'euler',
-    't5': 'euler',
-    'ul2': 'euler',
+    'gpt_neox_20B': 'euler',
+    't0_pp_11B': 'euler',
+    't5_11B': 'euler',
+    'ul2_20B': 'euler',
     'opt_66B': 'stanford',
     'opt_175B': 'stanford',
-    'bloom': 'stanford',
-    'yalm': 'stanford',
-    'glm': 'stanford'
+    'bloom_175B': 'stanford',
+    'yalm_100B': 'stanford',
+    'glm_130B': 'stanford'
 }
 settings = Settings()
 clients = {
