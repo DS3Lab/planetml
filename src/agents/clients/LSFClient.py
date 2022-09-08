@@ -12,6 +12,7 @@ class LSFClient(object):
                  gateway=None,
                  wd=None,
                  init=None,
+                 infra='lsf',
                  ):
         self.host = host
         self.port = port
@@ -20,6 +21,7 @@ class LSFClient(object):
         self.gateway = gateway
         self.wd = wd
         self.init = init
+        self.infra = infra
         self.is_connected = False
         self.ssh_client = None
         if self.wd is not None:

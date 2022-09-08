@@ -10,7 +10,8 @@ machine_size_mapping = {
     'gpt_neox': 8,
     't0_pp': 6,
     't5': 6,
-    'ul2': 16
+    'ul2': 16,
+    'opt_66B': 8,
 }
 
 class BatchInferenceCoordinator(LocalCoordinator):
@@ -59,24 +60,32 @@ class BatchInferenceCoordinator(LocalCoordinator):
         for i in range(demand_worker_num):
             logger.info("preparing files")
             if 'model' in job_payload[0]:
-                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.lsf.jinja ./submit_{i + 1}.bsub")
+                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
             else:
-                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['engine']}.lsf.jinja ./submit_{i + 1}.bsub")
+                result = self.client.execute_raw_in_wd(f"cd {lsf_script_path} && cp ../{job_payload[0]['engine']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
             print('copied template to submit.bsub')
             result = self.client.execute_raw_in_wd(
                 f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
             )
             
             logger.info(f"submission file for worker {i} is prepared...")
-            result = self.client.execute_raw_in_wd(
-                f"cd {lsf_script_path} && bsub < submit_{i + 1}.bsub"
-            )
-            job_id = result.split("<")[1].split(">")[0]
-            queue_id = result.split("<")[2].split(">")[0]
-            logger.info(f"job submitted, job_id: {job_id}, queue_id: {queue_id}")
+            if self.client.infra == 'lsf':
+                result = self.client.execute_raw_in_wd(
+                    f"cd {lsf_script_path} && bsub < submit_{i + 1}.bsub"
+                )
+            elif self.client.infra == 'slurm':
+                result = self.client.execute_raw_in_wd(
+                    f"cd {lsf_script_path} && sbatch submit_{i + 1}.bsub"
+                )
+            job_id = ""
+            queue_id = ""
+            if self.client.infra == 'lsf':
+                job_id = result.split("<")[1].split(">")[0]
+                queue_id = result.split("<")[2].split(">")[0]
+                logger.info(f"job submitted, job_id: {job_id}, queue_id: {queue_id}")
             self.planetml.update_job_status(
                 job_id=job['id'],
-                processed_by=f"{job_id}:{queue_id}:euler.ethz.ch",
+                processed_by=f"{job_id}:{queue_id}:{self.client.host}",
                 status="queued",
                 source=job['source'],
                 type=job['type'],
