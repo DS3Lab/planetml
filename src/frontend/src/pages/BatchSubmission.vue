@@ -167,9 +167,8 @@ function highlighter(code) {
                 <div>
                     <p class="status_indicator" v-if="job_status.id !== ''"> >>>
                         Your job is submitted,
-                        with the id <a
-                            :href='"/report/" + job_status.id'>{{
-                            job_status.id }}</a></p>
+                        with the id <a :href='"/report/" + job_status.id'>{{
+                        job_status.id }}</a></p>
                     <p class="status_indicator"
                         v-if="job_status.status === 'running'"> >>> Your job is
                         running</p>

@@ -1,8 +1,6 @@
 import paramiko
 from loguru import logger
-from dstool.class_utils import singleton
 
-@singleton
 class LSFClient(object):
     def __init__(self,
                  host="",

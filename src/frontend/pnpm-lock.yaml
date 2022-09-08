@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@codemirror/lang-json': ^6.0.0
   '@codemirror/theme-one-dark': ^6.0.0
+  '@headlessui/vue': ^1.7.0
   '@heroicons/vue': ^2.0.10
   '@mdi/js': ^7.0.96
   '@vitejs/plugin-vue': ^3.1.0
@@ -33,6 +34,7 @@ specifiers:
 dependencies:
   '@codemirror/lang-json': 6.0.0
   '@codemirror/theme-one-dark': 6.0.0
+  '@headlessui/vue': 1.7.0_vue@3.2.38
   '@heroicons/vue': 2.0.10_vue@3.2.38
   '@mdi/js': 7.0.96
   axios: 0.27.2
@@ -632,6 +634,15 @@ packages:
       long: 4.0.0
       protobufjs: 7.1.0
       yargs: 16.2.0
+    dev: false
+
+  /@headlessui/vue/1.7.0_vue@3.2.38:
+    resolution: {integrity: sha512-ClrXMThmo9lrFjHdzDQXsopjCgRA28v+u5s/J+gIAgvS5l3tTAI84GaVghFwxobijL9c6BsVgDQ7SrJ2dS1nLw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      vue: 3.2.38
     dev: false
 
   /@heroicons/vue/2.0.10_vue@3.2.38:

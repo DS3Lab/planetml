@@ -85,12 +85,12 @@
                                     <div class="sm:col-span-2">
                                         <dt
                                             class="text-sm font-medium text-gray-500">
-                                            Output</dt>
-                                        <dd
-                                            class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                            Attachments</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">
                                             <ul role="list"
                                                 class="divide-y divide-gray-200 rounded-md border border-gray-200">
-                                                <li
+                                                <li v-for="attachment in attachments"
+                                                    :key="attachment.name"
                                                     class="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
                                                     <div
                                                         class="flex w-0 flex-1 items-center">
@@ -98,12 +98,14 @@
                                                             class="h-5 w-5 flex-shrink-0 text-gray-400"
                                                             aria-hidden="true" />
                                                         <span
-                                                            class="ml-2 w-0 flex-1 truncate">raw_output.json</span>
+                                                            class="ml-2 w-0 flex-1 truncate">{{
+                                                            attachment.name
+                                                            }}</span>
                                                     </div>
                                                     <div
                                                         class="ml-4 flex-shrink-0">
-                                                        <a :href="'https://planetd.shift.ml/job/'+job_id"
-                                                            class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>
+                                                        <a :href="attachment.href"
+                                                            class="font-medium text-blue-600 hover:text-blue-500">Download</a>
                                                     </div>
                                                 </li>
                                             </ul>
@@ -118,32 +120,98 @@
                             </div>
                         </div>
                     </section>
-                    <div v-if="job_status === 'finished'">
-                    <div
-                        class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Output
-                        </dt>
-                        <dd
-                            class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                            <pre>{{ returned_payload }}</pre>
-                        </dd>
-                    </div>
-                    <div
-                        class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Images
-                        </dt>
-                        <img v-for="o of outputs"
-                            style="float:left; padding:5px" width="200"
-                            height="200" :src='o' />
-                    </div>
+
+                    <!-- Comments-->
+                    <section aria-labelledby="notes-title">
+                        <div class="bg-white sm:overflow-hidden sm:rounded-lg">
+                            <div class="divide-y divide-gray-200">
+                                <div class="px-4 py-5 sm:px-6">
+                                    <h2 id="notes-title"
+                                        class="text-lg font-medium text-gray-900">
+                                        Notes</h2>
+                                </div>
+                                <div class="px-4 py-6 sm:px-6">
+                                    <ul role="list" class="space-y-8">
+                                        <li v-for="comment in comments"
+                                            :key="comment.id">
+                                            <div class="flex space-x-3">
+                                                <div class="flex-shrink-0">
+                                                    <img class="h-10 w-10 rounded-full"
+                                                        :src="`https://images.unsplash.com/photo-${comment.imageId}?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80`"
+                                                        alt="" />
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm">
+                                                        <a href="#"
+                                                            class="font-medium text-gray-900">{{
+                                                            comment.name }}</a>
+                                                    </div>
+                                                    <div
+                                                        class="mt-1 text-sm text-gray-700">
+                                                        <p>{{ comment.body }}
+                                                        </p>
+                                                    </div>
+                                                    <div
+                                                        class="mt-2 space-x-2 text-sm">
+                                                        <span
+                                                            class="font-medium text-gray-500">{{
+                                                            comment.date
+                                                            }}</span>
+                                                        {{ ' ' }}
+                                                        <span
+                                                            class="font-medium text-gray-500">&middot;</span>
+                                                        {{ ' ' }}
+                                                        <button type="button"
+                                                            class="font-medium text-gray-900">Reply</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-6 sm:px-6">
+                                <div class="flex space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <img class="h-10 w-10 rounded-full"
+                                            :src="user.imageUrl" alt="" />
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <form action="#">
+                                            <div>
+                                                <label for="comment"
+                                                    class="sr-only">About</label>
+                                                <textarea id="comment"
+                                                    name="comment" rows="3"
+                                                    class="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                                    placeholder="Add a note" />
+                                            </div>
+                                            <div
+                                                class="mt-3 flex items-center justify-between">
+                                                <a href="#"
+                                                    class="group inline-flex items-start space-x-2 text-sm text-gray-500 hover:text-gray-900">
+                                                    <QuestionMarkCircleIcon
+                                                        class="h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
+                                                        aria-hidden="true" />
+                                                    <span>Some HTML is
+                                                        okay.</span>
+                                                </a>
+                                                <button type="submit"
+                                                    class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Comment</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-                </div>
-                
+
                 <section aria-labelledby="timeline-title"
                     class="lg:col-span-1 lg:col-start-3">
                     <div class="bg-white px-4 py-5 sm:rounded-lg sm:px-6">
                         <h2 id="timeline-title"
-                            class="text-lg font-medium text-gray-900">Progress
+                            class="text-lg font-medium text-gray-900">Timeline
                         </h2>
 
                         <!-- Activity Feed -->
@@ -205,6 +273,28 @@ import 'vue-json-pretty/lib/styles.css';
 import { useRoute } from 'vue-router';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import { PaperClipIcon } from '@heroicons/vue/20/solid'
+import {
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuItems,
+    Popover,
+    PopoverButton,
+    PopoverOverlay,
+    PopoverPanel,
+    TransitionChild,
+    TransitionRoot,
+} from '@headlessui/vue'
+import {
+    ArrowLongLeftIcon,
+    CheckIcon,
+    HandThumbUpIcon,
+    HomeIcon,
+    MagnifyingGlassIcon,
+    QuestionMarkCircleIcon,
+    UserIcon,
+} from '@heroicons/vue/20/solid'
+import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 let job_status = ref("")
 let job_id = ref("")
@@ -213,10 +303,16 @@ let created_at = ref("")
 let source = ref("")
 let type = ref("")
 let download = ref("")
+let output = ref("")
 let returned_payload = ref("{}")
 let outputs = ref([])
 let rendered_finished = false // only render finished job once
-
+const headers = [
+    { text: "ID", value: "id" },
+    { text: "Source", value: "source" },
+    { text: "Type", value: "type", sortable: true },
+    { text: "Status", value: "status", sortable: true }
+];
 function update_job_status() {
     if (rendered_finished == true) { // this means that the job has finished, and we rendered it already
         return
@@ -262,13 +358,95 @@ function highlighter(code) {
     return highlight(code, languages.json);
 }
 const user = {
+
+
     name: 'Whitney Francis',
     email: 'whitney@example.com',
     imageUrl:
         'https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
 }
+const navigation = [
 
+
+    { name: 'Dashboard', href: '#' },
+    { name: 'Jobs', href: '#' },
+    { name: 'Applicants', href: '#' },
+    { name: 'Company', href: '#' },
+]
+const breadcrumbs = [
+
+
+    { name: 'Jobs', href: '#', current: false },
+    { name: 'Front End Developer', href: '#', current: false },
+    { name: 'Applicants', href: '#', current: true },
+]
+const userNavigation = [
+
+
+    { name: 'Your Profile', href: '#' },
+    { name: 'Settings', href: '#' },
+    { name: 'Sign out', href: '#' },
+]
+const attachments = [
+
+
+    { name: 'resume_front_end_developer.pdf', href: '#' },
+    { name: 'coverletter_front_end_developer.pdf', href: '#' },
+]
+const eventTypes = {
+
+
+    applied: { icon: UserIcon, bgColorClass: 'bg-gray-400' },
+    advanced: { icon: HandThumbUpIcon, bgColorClass: 'bg-blue-500' },
+    completed: { icon: CheckIcon, bgColorClass: 'bg-green-500' },
+}
+const timeline = [
+
+
+    {
+        id: 1,
+        type: eventTypes.applied,
+        content: 'Applied to',
+        target: 'Front End Developer',
+        date: 'Sep 20',
+        datetime: '2020-09-20',
+    },
+    {
+        id: 2,
+        type: eventTypes.advanced,
+        content: 'Advanced to phone screening by',
+        target: 'Bethany Blake',
+        date: 'Sep 22',
+        datetime: '2020-09-22',
+    },
+    {
+        id: 3,
+        type: eventTypes.completed,
+        content: 'Completed phone screening with',
+        target: 'Martha Gardner',
+        date: 'Sep 28',
+        datetime: '2020-09-28',
+    },
+    {
+        id: 4,
+        type: eventTypes.advanced,
+        content: 'Advanced to interview by',
+        target: 'Bethany Blake',
+        date: 'Sep 30',
+        datetime: '2020-09-30',
+    },
+    {
+        id: 5,
+        type: eventTypes.completed,
+        content: 'Completed interview with',
+        target: 'Katherine Snyder',
+        date: 'Oct 4',
+        datetime: '2020-10-04',
+    },
+]
 const comments = [
+
+
     {
         id: 1,
         name: 'Leslie Alexander',
@@ -281,6 +459,21 @@ const comments = [
         name: 'Michael Foster',
         date: '4d ago',
         imageId: '1519244703995-f4e0f30006d5',
-        body: 'Et ut autem. Voluptatem eum dolores sint necessitatibus quos. Quis eum qui dolorem accusantium voluptas voluptatem ipsum. Quo fa'
-    }]
+        body: 'Et ut autem. Voluptatem eum dolores sint necessitatibus quos. Quis eum qui dolorem accusantium voluptas voluptatem ipsum. Quo facere iusto quia accusamus veniam id explicabo et aut.',
+    },
+    {
+        id: 3,
+        name: 'Dries Vincent',
+        date: '4d ago',
+        imageId: '1506794778202-cad84cf45f1d',
+        body: 'Expedita consequatur sit ea voluptas quo ipsam recusandae. Ab sint et voluptatem repudiandae voluptatem et eveniet. Nihil quas consequatur autem. Perferendis rerum et.',
+    },
+]
+
 </script>
+
+<style>
+.ta-center {
+    text-align: center;
+}
+</style>

@@ -6,7 +6,6 @@ from pydantic import BaseSettings
 from src.agents.clients.LSFClient import LSFClient
 from src.agents.utils.planetml import PlanetML
 
-
 class Settings(BaseSettings):
     euler_lsf_host: Optional[str]
     euler_lsf_username: Optional[str]
@@ -45,15 +44,17 @@ target_cluster_mapping = {
     'opt_175B': 'stanford'
 }
 settings = Settings()
+
 clients = {
-    "stanford": LSFClient(
+    "euler": LSFClient(
         host=settings.euler_lsf_host,
         username=settings.euler_lsf_username,
         password=settings.euler_lsf_password,
         wd=settings.euler_lsf_wd,
         init=settings.euler_lsf_init,
+        infra='lsf',
     ),
-    "euler": LSFClient(
+    "stanford": LSFClient(
         host=settings.stanford_host,
         username=settings.stanford_username,
         password=settings.stanford_password,
@@ -63,7 +64,6 @@ clients = {
         infra='slurm',
     )
 }
-
 
 class BatchInferenceCoordinator(LocalCoordinator):
     def __init__(self,
@@ -101,13 +101,16 @@ class BatchInferenceCoordinator(LocalCoordinator):
                 machine_size = 1
                 world_size = 1
                 model_type = job_payload[0]['model']
-            else:
+            elif 'engine' in job_payload[0]:
                 machine_size, world_size = machine_size_mapping[job_payload[0]
                                                                 ['engine']], machine_size_mapping[job_payload[0]['engine']]
                 model_type = job_payload[0]['engine']
                 target_cluster = target_cluster_mapping[model_type]
+                logger.info(target_cluster)
                 self.client = clients[target_cluster]
                 self.client._connect()
+            else:
+                raise ValueError("Cannot understand input!")
             if machine_size < 0 or world_size < 0:
                 raise ValueError(
                     f"Invalid machine_size or world_size, expected positive integers, got {machine_size} and {world_size}")
