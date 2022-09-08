@@ -151,21 +151,21 @@ def fetch_failed_or_submitted_jobs():
             ]
             logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
             if len(bi_jobs) > 0:
-                lsf_client._connect()
-                bi_coordinator = BatchInferenceCoordinator(
-                    "batch_inference", lsf_client
-                )
-                # stanford_client._connect()
-                #bi_coordinator_stanford = BatchInferenceCoordinator(
-                #    "batch_inference_stanford", stanford_client
+                #lsf_client._connect()
+                #bi_coordinator = BatchInferenceCoordinator(
+                #    "batch_inference", lsf_client
                 #)
+                stanford_client._connect()
+                bi_coordinator_stanford = BatchInferenceCoordinator(
+                   "batch_inference_stanford", stanford_client
+                )
             for each in bi_jobs:
                 # acquire submit lock
                 submit_lock = True
                 each = preprocess_job(each)
                 job_payload[each['id']] = each['payload']
-                bi_coordinator.dispatch(each)
-                # bi_coordinator_stanford.dispatch(each)
+                # bi_coordinator.dispatch(each)
+                bi_coordinator_stanford.dispatch(each)
             # release submit lock
             submit_lock = False
         except Exception as e:
