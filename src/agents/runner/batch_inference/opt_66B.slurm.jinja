@@ -11,13 +11,14 @@
 
 
 source activate base                          # Activate my conda python environment
-cd /afs/cs.stanford.edu/u/biyuan/fm/new/gpt-home     # Change directory
+cd /afs/cs.stanford.edu/u/biyuan/fm/new/gpt-home/     # Change directory
 
 nvidia-smi
 
 ls -l /sys/class/net/
 netif=`echo "import os; print(sorted([x for x in os.listdir('/sys/class/net/') if x.startswith('en')])[0])" | python`
 echo setting network interface to $netif
+echo workingdir /afs/cs.stanford.edu/u/biyuan/fm/new/gpt-home/
 export NCCL_SOCKET_IFNAME=$netif
 export GLOO_SOCKET_IFNAME=$netif
 export NCCL_DEBUG=INFO
