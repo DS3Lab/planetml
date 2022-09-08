@@ -75,7 +75,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
                 )
             elif self.client.infra == 'slurm':
                 result = self.client.execute_raw_in_wd(
-                    f"cd {lsf_script_path} && sbatch submit_{i + 1}.bsub"
+                    f"cd {lsf_script_path} && sbatch submit_{i + 1}.bsub {job['id']}"
                 )
             job_id = ""
             queue_id = ""

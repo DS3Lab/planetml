@@ -19,6 +19,8 @@ ls -l /sys/class/net/
 netif=`echo "import os; print(sorted([x for x in os.listdir('/sys/class/net/') if x.startswith('en')])[0])" | python`
 echo setting network interface to $netif
 echo workingdir /afs/cs.stanford.edu/u/biyuan/fm/new/gpt-home/
+job_id=$1
+echo job_id $job_id
 export NCCL_SOCKET_IFNAME=$netif
 export GLOO_SOCKET_IFNAME=$netif
 export NCCL_DEBUG=INFO
@@ -39,7 +41,7 @@ do
   DIST_CONF="--pp-mode pipe_sync_sample_mask_token_pipe --pipeline-group-size $world_size --cuda-id $i"
   MODEL_CONF="--model-type opt --model-name /sailhome/biyuan/scratch/models/opt-66b-new --num-iters 10"
   INFERENCE_CONF="--fp16  --budget 10400 --batch-size 24 --input-seq-length 512 --generate-seq-length 32 --micro-batch-size 1 --num-layers 2 --max-layers 64"
-  COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /afs/cs.stanford.edu/u/biyuan/fm/new/working_dir --profiling no-profiling --net-interface $netif --job_id e7fd19dd-e5b8-43e8-b26b-0bedd9421e27"
+  COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /afs/cs.stanford.edu/u/biyuan/fm/new/working_dir --profiling no-profiling --net-interface $netif --job_id $job_id"
 
   python -u dist_batch_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
 
