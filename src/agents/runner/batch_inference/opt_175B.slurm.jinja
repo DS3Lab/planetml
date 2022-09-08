@@ -37,9 +37,9 @@ do
   DIST_CONF="--pp-mode pipe_sync_sample_mask_token_pipe --pipeline-group-size $world_size --cuda-id $i"
   MODEL_CONF="--model-type opt --model-name /sailhome/biyuan/fm/models/opt-175b-new --num-iters 9999999999999"
   INFERENCE_CONF="--fp16  --budget 20400 --batch-size 24 --input-seq-length 512 --generate-seq-length 32 --micro-batch-size 1 --num-layers 12 --max-layers 96"
-  COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /afs/cs.stanford.edu/u/biyuan/working_dir --profiling no-profiling --net-interface $netif"
+  COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /sailhome/biyuan/working_dir --profiling no-profiling --net-interface $netif"
 
-  python -u dist_inference_runner_w_slurm_coordinator.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
+  python -u dist_batch_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
 
   ((port++))
   ((i++))
