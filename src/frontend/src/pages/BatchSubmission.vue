@@ -59,7 +59,8 @@ const expandPass = () => {
 
 const submitPass = () => {
     let request_payload
-    if (false) {
+    console.log(file_mode.value)
+    if (file_mode.value) {
         upload_file_to_planetd(selected_file.value).then((response) => {
             request_payload = {
                 "url": response.data.filename,
