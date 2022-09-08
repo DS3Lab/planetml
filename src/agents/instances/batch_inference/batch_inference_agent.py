@@ -33,6 +33,9 @@ machine_size_mapping = {
     'ul2': 16,
     'opt_66B': 8,
     'opt_175B': 8,
+    'bloom': 8,
+    'yalm': 8,
+    'glm': 8
 }
 
 target_cluster_mapping = {
@@ -42,7 +45,10 @@ target_cluster_mapping = {
     't5': 'euler',
     'ul2': 'euler',
     'opt_66B': 'stanford',
-    'opt_175B': 'stanford'
+    'opt_175B': 'stanford',
+    'bloom': 'stanford',
+    'yalm': 'stanford',
+    'glm': 'stanford'
 }
 settings = Settings()
 clients = {
