@@ -87,11 +87,7 @@
                                     </div>
                                 </dl>
                             </div>
-                            <div>
-                                <a :href="'https://planetd.shift.ml/job/'+job_id"
-                                    class="block bg-gray-50 shadow px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg">Read
-                                    full output</a>
-                            </div>
+                            
                         </div>
                     </section>
                     <div v-if="job_data.status === 'finished'">
@@ -104,6 +100,11 @@
                                 <pre>{{ returned_payload }}</pre>
                             </dd>
                         </div>
+                        <div>
+                                <a :href="'https://planetd.shift.ml/job/'+job_id"
+                                    class="block bg-gray-50 shadow px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg">Read
+                                    full output</a>
+                            </div>
                         <div
                             class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500">Images
