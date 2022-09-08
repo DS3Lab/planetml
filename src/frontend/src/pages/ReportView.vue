@@ -123,7 +123,7 @@
                         </h2>
 
                         <!-- Activity Feed -->
-                        <div class="mt-6 flow-root">
+                        <div class="mt-6 flow-root" v-if="job_data.status==='running' && 'progress' in job_data.returned_payload ">
                             <div
                                 class="w-full bg-gray-200 rounded-full dark:bg-gray-700">
                                 <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full"
@@ -177,7 +177,6 @@ function update_job_status() {
         let nimg = 0
         //for (const trial_id in response.data.returned_payload.output){
         let trial_id = 0
-        console.log(response.data.returned_payload)
         if ('output' in job_data.value.returned_payload) {
             for (const prompt_id in job_data.value.returned_payload.output[trial_id]) {
                 nimg = nimg + 1;
