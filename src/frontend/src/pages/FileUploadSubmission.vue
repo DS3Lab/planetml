@@ -51,22 +51,10 @@ const expandPass = () => {
 
 const submitPass = () => {
     let request_payload
-    console.log(file_mode.value)
-    if (file_mode.value) {
-        upload_file_to_planetd(selected_file.value).then((response) => {
-            request_payload = {
-                "url": response.data.filename,
-            }
-            add_new_job(request_payload).then((response) => {
-                job_status.value.id = response.data.id
-                job_status.value.status = response.data.status
-                setInterval(() => {
-                    update_job_status(job_status.value.id)
-                }, 5000)
-            })
-        })
-    } else {
-        request_payload = JSON.parse(request_json.value)
+    upload_file_to_planetd(selected_file.value).then((response) => {
+        request_payload = {
+            "url": response.data.filename,
+        }
         add_new_job(request_payload).then((response) => {
             job_status.value.id = response.data.id
             job_status.value.status = response.data.status
@@ -74,8 +62,7 @@ const submitPass = () => {
                 update_job_status(job_status.value.id)
             }, 5000)
         })
-    }
-
+    })
 }
 
 function highlighter(code) {
