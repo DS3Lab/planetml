@@ -1,9 +1,8 @@
 import os
 import json
 import boto3
-
-SPLIT_THRESHOLD = 100
-SPLIT_CHUNKSIZE = 25
+SPLIT_THRESHOLD = 1000
+SPLIT_CHUNKSIZE = 250
 
 # This function capitalizes all text in the original object
 def lambda_handler(event, context):

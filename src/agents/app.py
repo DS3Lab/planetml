@@ -126,22 +126,6 @@ def fetch_failed_or_submitted_jobs():
     global submit_lock
     if not submit_lock:
         try:
-            # lsf_client = LSFClient(
-            #     host=settings.euler_lsf_host,
-            #     username=settings.euler_lsf_username,
-            #     password=settings.euler_lsf_password,
-            #     wd=settings.euler_lsf_wd,
-            #     init=settings.euler_lsf_init,
-            # )
-            stanford_client = LSFClient(
-                host=settings.stanford_host,
-                username=settings.stanford_username,
-                password=settings.stanford_password,
-                wd=settings.stanford_wd,
-                init=settings.stanford_init,
-                gateway = settings.stanford_gateway,
-                infra='slurm',
-            )
             logger.info("Fetching and dispatching jobs")
             jobs = planetml_client.get_jobs()
             bi_jobs = [x for x in jobs 
@@ -151,21 +135,25 @@ def fetch_failed_or_submitted_jobs():
             ]
             logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
             if len(bi_jobs) > 0:
-                #lsf_client._connect()
-                #bi_coordinator = BatchInferenceCoordinator(
-                #    "batch_inference", lsf_client
-                #)
-                stanford_client._connect()
-                bi_coordinator_stanford = BatchInferenceCoordinator(
-                   "batch_inference_stanford", stanford_client
+                bi_coordinator = BatchInferenceCoordinator(
+                   "batch_inference"
                 )
             for each in bi_jobs:
                 # acquire submit lock
                 submit_lock = True
-                each = preprocess_job(each)
+                try:
+                    each = preprocess_job(each)
+                except Exception as e:
+                    planetml_client.update_job_status(
+                        job_id=each['id'],
+                        processed_by="",
+                        status="failed",
+                        source=each['source'],
+                        type=each['type'],
+                        returned_payload={"message": str(e)}
+                    )
                 job_payload[each['id']] = each['payload']
-                # bi_coordinator.dispatch(each)
-                bi_coordinator_stanford.dispatch(each)
+                bi_coordinator.dispatch(each)
             # release submit lock
             submit_lock = False
         except Exception as e:
