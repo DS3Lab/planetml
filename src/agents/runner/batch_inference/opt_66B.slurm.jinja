@@ -12,7 +12,7 @@
 
 source activate base                          # Activate my conda python environment
 cd /afs/cs.stanford.edu/u/biyuan/fm/new/gpt-home/     # Change directory
-
+ifconfig
 nvidia-smi
 
 ls -l /sys/class/net/
@@ -41,7 +41,7 @@ do
   INFERENCE_CONF="--fp16  --budget 10400 --batch-size 24 --input-seq-length 512 --generate-seq-length 32 --micro-batch-size 1 --num-layers 2 --max-layers 64"
   COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /afs/cs.stanford.edu/u/biyuan/working_dir --profiling no-profiling"
 
-  python -u dist_batch_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
+  export NETWORK_INTERFACE=$netif python -u dist_batch_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
 
   ((port++))
   ((i++))
