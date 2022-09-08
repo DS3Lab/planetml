@@ -119,26 +119,26 @@
                         </div>
                     </section>
                     <div v-if="job_status === 'finished'">
-                    <div
-                        class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Output
-                        </dt>
-                        <dd
-                            class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                            <pre>{{ returned_payload }}</pre>
-                        </dd>
-                    </div>
-                    <div
-                        class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Images
-                        </dt>
-                        <img v-for="o of outputs"
-                            style="float:left; padding:5px" width="200"
-                            height="200" :src='o' />
+                        <div
+                            class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Output
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                <pre>{{ returned_payload }}</pre>
+                            </dd>
+                        </div>
+                        <div
+                            class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Images
+                            </dt>
+                            <img v-for="o of outputs"
+                                style="float:left; padding:5px" width="200"
+                                height="200" :src='o' />
+                        </div>
                     </div>
                 </div>
-                </div>
-                
+
                 <section aria-labelledby="timeline-title"
                     class="lg:col-span-1 lg:col-start-3">
                     <div class="bg-white px-4 py-5 sm:rounded-lg sm:px-6">
@@ -148,46 +148,11 @@
 
                         <!-- Activity Feed -->
                         <div class="mt-6 flow-root">
-                            <ul role="list" class="-mb-8">
-                                <li v-for="(item, itemIdx) in timeline"
-                                    :key="item.id">
-                                    <div class="relative pb-8">
-                                        <span
-                                            v-if="itemIdx !== timeline.length - 1"
-                                            class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                                            aria-hidden="true" />
-                                        <div class="relative flex space-x-3">
-                                            <div>
-                                                <span
-                                                    :class="[item.type.bgColorClass, 'h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white']">
-                                                    <component
-                                                        :is="item.type.icon"
-                                                        class="h-5 w-5 text-white"
-                                                        aria-hidden="true" />
-                                                </span>
-                                            </div>
-                                            <div
-                                                class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p
-                                                        class="text-sm text-gray-500">
-                                                        {{ item.content }} <a
-                                                            href="#"
-                                                            class="font-medium text-gray-900">{{
-                                                            item.target }}</a>
-                                                    </p>
-                                                </div>
-                                                <div
-                                                    class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time
-                                                        :datetime="item.datetime">{{
-                                                        item.date }}</time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
+                            <div
+                                class="w-full bg-gray-200 rounded-full dark:bg-gray-700">
+                                <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full"
+                                    :style="'width: '+(100*progress.finished/progress.total)+'%'"> {{progress.finished}}/{{progress.total}}</div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -213,6 +178,7 @@ let created_at = ref("")
 let source = ref("")
 let type = ref("")
 let download = ref("")
+let progress = ref({})
 let returned_payload = ref("{}")
 let outputs = ref([])
 let rendered_finished = false // only render finished job once
@@ -225,7 +191,10 @@ function update_job_status() {
         if (response.data.status == "finished") {
             rendered_finished = true
         }
-        console.log(returned_payload)
+        if (response.data.status == "running") {
+            progress.value = response.data.returned_payload.progress
+            console.log(progress)
+        }
         job_status.value = response.data.status
         request_json.value = JSON.stringify(response.data.payload, null, 4)
         created_at.value = response.data.created_at
@@ -261,26 +230,4 @@ onMounted(() => {
 function highlighter(code) {
     return highlight(code, languages.json);
 }
-const user = {
-    name: 'Whitney Francis',
-    email: 'whitney@example.com',
-    imageUrl:
-        'https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
-}
-
-const comments = [
-    {
-        id: 1,
-        name: 'Leslie Alexander',
-        date: '4d ago',
-        imageId: '1494790108377-be9c29b29330',
-        body: 'Ducimus quas delectus ad maxime totam doloribus reiciendis ex. Tempore dolorem maiores. Similique voluptatibus tempore non ut.',
-    },
-    {
-        id: 2,
-        name: 'Michael Foster',
-        date: '4d ago',
-        imageId: '1519244703995-f4e0f30006d5',
-        body: 'Et ut autem. Voluptatem eum dolores sint necessitatibus quos. Quis eum qui dolorem accusantium voluptas voluptatem ipsum. Quo fa'
-    }]
 </script>
