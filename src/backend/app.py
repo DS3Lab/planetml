@@ -15,6 +15,7 @@ from rollbar.contrib.fastapi import add_to as rollbar_add_to
 from schemas.job import Job
 from schemas.resource import Site, SiteStat
 from constants import SPLIT_LAMBDA_URL
+
 class Settings(BaseSettings):
     db_database: str
     db_username: str
@@ -231,7 +232,7 @@ def access_s3(filename: str):
         return {"status":"error","message": str(e)}
 
 @app.post("/file",)
-def process_job_local(file: UploadFile = File(...)):
+def upload_file_to_s3(file: UploadFile = File(...)):
     with file.file as bytestream:
         try:
             filename = f"{str(uuid4())}.jsonl"

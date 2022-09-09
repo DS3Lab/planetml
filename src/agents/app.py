@@ -9,10 +9,10 @@ import sys
 import random
 import json
 from typing import Optional
+
 sys.path.append('./')
 
 from src.agents.utils.planetml import PlanetML
-from src.agents.clients.LSFClient import LSFClient
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 
 class Settings(BaseSettings):
@@ -31,8 +31,7 @@ class Settings(BaseSettings):
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
 
-lc_app = FastAPI(debug=True, docs_url="/eth/docs",
-                 openapi_url="/eth/api/v1/openapi.json")
+lc_app = FastAPI(debug=True, docs_url="/eth/docs",openapi_url="/eth/api/v1/openapi.json")
 
 watched_jobs = {}
 watched_ports = {}
@@ -95,18 +94,28 @@ async def post_rank(job_id, req: Request):
         "nccl_port": watched_ports[job_id],
     }
 
-
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
     request_json = await req.json()
     if request_json['returned_payload']:
-        res = planetml_client.update_job_status(
-            id,
-            status=request_json['status'],
-            returned_payload=request_json['returned_payload'],
-            type="general",
-            source='dalle'
-        )
+        if request_json['status'] == 'finished':
+            # upload results to S3
+            result_files = planetml_client.write_json_to_s3()
+            res = planetml_client.update_job_status(
+                id,
+                status=request_json['status'],
+                returned_payload=result_files,
+                type="general",
+                source='dalle'
+            )
+        else:
+            res = planetml_client.update_job_status(
+                id,
+                status=request_json['status'],
+                returned_payload=request_json['returned_payload'],
+                type="general",
+                source='dalle'
+            )
     else:
         res = planetml_client.update_job_status(
             id,
@@ -114,7 +123,7 @@ async def update_status(id, req: Request):
             type="general",
             source='dalle'
         )
-    return {"message": "ok"}
+    return res
 
 @lc_app.get("/eth/job_payload/{job_id}")
 async def get_job_payload(job_id):
