@@ -94,7 +94,6 @@ const headers = [
 ];
 
 function update_jobs_list() {
-    
     get_jobs_list().then((response) => {
         items.value = response.data
         running_jobs.value = 0
