@@ -8,7 +8,7 @@ class PlanetML():
         self.endpoint = endpoint
 
     def get_jobs(self):
-        return requests.get(self.endpoint+"/jobs").json()
+        return requests.get(self.endpoint+"/jobs/submitted").json()
 
     def update_job_status(self,
                           job_id: str,
