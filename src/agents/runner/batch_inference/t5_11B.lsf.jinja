@@ -18,7 +18,7 @@ world_size=6
 DIST_CONF="--pp-mode pipe_async_sample_enc_dec_mask --pipeline-group-size $world_size --cuda-id 0"
 MODEL_CONF="--model-type t5 --model-name /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/pretrained_models/t5-11b-new --num-iters 99999999999"
 INFERENCE_CONF="--budget 1600 --num-layers 4"
-COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir --profiling no-profiling"
+COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir --profiling no-profiling  --net-interface access"
 #!/bin/bash
 
 export NCCL_SOCKET_IFNAME=access
