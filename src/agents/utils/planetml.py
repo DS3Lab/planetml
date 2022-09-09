@@ -1,8 +1,10 @@
-from typing import Dict
-import requests
-from dstool.class_utils import singleton
-from tempfile import TemporaryFile
 import json
+import requests
+from typing import Dict
+from dstool.class_utils import singleton
+import random
+import os
+
 @singleton
 class PlanetML():
     def __init__(self, endpoint="http://localhost:5005") -> None:
@@ -37,13 +39,16 @@ class PlanetML():
         else:
             data['returned_payload'] = {}
         res = requests.patch(self.endpoint+f"/jobs/{job_id}", json=data)
-        return res
+        return res.json()
     
     def write_json_to_s3(self, data):
-        fp = TemporaryFile()
-        json.dumps(data, fp)
-        # upload to endpoint
-        res = requests.post(f'{self.endpoint}/file', data=fp)
-        # Closing automatically deletes the tempfile
-        fp.close()
+        tmp_file_id = random.randint(0, 100000000)
+        with open(f"{tmp_file_id}.json", "w+") as fp:
+            json.dump(data, fp)
+            files = {'file': fp}
+            # upload to endpoint
+            res = requests.post(f'{self.endpoint}/file', files=files)
+            # Closing automatically deletes the tempfile
+        # delete the file
+        os.remove(f"{tmp_file_id}.json")
         return res.json()

@@ -3,7 +3,7 @@ import rollbar
 import requests
 from uuid import uuid4
 from typing import List
-
+import os
 from pydantic import BaseSettings
 from fastapi.datastructures import UploadFile
 from fastapi.responses import StreamingResponse
@@ -235,7 +235,10 @@ def access_s3(filename: str):
 def upload_file_to_s3(file: UploadFile = File(...)):
     with file.file as bytestream:
         try:
-            filename = f"{str(uuid4())}.jsonl"
+            extension = os.path.splitext(file.filename)[1]
+            if len(extension) == 0:
+                extension = 'json'
+            filename = f"{str(uuid4())}.{extension}"
             s3.upload_fileobj(bytestream, "toma-all", filename)
         except Exception as e:
             return {"status":"error","message": str(e)}

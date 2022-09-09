@@ -103,16 +103,10 @@ class BatchInferenceCoordinator(LocalCoordinator):
 
             if "machine_size" in job_payload[0] and "world_size" in job_payload[0]:
                 machine_size, world_size = job_payload[0]["machine_size"], job_payload["world_size"][0]
-            elif "model" in job_payload[0]:
-                logger.warning(
-                    "Using default parameters for machine_size=1 and world_size=1")
-                machine_size = 1
-                world_size = 1
-                model_type = job_payload[0]['model']
-            elif 'engine' in job_payload[0]:
+            elif 'model' in job_payload[0]:
                 machine_size, world_size = machine_size_mapping[job_payload[0]
-                                                                ['engine']], machine_size_mapping[job_payload[0]['engine']]
-                model_type = job_payload[0]['engine']
+                                                                ['model']], machine_size_mapping[job_payload[0]['model']]
+                model_type = job_payload[0]['model']
             else:
                 raise ValueError("Cannot understand input!")
             target_cluster = target_cluster_mapping[model_type]
@@ -129,12 +123,9 @@ class BatchInferenceCoordinator(LocalCoordinator):
             demand_worker_num = machine_size
             for i in range(demand_worker_num):
                 logger.info("preparing files")
-                if 'model' in job_payload[0]:
-                    result = self.client.execute_raw_in_wd(
-                        f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
-                else:
-                    result = self.client.execute_raw_in_wd(
-                        f"cd {lsf_script_path} && cp ../{job_payload[0]['engine']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
+                result = self.client.execute_raw_in_wd(
+                    f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
+                
                 print('copied template to submit.bsub')
                 result = self.client.execute_raw_in_wd(
                     f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
