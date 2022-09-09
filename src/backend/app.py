@@ -231,11 +231,11 @@ def access_s3(filename: str):
     except Exception as e:
         return {"status":"error","message": str(e)}
 
-@app.post("/file",)
+@app.post("/file")
 def upload_file_to_s3(file: UploadFile = File(...)):
     with file.file as bytestream:
         try:
-            extension = os.path.splitext(file.filename)[1]
+            extension = os.path.splitext(file.filename)[1][1:]
             if len(extension) == 0:
                 extension = 'json'
             filename = f"{str(uuid4())}.{extension}"

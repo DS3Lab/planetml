@@ -26,13 +26,13 @@ class PlanetML():
             "type": type,
             "source": source,
         }
-        if processed_by:
+        if processed_by!='':
             data['processed_by'] = processed_by
-        if status:
+        if status !='':
             data['status'] = status
-        if source:
+        if source !='':
             data['source'] = source
-        if type:
+        if type != '':
             data["type"] = type
         if returned_payload:
             data['returned_payload'] = returned_payload
@@ -40,11 +40,12 @@ class PlanetML():
             data['returned_payload'] = {}
         res = requests.patch(self.endpoint+f"/jobs/{job_id}", json=data)
         return res.json()
-    
+
     def write_json_to_s3(self, data):
         tmp_file_id = random.randint(0, 100000000)
         with open(f"{tmp_file_id}.json", "w+") as fp:
             json.dump(data, fp)
+        with open(f'{tmp_file_id}.json', 'rb') as fp:
             files = {'file': fp}
             # upload to endpoint
             res = requests.post(f'{self.endpoint}/file', files=files)

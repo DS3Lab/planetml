@@ -118,9 +118,6 @@ function update_jobs_list() {
 
 onMounted(() => {
     update_jobs_list()
-    setInterval(() => {
-        update_jobs_list()
-    }, 10000)
 })
 
 </script>

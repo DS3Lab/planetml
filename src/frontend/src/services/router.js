@@ -9,7 +9,7 @@ import FileUploadSubmission from '@/pages/FileUploadSubmission.vue';
 
 const routes = [
     { path: '/', component: Landing },
-    { path: '/jobs', component: Maintainence},
+    { path: '/jobs', component: JobView},
     { path: '/status', component: DashboardView},
     { path: '/batch', component: BatchSubmission},
     { path: '/upload', component: FileUploadSubmission},

@@ -34,7 +34,8 @@ machine_size_mapping = {
     'opt-175b': 8,
     'bloom': 8,
     'yalm': 8,
-    'glm': 8
+    'glm': 8,
+    'stable_diffusion': 1,
 }
 
 target_cluster_mapping = {
