@@ -46,7 +46,69 @@
                                             class="text-sm font-medium text-gray-500">
                                             Status</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{job_data.status}}</dd>
+                                            <span
+                                                v-if="job_data.status == 'submitted' || job_data.status=='queued'"
+                                                class="job_status bg-yellow-100 text-yellow-800 text-xs font-medium
+                    inline-flex items-center px-2.5 py-0.5 rounded
+                    dark:bg-yellow-200 dark:text-yellow-800">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 32 32"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="w-6 h-6">
+                                                    <path stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {{ job_data.status }}
+                                            </span>
+                                            <span
+                                                v-if="job_data.status == 'finished'"
+                                                class="job_status bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-800">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 32 32"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="w-6 h-6">
+                                                    <path stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+                                                </svg>
+                                                {{ job_data.status }}
+                                            </span>
+                                            <span
+                                                v-if="job_data.status == 'running'"
+                                                class="job_status bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 32 32"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="w-6 h-6">
+                                                    <path stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                                                </svg>
+                                                {{ job_data.status }}
+                                            </span>
+                                            <span
+                                                v-if="job_data.status == 'failed'"
+                                                class="job_status bg-red-100 text-red-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-red-200 dark:text-red-800">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 32 32"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="w-6 h-6">
+                                                    <path stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                                                </svg>
+                                                {{ job_data.status }}
+                                            </span>
+                                        </dd>
                                     </div>
                                     <div class="sm:col-span-1">
                                         <dt
@@ -87,24 +149,26 @@
                                     </div>
                                 </dl>
                             </div>
-                            
+
                         </div>
                     </section>
                     <div v-if="job_data.status === 'finished'">
                         <div
                             class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500">Output
+                                File
                             </dt>
                             <dd
                                 class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                                <pre>{{ returned_payload }}</pre>
+                                <a :href="job_data.returned_payload.filename">{{
+                                job_data.returned_payload.filename }}</a>
                             </dd>
                         </div>
                         <div>
-                                <a :href="'https://planetd.shift.ml/job/'+job_id"
-                                    class="block bg-gray-50 shadow px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg">Read
-                                    full output</a>
-                            </div>
+                            <a :href="job_data.returned_payload.filename"
+                                class="block bg-gray-50 shadow px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg">Read
+                                full output</a>
+                        </div>
                         <div
                             class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500">Images
@@ -124,7 +188,8 @@
                         </h2>
 
                         <!-- Activity Feed -->
-                        <div class="mt-6 flow-root" v-if="job_data.status==='running' && 'progress' in job_data.returned_payload ">
+                        <div class="mt-6 flow-root"
+                            v-if="job_data.status==='running' && 'progress' in job_data.returned_payload ">
                             <div
                                 class="w-full bg-gray-200 rounded-full dark:bg-gray-700">
                                 <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full"
@@ -148,13 +213,18 @@ import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import { useRoute } from 'vue-router';
 import { highlight, languages } from 'prismjs/components/prism-core';
+import axios from 'axios';
 
 let job_id = ref("")
 let job_data = ref({})
 let progress = ref({})
-let returned_payload = ref({})
+let formatted_output = ref({})
 let outputs = ref([])
 let rendered_finished = false // only render finished job once
+
+function get_original_outputs(addr) {
+    return axios.get(addr)
+}
 
 function update_job_status() {
     if (rendered_finished == true) { // this means that the job has finished, and we rendered it already
@@ -170,22 +240,24 @@ function update_job_status() {
         }
         job_data.value = response.data
         if ('result' in job_data.value.returned_payload) {
-            returned_payload.value = job_data.value.returned_payload['result'].map(function (res) {
+            formatted_output.value = job_data.value.returned_payload['result'].map(function (res) {
                 return res['result']['choices'][0]['text']
             })[0]
         }
-        outputs.value = []
-        let nimg = 0
-        //for (const trial_id in response.data.returned_payload.output){
-        let trial_id = 0
-        if ('output' in job_data.value.returned_payload) {
-            for (const prompt_id in job_data.value.returned_payload.output[trial_id]) {
-                nimg = nimg + 1;
-                outputs.value.push(job_data.value.returned_payload.output[trial_id][prompt_id])
-                if (nimg > 500) {
-                    break
+        // now process and format the outputs
+        if (response.data.status == 'finished' && 'filename' in response.data.returned_payload) {
+            get_original_outputs(job_data.value.returned_payload.filename).then((response) => {
+                outputs.value = []
+                if ('output' in response) {
+                    for (const prompt_id in job_data.value.returned_payload.output[trial_id]) {
+                        nimg = nimg + 1;
+                        outputs.value.push(job_data.value.returned_payload.output[trial_id][prompt_id])
+                        if (nimg > 500) {
+                            break
+                        }
+                    }
                 }
-            }
+            })
         }
     });
 }
@@ -196,8 +268,4 @@ onMounted(() => {
         update_job_status()
     }, 10000)
 })
-
-function highlighter(code) {
-    return highlight(code, languages.json);
-}
 </script>
