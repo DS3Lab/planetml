@@ -96,7 +96,6 @@
   
   
 <script>
-import Header from "@/components/Auth/Header.vue";
 import { useRoute, useRouter } from "vue-router";
 import { getUser, updateUser } from "@/services/fireuser.js";
 import { reactive, computed, onMounted, toRefs } from "vue";
@@ -105,7 +104,6 @@ import Loading from "@/components/Auth/Loading.vue";
 export default {
   name: "Profile",
   components: {
-    Header,
     Loading,
   },
   setup() {
