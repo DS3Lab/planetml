@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
 machine_size_mapping = {
     'gpt-j-6b': 4,
-    'gpt-neox-20b': 8,
+    'gpt-neox-20b': 11,
     't0pp': 6,
     't5-11b': 6,
     'ul2': 16,
