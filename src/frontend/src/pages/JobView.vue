@@ -78,7 +78,7 @@ import { ref } from 'vue'
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import CardBoxWidget from "@/components/CardBoxWidget.vue";
-
+import { event } from 'vue-gtag'
 let items = ref([])
 let is_loaded = ref(false)
 let running_jobs = ref(0)
@@ -117,6 +117,7 @@ function update_jobs_list() {
 
 onMounted(() => {
     update_jobs_list()
+    event('job_view')
 })
 
 </script>

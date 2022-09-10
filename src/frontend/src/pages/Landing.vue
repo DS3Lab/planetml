@@ -30,11 +30,15 @@
 
 <script setup>
 
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { event } from 'vue-gtag'
 const router = useRouter()
 
 function jumpTo(page) {
     router.replace(page)
 }
-
+onMounted(() => {
+    event('homepage')
+})
 </script>

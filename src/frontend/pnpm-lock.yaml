@@ -26,6 +26,7 @@ specifiers:
   tailwindcss: ^3.1.8
   vite: ^3.1.0
   vue: ^3.2.38
+  vue-gtag: ^2.0.1
   vue-json-pretty: ^2.2.2
   vue-prism-editor: 2.0.0-alpha.2
   vue-router: ^4.1.5
@@ -52,6 +53,7 @@ dependencies:
   prismjs: 1.29.0
   sass: 1.54.8
   vue: 3.2.38
+  vue-gtag: 2.0.1_vue@3.2.38
   vue-json-pretty: 2.2.2_vue@3.2.38
   vue-prism-editor: 2.0.0-alpha.2_vue@3.2.38
   vue-router: 4.1.5_vue@3.2.38
@@ -2323,6 +2325,14 @@ packages:
     peerDependenciesMeta:
       '@vue/composition-api':
         optional: true
+    dependencies:
+      vue: 3.2.38
+    dev: false
+
+  /vue-gtag/2.0.1_vue@3.2.38:
+    resolution: {integrity: sha512-aM4A58FVL0wV2ptYi+xzAjeg+pQVRyUcfBc5UkXAwQrR4t3WBhor50Izp2I+3Oo7+l+vWJ7u78DGcNzReb8S/A==}
+    peerDependencies:
+      vue: ^3.0.0
     dependencies:
       vue: 3.2.38
     dev: false

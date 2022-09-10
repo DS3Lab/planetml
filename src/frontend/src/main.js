@@ -8,13 +8,19 @@ import 'vue3-easy-data-table/dist/style.css';
 import { createPinia } from "pinia";
 import { useMainStore } from "@/stores/main.js";
 import { useStyleStore } from "@/stores/style.js";
+import VueGtag from "vue-gtag";
 
 const pinia = createPinia();
 const app = createApp(App)
-app.use(router)
-app.use(pinia)
-
 const mainStore = useMainStore(pinia);
 const styleStore = useStyleStore(pinia);
+
+app.use(router)
+app.use(pinia)
+app.use(VueGtag, {
+    appName: "TOMA",
+    pageTrackerScreenViewEnabled: true,
+    config: { id: "G-VZP6PKKFW0" },
+}, router)
 
 app.mount('#app')

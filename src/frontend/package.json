@@ -29,6 +29,7 @@
     "prismjs": "^1.29.0",
     "sass": "^1.54.8",
     "vue": "^3.2.38",
+    "vue-gtag": "^2.0.1",
     "vue-json-pretty": "^2.2.2",
     "vue-prism-editor": "2.0.0-alpha.2",
     "vue-router": "^4.1.5",
