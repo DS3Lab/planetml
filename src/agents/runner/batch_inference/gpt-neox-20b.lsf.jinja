@@ -12,11 +12,11 @@ source /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/planetml_env/
 cd /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/GPT-home-private      # Change directory
 
 
-world_size=8
+world_size=11
 
 DIST_CONF="--pp-mode pipe_sync_sample_mask_token_pipe --pipeline-group-size $world_size --cuda-id 0"
 MODEL_CONF="--model-type gptneox --model-name /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/pretrained_models/gpt-neox-20b-new --num-iters 99999999999"
-INFERENCE_CONF="--fp16 --budget 4000 --micro-batch-size 1 --num-layers 6 --max-layers 44"
+INFERENCE_CONF="--fp16 --budget 8000 --micro-batch-size 1 --num-layers 4 --max-layers 44"
 COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/working_dir --profiling no-profiling --net-interface access"
 #!/bin/bash
 
