@@ -13,7 +13,7 @@
                         class="flex justify-between items-start p-4 rounded-t border-b dark:border-gray-600">
                         <h3
                             class="text-xl font-semibold text-gray-900 dark:text-white">
-                            Loading...
+                            Loading Jobs Data...
                         </h3>
                     </div>
                     <!-- Modal body -->
