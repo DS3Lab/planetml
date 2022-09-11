@@ -208,20 +208,21 @@ def update_job(id: str, job: Job):
     with Session(engine) as session:
         job_to_update = select(Job).where(Job.id == job.id)
         job_to_update = session.exec(job_to_update).one()
-        print(job)
-        if job_to_update is None:
-            return {"message": "Job not found"}
-        if job.processed_by != "":
-            job_to_update.processed_by = job.processed_by
-        if job.status != "":
-            job_to_update.status = job.status
-        if job.returned_payload != {}:
-            job_to_update.returned_payload = job.returned_payload
-        
-        session.add(job_to_update)
-        session.commit()
-        session.refresh(job_to_update)
-        return job_to_update
+        if job_to_update.status != 'finished':
+            if job_to_update is None:
+                return {"message": "Job not found"}
+            if job.processed_by != "":
+                job_to_update.processed_by = job.processed_by
+            if job.status != "":
+                job_to_update.status = job.status
+            if job.returned_payload != {}:
+                job_to_update.returned_payload = job.returned_payload
+            session.add(job_to_update)
+            session.commit()
+            session.refresh(job_to_update)
+            return job_to_update
+        else:
+            return {"message": "Job is already finished, and in an immutable state"}
 
 @app.get("/files/{filename}")
 def access_s3(filename: str):
