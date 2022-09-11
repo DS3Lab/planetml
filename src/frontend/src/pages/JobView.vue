@@ -1,6 +1,6 @@
 
 <template>
-    <div class="">
+    <div class="jobview">
         <div v-if="!is_loaded" id="defaultModal" tabindex="-1" aria-hidden="true"
             class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full">
             <div
@@ -169,5 +169,10 @@ span .job_status {
     margin-left: auto;
     margin-right: auto;
     margin-top: 20%;
+}
+.jobview {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
 }
 </style>

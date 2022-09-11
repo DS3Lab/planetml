@@ -6,8 +6,8 @@ import { useMainStore } from "@/stores/main.js";
 import { useStyleStore } from "@/stores/style.js";
 import VueGtag from "vue-gtag";
 
-import './style.css'
 import './index.css'
+import './style.css'
 import 'flowbite';
 import 'vue3-easy-data-table/dist/style.css';
 

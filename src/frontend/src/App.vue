@@ -27,6 +27,7 @@ const route = useRoute();
 .main_view {
   margin-left: auto;
   margin-right: auto;
+  width: 80%;
   height: 100%;
 }
 </style>
