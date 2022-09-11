@@ -33,25 +33,31 @@ class Settings(BaseSettings):
 
 lc_app = FastAPI(debug=True, docs_url="/eth/docs",openapi_url="/eth/api/v1/openapi.json")
 
+
+# sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the app is restarted
 watched_jobs = {}
 watched_ports = {}
 job_payload = {}
-warmness_of_models = {
-    
+model_warmness = {
+    "stable_diffusion": 1,
+}
+model_instructions = {
+    "stable_diffusion": []
 }
 settings = Settings()
 submit_lock = False
-
 planetml_client = PlanetML()
 
 def preprocess_job(job):
+    is_interactive = True
     if 'url' in job['payload']:
         res = requests.get(job['payload']['url']).text.strip()
         req_payload_from_file = [json.loads(x) for x in res.split("\n")]
         job['payload'] = req_payload_from_file
+        is_interactive = False
     else:
         job['payload'] = [job['payload']] if type(job['payload']) != list else job['payload']
-    return job
+    return job, is_interactive
 
 @lc_app.get("/eth/heartbeat/:id")
 async def root():
@@ -67,6 +73,9 @@ async def health():
 async def node_join():
     return {"message": "ok"}
 
+@lc_app.patch("/eth/model")
+async def update_model():
+    pass
 
 @lc_app.post("/eth/rank/{job_id}")
 async def post_rank(job_id, req: Request):
@@ -124,6 +133,22 @@ async def update_status(id, req: Request):
 async def get_job_payload(job_id):
     return job_payload[job_id]
 
+@lc_app.get("/eth/warmness/{model_name}")
+async def get_model_warmness(model_name):
+    if model_name in model_warmness:
+        warmness = model_warmness[model_name]
+    else:
+        warmness = 0
+    return {"warmness": warmness, 'message': 'ok'}
+
+@lc_app.get("/eth/warmnesses")    
+async def get_all_warmness():
+    return {"warmness": model_warmness,'message':'ok'}
+
+@lc_app.get("/eth/instructions/{model_name}")
+async def get_instruction(model_name):
+    return {"instruction": model_instructions[model_name]}
+
 @lc_app.on_event("startup")
 @repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
 def fetch_submitted_jobs():
@@ -146,7 +171,7 @@ def fetch_submitted_jobs():
                 # acquire submit lock
                 submit_lock = True
                 try:
-                    each = preprocess_job(each)
+                    each, is_interactive = preprocess_job(each)
                 except Exception as e:
                     planetml_client.update_job_status(
                         job_id=each['id'],
@@ -156,8 +181,24 @@ def fetch_submitted_jobs():
                         type=each['type'],
                         returned_payload={"message": str(e)}
                     )
-                job_payload[each['id']] = each['payload']
-                bi_coordinator.dispatch(each)
+                    return
+                # here if it is a file, i.e., url is provided, we regard it as a batch inference job
+                # otherwise, it is an interactive job - we will dispatch it to a live coordinator
+                # if no live coordinator is available, we will create a new one
+                if not is_interactive or not each['payload'][0]['model'] in model_warmness:
+                    # it's not an interactive job, or the model is not warm,
+                    # dispatch it to a cluster
+                    job_payload[each['id']] = each['payload']
+                    dispatch_result = bi_coordinator.dispatch(each)
+                    model_warmness[dispatch_result['model']] = 1
+                else:
+                    # for interactive job
+                    # first check warmness
+                    # put it into instructions list
+                    model_instructions[each['payload'][0]['model']].append({
+                        "message": "run",
+                        "payload": each
+                    })
             # release submit lock
             submit_lock = False
         except Exception as e:

@@ -100,7 +100,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
             else:
                 lsf_script_path = job['lsf_script_path']
             job_payload = job['payload']
-            logger.info("job_payload: {}", job_payload[0])
+            # logger.info("job_payload: {}", job_payload[0])
 
             # check model type and find target cluster
 
@@ -161,6 +161,10 @@ class BatchInferenceCoordinator(LocalCoordinator):
             result = self.client.execute_raw_in_wd(
                 f"cd {lsf_script_path} && rm *.bsub"
             )
+            return {
+                'status': 'queued',
+                'model': job_payload[0]['model'],
+            }
         except Exception as e:
             self.planetml.update_job_status(
                 job_id=job['id'],
