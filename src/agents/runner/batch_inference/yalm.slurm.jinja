@@ -39,7 +39,7 @@ do
   
   DIST_CONF="--pp-mode pipe_sync_sample_mask_token_pipe --pipeline-group-size $world_size --cuda-id $i"
   MODEL_CONF="--model-type yalm --model-name /sailhome/biyuan/fm/models/yalm-100b-new --num-iters 9999999999999"
-  INFERENCE_CONF="--fp16  --budget 10400 --batch-size 24 --input-seq-length 512 --generate-seq-length 32 --micro-batch-size 1 --num-layers 10 --max-layers 80"
+  INFERENCE_CONF="--fp16  --budget 24400 --batch-size 24 --input-seq-length 512 --generate-seq-length 32 --micro-batch-size 1 --num-layers 10 --max-layers 80"
   COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /sailhome/biyuan/fm/new/working_dir --profiling no-profiling --net-interface $netif --job_id $job_id"
 
   python -u dist_batch_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
