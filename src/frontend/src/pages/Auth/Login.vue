@@ -104,6 +104,7 @@ import CILogon from "@/components/Auth/LoginProviders/CILogon.vue";
 
 import { reactive, toRefs } from "vue";
 import { getAuth } from "firebase/auth";
+import { useRouter } from "vue-router";
 
 export default {
   name: "Login",
@@ -120,13 +121,14 @@ export default {
       password: null,
       isLoading: false,
     });
+    const router = useRouter();
 
     function Login() {
       state.isLoading = true;
       getAuth()
         .signInWithEmailAndPassword(state.email, state.password)
         .then((data) => {
-          console.log(data);
+          router.replace("/profile")
         })
         .catch((err) => alert(err.message));
     }

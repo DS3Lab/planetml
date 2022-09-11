@@ -11,9 +11,11 @@
 import { getAuth } from "firebase/auth";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { createUser } from "@/services/fireuser";
+import { useRouter } from "vue-router";
 export default {
   name: "google-button",
   setup(props) {
+    const router = useRouter();
     function googleAuth() {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
@@ -21,8 +23,8 @@ export default {
 
       signInWithPopup(getAuth(), provider)
         .then((res) => {
-          console.log(res)
           createUser(res)
+          router.replace("/profile")
         })
         .catch((error) => {
           console.log(error)

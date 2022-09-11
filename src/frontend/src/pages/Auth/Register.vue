@@ -84,7 +84,7 @@ import DarkMode from "@/components/Auth/DarkMode.vue";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { createUser } from '@/services/fireuser.js'
 import { reactive, toRefs } from "vue";
-
+import { useRouter } from "vue-router";
 export default {
   name: "Register",
   components: { Google, GitHub, Loading, CILogon },
@@ -93,13 +93,13 @@ export default {
       email: null,
       password: null,
       isLoading: false
-
     });
-
+    const router = useRouter();
     function Register() {
       state.isLoading = true
       createUserWithEmailAndPassword(getAuth(), state.email, state.password).then((user) =>{
         createUser(user)
+        router.replace("/profile")
       }).catch((err) => {
         console.log(err)
       });

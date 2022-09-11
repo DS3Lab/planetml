@@ -19,6 +19,7 @@ const routes = [
     { path: '/report/:jobid', component: ReportView},
     { path: '/login', component: Login},
     { path: '/register', component: Register},
+    { path: '/profile', component: ProfilePage},
 ]
 const router = createRouter({
     history: createWebHistory(),

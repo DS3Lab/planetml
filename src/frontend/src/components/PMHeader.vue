@@ -1,5 +1,4 @@
 <script setup>
-import { ref } from 'vue'
 </script>
 
 <template>
@@ -39,6 +38,8 @@ import { ref } from 'vue'
                     href="http://52.36.141.204/">Gallery</a>
                 <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
                     href="/jobs">Jobs</a>
+                <a class="text-gray-700 transition-colors duration-200 transform lg:mx-8 dark:text-gray-200 dark:hover:text-blue-400 hover:text-blue-500"
+                    href="/login">Login</a>
             </div>
         </nav>
     </section>

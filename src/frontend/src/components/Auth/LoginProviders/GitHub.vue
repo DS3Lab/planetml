@@ -11,10 +11,12 @@
 <script>
 import { getAuth, signInWithPopup, GithubAuthProvider } from "firebase/auth";
 import { createUser } from "@/services/fireuser";
+import { useRouter } from "vue-router";
 export default {
   name: "github-button",
 
   setup() {
+    const router = useRouter();
     function githubAuth() {
       const provider = new GithubAuthProvider();
       provider.addScope('profile');
@@ -22,6 +24,7 @@ export default {
         signInWithPopup(getAuth(), provider)
         .then((res) => {
           createUser(res)
+          router.replace("/profile")
         })
         .catch((error) => {
             console.log(error)

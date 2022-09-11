@@ -3,7 +3,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { collection, doc, addDoc, setDoc } from "firebase/firestore"; 
+import { collection, doc, getDoc, setDoc } from "firebase/firestore"; 
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -36,15 +36,23 @@ export const createUser = user => {
         'phone_number': user.user.phoneNumber,
         'provider_id': user.providerId,
     }
-    console.log(user_profile)
     return setDoc(docRef, user_profile);
 }
 
-// get data
-export const getUser = async id => {
-    const user = await userCollection.doc(id).get()
-    return user.exists ? user.data() : null
-}
+export const getUser = ((id) => {
+    return new Promise((resolve, reject) => {
+        const docRef = doc(db, "user_data", id);
+        getDoc(docRef).then((doc) => {
+            if (doc.exists) {
+                resolve(doc.data())
+            } else {
+                reject('No such document!')
+            }
+        }).catch((error) => {
+            reject(error)
+        });
+    })
+})
 
 // update data
 export const updateUser = (id, user) => {
