@@ -36,7 +36,9 @@ lc_app = FastAPI(debug=True, docs_url="/eth/docs",openapi_url="/eth/api/v1/opena
 watched_jobs = {}
 watched_ports = {}
 job_payload = {}
-occupied_port = set()
+warmness_of_models = {
+    
+}
 settings = Settings()
 submit_lock = False
 

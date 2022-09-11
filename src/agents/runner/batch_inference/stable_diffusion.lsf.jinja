@@ -13,16 +13,17 @@ module load gcc/8.2.0 python_gpu/3.9.9 cuda/11.0.3 eth_proxy zsh/5.8
 
 source /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/planetml_env/bin/activate
 
-cd /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/runner/src/agents/runner/batch_inference/
+cd /nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/GPT-home-private
 
 nvidia-smi
 
-COOR_CONF="--coordinator-server-ip 10.6.7.244"
+COOR_CONF="--cord_url https://coordinator.shift.ml/eth
 #!/bin/bash
 
 # export http_proxy=http://proxy.ethz.ch:3128
 # export https_proxy=https://proxy.ethz.ch:3128
 # export NCCL_IB_DISABLE=1
 # export NCCL_P2P_DISABLE=1
+
 export HF_HOME=/nfs/iiscratch-zhang.inf.ethz.ch/export/zhang/export/fm/new/cache/HF
 python -u local_latency_inference_stable_diffussion.py $COOR_CONF \
