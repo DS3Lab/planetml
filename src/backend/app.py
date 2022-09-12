@@ -119,6 +119,10 @@ def add_job(job: Job):
                     session.add(job)
                     session.commit()
                     session.refresh(job)
+            else:
+                session.add(job)
+                session.commit()
+                session.refresh(job)
         else:
             session.add(job)
             session.commit()
