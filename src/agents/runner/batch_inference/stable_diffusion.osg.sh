@@ -11,7 +11,7 @@ module load stashcache
 ls -l
 
 mkdir python
-tar -xzf decentralizedfm.tar.gz -C python
+tar -xzf python.tar.gz -C python
 tar -xzf stable-diffusion-v1-4.tar.gz
 mv stable-diffusion-v1-4 GPT-home-private/
 
