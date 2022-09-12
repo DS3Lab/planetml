@@ -1,14 +1,14 @@
-executable = /home/binhang.yuan/fm/new/planetml/src/agents/runner/batch_inference/stable_diffusion.osg.sh
+executable = $HOME/fm/new/planetml/src/agents/runner/batch_inference/stable_diffusion.osg.sh
 
-transfer_input_files = /home/binhang.yuan/fm/new/GPT-home-private, stash:///ospool/PROTECTED/ce.zhang/python.tar.gz, stash:///ospool/PROTECTED/ce.zhang/stable-diffusion-v1-4.tar.gz
+transfer_input_files = $HOME/fm/new/GPT-home-private, stash:///ospool/PROTECTED/ce.zhang/python.tar.gz, stash:///ospool/PROTECTED/ce.zhang/stable-diffusion-v1-4.tar.gz
 
 # We need to name the files that HTCondor should create to save the
 #  terminal output (stdout) and error (stderr) created by our job.
 #  Similarly, we need to name the log file where HTCondor will save
 #  information about job execution steps.
-error = /home/binhang.yuan/fm/exec_logs/diffusion.error
-output = /home/binhang.yuan/fm/exec_logs/diffusion.output
-log = /home/binhang.yuan/fm/exec_logs/diffusion.log
+error = $HOME/fm/exec_logs/diffusion.error
+output = $HOME/fm/exec_logs/diffusion.output
+log = $HOME/fm/exec_logs/diffusion.log
 
 # We need to request the resources that this job will need:
 # requirements = (CUDACapability >= 6.1)
