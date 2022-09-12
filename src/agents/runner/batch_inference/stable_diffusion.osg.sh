@@ -23,7 +23,7 @@ export HOME=$PWD
 which python
 which python3
 
-python3 -u /home/binhang.yuan/fm/new/GPT-home-private/local_latency_inference_stable_diffussion_osg.py
+python3 -u ./GPT-home-private/local_latency_inference_stable_diffussion_osg.py
 
 rm -rf python
 rm -rf stable-diffusion-v1-4
