@@ -5,7 +5,7 @@ nvidia-smi
 lscpu
 
 module load cuda-toolkit/11.0
-module load stashcp
+module load stashcache
 # stashcp /public/biyuan/xxx ./
 
 ls -l
