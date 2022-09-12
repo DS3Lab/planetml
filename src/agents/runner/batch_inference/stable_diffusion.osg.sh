@@ -13,6 +13,7 @@ ls -l
 mkdir python
 tar -xzf decentralizedfm.tar.gz -C python
 tar -xzf stable-diffusion-v1-4.tar.gz
+mv stable-diffusion-v1-4 GPT-home-private/
 
 ls -l
 
@@ -23,9 +24,12 @@ export HOME=$PWD
 which python
 which python3
 
-python3 -u ./GPT-home-private/local_latency_inference_stable_diffussion_osg.py
+cd GPT-home-private
+python3 -u local_latency_inference_stable_diffussion_osg.py
+
+rm -rf stable-diffusion-v1-4
+cd ..
 
 rm -rf python
-rm -rf stable-diffusion-v1-4
 
-echo "Science complete!"
+echo "Task complete!"
