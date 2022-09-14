@@ -1,0 +1,28 @@
+executable = /home/ce.zhang/fm/new/planetml/src/agents/runner/batch_inference/stable_diffusion.osg.sh
+
+transfer_input_files = /home/ce.zhang/fm/new/GPT-home-private, stash:///ospool/PROTECTED/ce.zhang/python.tar.gz, stash:///ospool/PROTECTED/ce.zhang/stable-diffusion-v1-4.tar.gz
+
+# We need to name the files that HTCondor should create to save the
+#  terminal output (stdout) and error (stderr) created by our job.
+#  Similarly, we need to name the log file where HTCondor will save
+#  information about job execution steps.
+error = /home/ce.zhang/fm/exec_logs/diffusion.error
+output = /home/ce.zhang/fm/exec_logs/diffusion.output
+log = /home/ce.zhang/fm/exec_logs/diffusion.log
+
+# We need to request the resources that this job will need:
+# requirements = (CUDACapability >= 6.1)
+requirements = (HAS_MODULES =?= true)
+request_cpus = 1
+request_gpus = 1
+request_memory = 10000 MB
+request_disk = 16000 MB
+
+# getenv = !PATH, !INCLUDE
+# getenv = true
+
++WantsStashCache = true
+
+# The last line of a submit file indicates how many jobs of the above
+#  description should be queued. We'll start with one job.
+queue 1
