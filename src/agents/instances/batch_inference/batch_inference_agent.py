@@ -24,7 +24,6 @@ class Settings(BaseSettings):
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
 
-
 machine_size_mapping = {
     'gpt-j-6b': 4,
     'gpt-neox-20b': 11,
@@ -107,13 +106,15 @@ class BatchInferenceCoordinator(LocalCoordinator):
             if "machine_size" in job_payload[0] and "world_size" in job_payload[0]:
                 machine_size, world_size = job_payload[0]["machine_size"], job_payload["world_size"][0]
             elif 'model' in job_payload[0]:
+                if job_payload[0]['model'] not in machine_size_mapping:
+                    raise ValueError(f"model {job_payload[0]['model']} not supported")
                 machine_size, world_size = machine_size_mapping[job_payload[0]
                                                                 ['model']], machine_size_mapping[job_payload[0]['model']]
                 model_type = job_payload[0]['model']
             else:
                 raise ValueError("Cannot understand input!")
             target_cluster = target_cluster_mapping[model_type]
-            logger.info(target_cluster)
+            logger.info(f"Deploying to cluster: {target_cluster}")
             self.client = clients[target_cluster]
             self.client._connect()
             if machine_size < 0 or world_size < 0:
