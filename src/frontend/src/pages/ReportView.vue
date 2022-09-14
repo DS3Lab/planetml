@@ -259,10 +259,13 @@ function update_job_status() {
         if (response.data.status == 'finished' && 'filename' in response.data.returned_payload) {
             get_original_outputs(job_data.value.returned_payload.filename).then((response) => {
                 outputs.value = []
+                response = response.data
                 if ('output' in response) {
-                    for (const prompt_id in job_data.value.returned_payload.output[trial_id]) {
+                    let trial_id = 0
+                    let nimg = 0
+                    for (const prompt_id in response.output[trial_id]) {
                         nimg = nimg + 1;
-                        outputs.value.push(job_data.value.returned_payload.output[trial_id][prompt_id])
+                        outputs.value.push(response.output[trial_id][prompt_id])
                         if (nimg > 500) {
                             break
                         }
