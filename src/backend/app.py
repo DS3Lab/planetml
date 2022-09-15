@@ -153,6 +153,8 @@ def patch_model_status(model_name:str, model_status:ModelStatus):
         else:
             to_update_model_status.warmness = model_status.warmness
             to_update_model_status.expected_runtime = model_status.expected_runtime
+            if model_status.last_heartbeat!="":
+                to_update_model_status.last_heartbeat = model_status.last_heartbeat
             session.add(to_update_model_status)
             session.commit()
             session.refresh(to_update_model_status)

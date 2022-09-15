@@ -44,11 +44,22 @@ async def fetching_results(job_id):
     return raw_output['output']
 
 
-async def respond(ctx, job_id):
+async def respond(ctx, job_id, prompt, model):
     results = await fetching_results(job_id)
+    embed_job_info = discord.Embed(
+            title=f"Job Results {job_id}", description="Results for Job" + job_id, color=0x00ff00, url=f"https://toma.pages.dev/report/{job_id}")
+    embed_job_info.add_field(name=f"Prompts", value=f"{prompt}", inline=False)
+
+    embed_job_info.add_field(name=f"Feedback", value="""
+        👍 => Good   👎 => Bad   🤣 => Funny
+        🚫 => Inappropriate   😱 => Scary
+    """, inline=False)
+
+    embed_job_info.set_footer(text=f"# Generated with {model} by TOMA")
     for prompt in results:
         for img in prompt:
-            await ctx.send_followup(img)
+            embed_job_info.set_image(url=img)
+            await ctx.send_followup(embed=embed_job_info)
 
 
 @bot.event
@@ -74,18 +85,12 @@ async def draw(
             return
 
         embed_job_info = discord.Embed(
-            title=f"Job Info {job_id}", description="Job ID: " + job_id, color=0x00ff00, url=f"https://toma.pages.dev/report/{job_id}")
+            title=f"Job Created: {job_id}", description="Job ID: " + job_id, color=0x00ff00, url=f"https://toma.pages.dev/report/{job_id}")
 
         embed_job_info.add_field(name=f"Prompts", value=f"{prompt}", inline=False)
 
-        embed_job_info.add_field(name=f"Feedback", value="""
-            👍 => Good   👎 => Bad   🤣 => Funny
-            🚫 => Inappropriate   😱 => Scary
-        """, inline=False)
-
-        embed_job_info.set_footer(text=f"# Generated with {model} by TOMA")
         await ctx.send_followup(embed=embed_job_info)
-        asyncio.ensure_future(respond(ctx, job_id))
+        asyncio.ensure_future(respond(ctx, job_id, prompt, model))
     except Exception as e:
         error = traceback.format_exc()
         print(error)
@@ -98,9 +103,6 @@ async def together(
     *,
     args=""
 ):
-    import requests
-    from dateutil import parser
-
     await ctx.defer()
     try:
         if command == "cluster_status":
@@ -114,5 +116,43 @@ async def together(
         print(error)
         await ctx.send_followup(f"sorry, something went wrong. \n\n ```{error}```")
 
+@bot.slash_command()
+async def toma(
+    ctx: discord.ApplicationContext,
+    prompt: discord.Option(str, description="Input your prompts", 
+        name="prompts"),
+    mode: discord.Option(str, description="Choose your mode",
+        choices=['Image Generation'],
+        default = "Image Geneartion"),
+    model: discord.Option(str, description="Choose your model",
+        choices=[
+            "Image: stable_diffusion"
+        ],
+        default = "default"),
+    max_tokens: discord.Option(int, min_value=1, max_value=1024, required=False, description="(Text Generation) max_tokens"),
+    temperature: discord.Option(float, min_value=0, max_value=1, required=False, description="(Text Generation) temperature"),
+    top_p: discord.Option(float, min_value=0, max_value=1, required=False, description="(Text Generation) top_p")
+):
+    await ctx.defer()
+    try:
+        print(prompt)
+        model = 'stable_diffusion'
+        job_id = await submit_job(prompt, model=model)
+
+        if job_id is None:
+            await ctx.send_followup(f"Something went wrong")
+            return
+
+        embed_job_info = discord.Embed(
+            title=f"Job Created: {job_id}", description="Job ID: " + job_id, color=0x00ff00, url=f"https://toma.pages.dev/report/{job_id}")
+
+        embed_job_info.add_field(name=f"Prompts", value=f"{prompt}", inline=False)
+
+        await ctx.send_followup(embed=embed_job_info)
+        asyncio.ensure_future(respond(ctx, job_id, prompt, model))
+    except Exception as e:
+        error = traceback.format_exc()
+        print(error)
+        await ctx.send_followup(f"sorry, something went wrong. \n\n ```{error}```")
 
 bot.run(TOKEN)

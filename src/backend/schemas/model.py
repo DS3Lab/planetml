@@ -16,4 +16,5 @@ class ModelStatus(SQLModel, table=True):
     warmness: float
     created_at: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), nullable=False, default=datetime.datetime.utcnow))
     expected_runtime: int
+    last_heartbeat: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), nullable=False, default=datetime.datetime.utcnow))
 

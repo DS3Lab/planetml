@@ -4,7 +4,7 @@ from typing import Dict
 from dstool.class_utils import singleton
 import random
 import os
-
+from datetime import datetime
 @singleton
 class PlanetML():
     def __init__(self, endpoint="http://localhost:5005") -> None:
@@ -53,3 +53,11 @@ class PlanetML():
         # delete the file
         os.remove(f"{tmp_file_id}.json")
         return res.json()
+    
+    def update_model_status(self, model, payload):
+        res = requests.patch(self.endpoint+f"/model_statuses/{model}", json={
+            "name": model,
+            "warmness": payload['warmness'],
+            "expected_runtime": 30 if payload['warmness'] == 1 else 120,
+            "last_heartbeat": str(payload['last_heartbeat']),
+        })

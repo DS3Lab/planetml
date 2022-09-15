@@ -1,4 +1,5 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
+
 import sys
 import time
 import json
@@ -9,11 +10,10 @@ from typing import Optional
 from pydantic import BaseSettings
 from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
-
+from datetime import datetime
 sys.path.append('./')
-
-from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 from src.agents.utils.planetml import PlanetML
+from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 
 class Settings(BaseSettings):
     euler_lsf_host: Optional[str]
@@ -189,6 +189,11 @@ async def get_all_warmness():
 
 @lc_app.get("/eth/instructions/{model_name}")
 async def get_instruction(model_name):
+    # tell global coordinator that this model is alive
+    planetml_client.update_model_status(model=model_name, payload={
+        "warmness": 1,
+        "last_heartbeat": datetime.utcnow()
+    })
     if model_name not in model_instructions:
         # at this moment, the worker is asking for instructions of a model, so it is ready to accept jobs
         # we can set the warmness of the model to be 1
@@ -213,6 +218,11 @@ def update_warmnesses():
             # now this model is not warm anymore, we do the following
             # set it's warmness to 0
             model_warmness[model_name] = 0
+            # tell global coordinator that this model is not warm anymore
+            planetml_client.update_model_status(model=model_name, payload={
+                "warmness": 0,
+                "last_heartbeat": ""
+            })
         # now check model warmness again - if it is not warm, but there is a limitation specified in coord_status['minimal_warmness'], we starts a test job
 
     for model_name in coord_status['minimal_warmness']:

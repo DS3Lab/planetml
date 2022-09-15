@@ -1,7 +1,8 @@
 import requests
 from dateutil import parser
 from table2ascii import table2ascii
-
+import time
+from datetime import datetime
 def get_cluster_status(args):
     x = requests.get('https://planetd.shift.ml/site_stats')
 
@@ -62,20 +63,25 @@ def get_cluster_status(args):
 def get_model_status(args):
     x = requests.get('http://192.168.191.9:5005/model_statuses')
 
-    header = ("Model Name", "Warmness", "Exp. Response Time")
+    header = ("Model Name", "Warmness", "Exp. Response Time (s)", "Last Heartbeat")
     body = []
     for model in x.json():
+        if model['warmness'] == 1:
+            warmness = 'VRAM'
+        elif model['warmness'] == 0:
+            warmness = 'Disk'
+        heartbeat_time = parser.parse(model['last_heartbeat']).strftime("%Y-%m-%d %H:%M:%S")
         body.append(
-            (model['name'], model['warmness'], model['expected_runtime'])
+            (model['name'], warmness, f"< {model['expected_runtime']}", str(heartbeat_time))
         )
 
-    footer = ("","","For the first query")
+    footer = ("","","For the first query","")
 
     responds = table2ascii(
         header=header,
         body=body,
         footer=footer,
     )
-
-    responds = f"```Research Computer\n{responds}\n\n{args}```"
+    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    responds = f"```Research Computer\nCurrent UTC: {current_time}\n{responds}\n\n{args}```"
     return responds
