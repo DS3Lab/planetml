@@ -131,10 +131,10 @@ class BatchInferenceCoordinator(LocalCoordinator):
                     f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
 
                 print('copied template to submit.bsub')
-                result = self.client.execute_raw_in_wd(
-                    f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
-                )
-
+                if self.client.infra == 'lsf':
+                    result = self.client.execute_raw_in_wd(
+                        f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
+                    )
                 logger.info(f"submission file for worker {i} is prepared...")
                 if self.client.infra == 'lsf':
                     result = self.client.execute_raw_in_wd(

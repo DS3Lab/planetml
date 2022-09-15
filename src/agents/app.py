@@ -1,14 +1,14 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
+import sys
+import time
+import json
+import random
+import requests
+from loguru import logger
+from typing import Optional
+from pydantic import BaseSettings
 from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
-from loguru import logger
-from pydantic import BaseSettings
-import requests
-import sys
-import random
-import json
-from typing import Optional
-import time
 
 sys.path.append('./')
 
