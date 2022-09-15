@@ -170,12 +170,20 @@
                                 full output</a>
                         </div>
                         <div
+                            v-if="outputs.length>0"
                             class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500">Images
                             </dt>
                             <img v-for="o of outputs"
                                 style="float:left; padding:5px" width="200"
                                 height="200" :src='o' />
+                        </div>
+                        <div
+                            v-if="text_outputs.length>0"
+                            class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Returned Text
+                            </dt>
+                            <span v-for="o of text_outputs">{{o}}</span>
                         </div>
                     </div>
                     <div v-if="job_data.status === 'failed'">
@@ -231,6 +239,7 @@ let job_data = ref({})
 let progress = ref({})
 let formatted_output = ref({})
 let outputs = ref([])
+let text_outputs = ref([])
 let rendered_finished = false // only render finished job once
 
 function get_original_outputs(addr) {
@@ -267,6 +276,15 @@ function update_job_status() {
                         nimg = nimg + 1;
                         outputs.value.push(response.output[trial_id][prompt_id])
                         if (nimg > 500) {
+                            break
+                        }
+                    }
+                } else if (response['result'][0]['request']['request_type']==='language-model-inference') {
+                    let return_id = 0
+                    let input_id = 0
+                    for (const returned_id in response['result'][input_id]['result']['choices']) {
+                        text_outputs.value.push(response['result'][0]['result']['choices'][returned_id]['text'])
+                        if (return_id > 500) {
                             break
                         }
                     }

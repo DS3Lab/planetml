@@ -35,22 +35,27 @@ class Settings(BaseSettings):
 
 lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
-# sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the app is restarted
-job_status = {
-
-}
+# sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
+job_status = {}
 watched_jobs = {}
 watched_ports = {}
 job_payload = {}
-model_warmness = {
-
-}
+model_warmness = {}
 model_instructions = {}
+model_heartbeats = {}
+
 settings = Settings()
 submit_lock = False
 planetml_client = PlanetML()
-model_heartbeats = {
 
+coord_status = {
+    'health': 'ok',
+    'jobs': {},
+    'models': {
+        'warmness': {},
+        'instructions': {},
+        'heartbeats': {}
+    }
 }
 
 def preprocess_job(job):
@@ -81,11 +86,6 @@ async def node_join():
     return {"message": "ok"}
 
 
-@lc_app.patch("/eth/model")
-async def update_model_status():
-    pass
-
-
 @lc_app.post("/eth/rank/{job_id}")
 async def post_rank(job_id, req: Request):
     """
@@ -110,6 +110,8 @@ async def post_rank(job_id, req: Request):
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
     request_json = await req.json()
+    # here we update instructions and heartbeats
+    # if this job is in the list of instructions, we update the instructions such that the job is removed from the database
     for model_name in model_instructions:
         instructions = model_instructions[model_name]
         for instruction in instructions:
@@ -181,6 +183,7 @@ def shutdown_event():
 
 def update_warmnesses():
     logger.info("updating warmnesses...")
+    logger.info(model_warmness)
     for model_name in model_warmness:
         if model_name not in model_heartbeats:
             model_warmness[model_name] = 0
@@ -230,7 +233,6 @@ def fetch_submitted_jobs():
                     # dispatch it to a cluster
                     job_payload[each['id']] = each['payload']
                     dispatch_result = bi_coordinator.dispatch(each)
-                    model_warmness[dispatch_result['model']] = 1
                 else:
                     # for interactive job
                     # first check warmness
@@ -250,5 +252,4 @@ def fetch_submitted_jobs():
     else:
         logger.info("Submit lock is on, skipping this round")
     # in any case, we need to update warmnesses
-    print(model_heartbeats)
     update_warmnesses()
