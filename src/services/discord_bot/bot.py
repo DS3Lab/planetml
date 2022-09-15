@@ -7,7 +7,7 @@ import traceback
 
 import sys
 sys.path.append(".")
-from stats_command import get_cluster_status
+from stats_command import get_cluster_status, get_model_status
 
 TOKEN = os.environ['TOMA_DISCORD_BOT_TOKEN']
 endpoint = 'https://planetd.shift.ml'
@@ -103,12 +103,12 @@ async def together(
 
     await ctx.defer()
     try:
-
-        
         if command == "cluster_status":
             responds = get_cluster_status(args)
             await ctx.send_followup(f"{responds}")
-
+        elif command == "model_status":
+            responds = get_model_status(args)
+            await ctx.send_followup(f"{responds}")
     except Exception:
         error = traceback.format_exc()
         print(error)
