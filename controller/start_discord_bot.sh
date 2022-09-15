@@ -1,1 +1,1 @@
-python src/services/discord_bot/bot2.py
+export $(grep -v '^#' src/services/discord_bot/.env | xargs -d '\n') && python src/services/discord_bot/bot.py
