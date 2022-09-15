@@ -194,7 +194,7 @@ async def get_instruction(model_name):
         # we can set the warmness of the model to be 1
         model_warmness[model_name] = 1
         model_instructions[model_name] = [{"message": "continue"}]
-    elif model_warmness[model_name] == 0:
+    elif model_warmness[model_name] < 1:
         model_warmness[model_name] = 1
     model_heartbeats[model_name] = time.time()
     return model_instructions[model_name]

@@ -143,7 +143,8 @@ def get_model_status():
 @app.patch("/model_statuses/{model_name}")
 def patch_model_status(model_name:str, model_status:ModelStatus):
     with Session(engine) as session:
-        to_update_model_status = select(ModelStatus).where(ModelStatus.name == model_name).first()
+        to_update_model_status = select(ModelStatus).where(ModelStatus.name == model_name)
+        to_update_model_status = session.exec(to_update_model_status).first()
         if to_update_model_status is None:
             to_update_model_status = model_status
             session.add(to_update_model_status)
