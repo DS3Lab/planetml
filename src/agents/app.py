@@ -1,6 +1,4 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
-
-
 from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 from loguru import logger
@@ -11,7 +9,9 @@ import random
 import json
 from typing import Optional
 import time
+
 sys.path.append('./')
+
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 from src.agents.utils.planetml import PlanetML
 
@@ -43,7 +43,22 @@ job_payload = {}
 model_warmness = {}
 model_instructions = {}
 model_heartbeats = {}
-
+example_jobs = {
+    'stable_diffusion': {
+        "type": "general",
+        "payload": {
+            "model": "stable_diffusion",
+            "num_returns": 1,
+            "input": [
+                "Painting of a hippo"
+            ]
+        },
+        "returned_payload": {},
+        "status": "submitted",
+        "source": "dalle",
+        "processed_by": ""
+    }
+}
 settings = Settings()
 submit_lock = False
 planetml_client = PlanetML()
@@ -55,8 +70,12 @@ coord_status = {
         'warmness': {},
         'instructions': {},
         'heartbeats': {}
+    },
+    'minimal_warmness': {
+        'stable_diffusion': 1
     }
 }
+
 
 def preprocess_job(job):
     is_interactive = True
@@ -167,32 +186,58 @@ async def get_model_warmness(model_name):
 async def get_all_warmness():
     return {"warmness": model_warmness, 'message': 'ok'}
 
+
 @lc_app.get("/eth/instructions/{model_name}")
 async def get_instruction(model_name):
     if model_name not in model_instructions:
         # at this moment, the worker is asking for instructions of a model, so it is ready to accept jobs
         # we can set the warmness of the model to be 1
         model_warmness[model_name] = 1
-        model_instructions[model_name] = [{"message":"continue"}]
+        model_instructions[model_name] = [{"message": "continue"}]
+    elif model_warmness[model_name] == 0:
+        model_warmness[model_name] = 1
     model_heartbeats[model_name] = time.time()
     return model_instructions[model_name]
+
 
 @lc_app.on_event("shutdown")
 def shutdown_event():
     logger.info("dumping results to local db...")
 
+
 def update_warmnesses():
     logger.info("updating warmnesses...")
-    logger.info(model_warmness)
-    for model_name in model_warmness:
-        if model_name not in model_heartbeats:
-            model_warmness[model_name] = 0
-        else:
-            if time.time() - model_heartbeats[model_name] > 60:
-                model_warmness[model_name] = 0
 
-@lc_app.on_event("startup")
-@repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
+    for model_name in model_heartbeats:
+        if time.time() - model_heartbeats[model_name] > 60:
+            # now this model is not warm anymore, we do the following
+            # set it's warmness to 0
+            model_warmness[model_name] = 0
+        # now check model warmness again - if it is not warm, but there is a limitation specified in coord_status['minimal_warmness'], we starts a test job
+
+    for model_name in coord_status['minimal_warmness']:
+        if model_name in model_warmness:
+            if model_warmness[model_name] >= 0.5:
+                logger.info(
+                    f"{model_name} is being warmed up or is warmed, skipping...")
+                continue
+        if model_name not in model_warmness and coord_status['minimal_warmness'][model_name] >= 1:
+            logger.info(f"dispatching a warming job for model {model_name}")
+            requests.post("https://planetd.shift.ml/jobs",
+                          json=example_jobs[model_name])
+            model_warmness[model_name] = 0.5
+            # add 3 minutes buffer to the heartbeats
+            model_heartbeats[model_name] = time.time() + 180
+        elif model_warmness[model_name] < coord_status['minimal_warmness'][model_name]:
+            # means we need to start a test job
+            logger.info(f"dispatching a warming job for model {model_name}")
+            requests.post("https://planetd.shift.ml/jobs",
+                          json=example_jobs[model_name])
+            model_warmness[model_name] = 0.5
+            # add 3 minutes buffer to the heartbeats
+            model_heartbeats[model_name] = time.time() + 180
+
+
 def fetch_submitted_jobs():
     global submit_lock
     if not submit_lock:
@@ -231,18 +276,25 @@ def fetch_submitted_jobs():
                 if not is_interactive or not each['payload'][0]['model'] in model_warmness:
                     # it's not an interactive job, or the model is not warm,
                     # dispatch it to a cluster
+
                     job_payload[each['id']] = each['payload']
                     dispatch_result = bi_coordinator.dispatch(each)
                 else:
                     # for interactive job
                     # first check warmness
                     # put it into instructions list
-                    if each['payload'][0]['model'] not in model_instructions:
-                        model_instructions[each['payload'][0]['model']] = [{"message":"continue"}]
-                    model_instructions[each['payload'][0]['model']].append({
-                        "message": "run",
-                        "payload": each
-                    })
+                    if model_warmness[each['payload'][0]['model']] >= 1:
+                        if each['payload'][0]['model'] not in model_instructions:
+                            model_instructions[each['payload'][0]['model']] = [
+                                {"message": "continue"}]
+                        model_instructions[each['payload'][0]['model']].append({
+                            "message": "run",
+                            "payload": each
+                        })
+                    else:
+                        # this model is warm in the past, but not now
+                        job_payload[each['id']] = each['payload']
+                        dispatch_result = bi_coordinator.dispatch(each)
             # release submit lock
             submit_lock = False
         except Exception as e:
@@ -252,4 +304,10 @@ def fetch_submitted_jobs():
     else:
         logger.info("Submit lock is on, skipping this round")
     # in any case, we need to update warmnesses
+
+
+@lc_app.on_event("startup")
+@repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
+def periodical():
+    fetch_submitted_jobs()
     update_warmnesses()
