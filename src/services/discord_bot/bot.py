@@ -1,4 +1,3 @@
-from tokenize import Token
 import discord
 import requests
 from time import sleep
@@ -57,6 +56,7 @@ async def draw(
     ctx: discord.ApplicationContext,
     prompt: discord.Option(str, description="Input your prompts", name="prompts"),
 ):
+    print(prompt)
     await ctx.defer()
     model = 'stable_diffusion'
     job_id = submit_job(prompt, model=model)
@@ -76,7 +76,7 @@ async def draw(
     """, inline=False)
 
     embed_job_info.set_footer(text=f"# Generated with {model} by TOMA")
-    ctx.send_followup(embed_job_info)
+    await ctx.send_followup(embed=embed_job_info)
     results = fetching_results(job_id)
     for prompt in results:
         for img in prompt:

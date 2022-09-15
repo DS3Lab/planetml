@@ -14,6 +14,7 @@ from rollbar.contrib.fastapi import add_to as rollbar_add_to
 
 from schemas.job import Job
 from schemas.resource import Site, SiteStat
+from schemas.model import ModelStatus
 from constants import SPLIT_LAMBDA_URL
 
 class Settings(BaseSettings):
@@ -129,6 +130,33 @@ def add_job(job: Job):
             session.refresh(job)
     return job
 
+@app.get("/model_statuses")
+def get_model_status():
+    """
+    Get all model statuses
+    """
+    with Session(engine) as session:
+        statement = select(ModelStatus)
+        model_statuses = session.exec(statement).all()
+        return model_statuses
+
+@app.patch("/model_statuses/{model_name}")
+def patch_model_status(model_name:str, model_status:ModelStatus):
+    with Session(engine) as session:
+        to_update_model_status = select(ModelStatus).where(ModelStatus.name == model_name).first()
+        if to_update_model_status is None:
+            to_update_model_status = model_status
+            session.add(to_update_model_status)
+            session.commit()
+            session.refresh(to_update_model_status)
+        else:
+            to_update_model_status.warmness = model_status.warmness
+            to_update_model_status.expected_runtime = model_status.expected_runtime
+            session.add(to_update_model_status)
+            session.commit()
+            session.refresh(to_update_model_status)
+    return to_update_model_status
+    
 @app.get("/sites")
 def get_sites():
     """
