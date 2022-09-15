@@ -8,6 +8,7 @@ import traceback
 import sys
 sys.path.append(".")
 from stats_command import get_cluster_status, get_model_status
+from views import FeedbackView
 
 TOKEN = os.environ['TOMA_DISCORD_BOT_TOKEN']
 endpoint = 'https://planetd.shift.ml'
@@ -56,17 +57,23 @@ async def respond(ctx, job_id, prompt, model):
     """, inline=False)
 
     embed_job_info.set_footer(text=f"# Generated with {model} by TOMA")
+    view = FeedbackView()
     for prompt in results:
         for img in prompt:
             embed_job_info.set_image(url=img)
-            await ctx.send_followup(embed=embed_job_info)
+            msg = await ctx.send_followup(embed=embed_job_info, view=view)
 
+            await msg.add_reaction('👍')
+            await msg.add_reaction('👎')
+            await msg.add_reaction('🤣')
+            await msg.add_reaction('🚫')
+            await msg.add_reaction('😱')
 
 @bot.event
 async def on_ready():
-    # bot.add_view(FeedbackView())  # Registers a View for persistent listening
+    bot.add_view(FeedbackView()) # Registers a View for persistent listening
     print('ready')
-
+    return
 
 @bot.slash_command()
 async def draw(
@@ -99,16 +106,20 @@ async def draw(
 @bot.slash_command()
 async def together(
     ctx: discord.ApplicationContext,
-    command: discord.Option(str, description="Get status of current resources and usage",choices=["cluster_status", "model_status"]),
+    command: discord.Option(
+        str,
+        description="Get status of current resources and usage",
+        choices=["cluster status", "model status"],
+    ),
     *,
     args=""
 ):
     await ctx.defer()
     try:
-        if command == "cluster_status":
+        if command == "cluster status":
             responds = get_cluster_status(args)
             await ctx.send_followup(f"{responds}")
-        elif command == "model_status":
+        elif command == "model status":
             responds = get_model_status(args)
             await ctx.send_followup(f"{responds}")
     except Exception:
@@ -155,4 +166,5 @@ async def toma(
         print(error)
         await ctx.send_followup(f"sorry, something went wrong. \n\n ```{error}```")
 
-bot.run(TOKEN)
+if __name__=="__main__":
+    bot.run(TOKEN)
