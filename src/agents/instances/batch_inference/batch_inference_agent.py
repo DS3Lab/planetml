@@ -30,12 +30,12 @@ machine_size_mapping = {
     't0pp': 6,
     't5-11b': 6,
     'ul2': 16,
+    'stable_diffusion': 1,
     'opt-66b': 8,
     'opt-175b': 8,
     'bloom': 8,
     'yalm': 8,
     'glm': 8,
-    'stable_diffusion': 1,
 }
 
 target_cluster_mapping = {
@@ -78,12 +78,14 @@ clients = {
 class BatchInferenceCoordinator(LocalCoordinator):
     def __init__(self,
                  name,
+                 coord_status
                  ) -> None:
         super().__init__(name)
         self.name = "batch_inference"
         self.allocated_index = 0
         self.planetml = PlanetML()
         self.client = None
+        self.coord_status = coord_status
 
     def _allocate_index(self):
         self.allocated_index = (self.allocated_index + 1) % 10000
@@ -114,7 +116,15 @@ class BatchInferenceCoordinator(LocalCoordinator):
             else:
                 raise ValueError("Cannot understand input!")
             target_cluster = target_cluster_mapping[model_type]
+            # now find the rate limit from coord status, we assume all clusters have a rate limit
+            rate_limit = self.coord_status['rate_limit'][target_cluster]
+            inqueue_jobs = self.coord_status['inqueue_jobs'][target_cluster]
+
+            if inqueue_jobs >= rate_limit:
+                logger.info("rate limit reached, waiting for next round")
+                return
             logger.info(f"Deploying to cluster: {target_cluster}")
+            
             self.client = clients[target_cluster]
             self.client._connect()
             if machine_size < 0 or world_size < 0:
@@ -165,6 +175,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
             return {
                 'status': 'queued',
                 'model': job_payload[0]['model'],
+                'cluster': target_cluster
             }
         except Exception as e:
             self.planetml.update_job_status(

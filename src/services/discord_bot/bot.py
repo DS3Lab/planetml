@@ -1,6 +1,5 @@
 import discord
 import requests
-import requests
 import os
 import asyncio
 import traceback

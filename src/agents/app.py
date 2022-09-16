@@ -7,10 +7,11 @@ import random
 import requests
 from loguru import logger
 from typing import Optional
+from datetime import datetime
 from pydantic import BaseSettings
 from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
-from datetime import datetime
+
 sys.path.append('./')
 from src.agents.utils.planetml import PlanetML
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
@@ -73,6 +74,14 @@ coord_status = {
     },
     'minimal_warmness': {
         'stable_diffusion': 1
+    },
+    'inqueue_jobs':{
+        'stanford': [],
+        'euler': []
+    },
+    'rate_limit':{
+        'stanford': 2,
+        'euler': 5,
     }
 }
 
@@ -125,10 +134,17 @@ async def post_rank(job_id, req: Request):
         "nccl_port": watched_ports[job_id],
     }
 
-
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
     request_json = await req.json()
+    # first release the inqueue job, if the new status is either failed/finished
+    if request_json['status'] in ['failed', 'finished']:
+        # delete the job from the inqueue list
+        if id in coord_status['inqueue_jobs']['stanford']:
+            coord_status['inqueue_jobs']['stanford'].remove(id)
+        elif id in coord_status['inqueue_jobs']['euler']:
+            coord_status['inqueue_jobs']['euler'].remove(id)
+    
     # here we update instructions and heartbeats
     # if this job is in the list of instructions, we update the instructions such that the job is removed from the database
     for model_name in model_instructions:
@@ -262,7 +278,8 @@ def fetch_submitted_jobs():
             logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
             if len(bi_jobs) > 0:
                 bi_coordinator = BatchInferenceCoordinator(
-                    "batch_inference"
+                    "batch_inference",
+                    coord_status=coord_status,
                 )
             for each in bi_jobs:
                 # acquire submit lock
@@ -289,6 +306,7 @@ def fetch_submitted_jobs():
 
                     job_payload[each['id']] = each['payload']
                     dispatch_result = bi_coordinator.dispatch(each)
+                    coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
                 else:
                     # for interactive job
                     # first check warmness
@@ -305,6 +323,7 @@ def fetch_submitted_jobs():
                         # this model is warm in the past, but not now
                         job_payload[each['id']] = each['payload']
                         dispatch_result = bi_coordinator.dispatch(each)
+                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
             # release submit lock
             submit_lock = False
         except Exception as e:
