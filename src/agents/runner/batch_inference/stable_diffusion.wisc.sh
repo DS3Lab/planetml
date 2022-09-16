@@ -10,8 +10,8 @@ module load stashcache
 
 ls -l
 
-cp /staging/byuan43/python.tar.gz ./
-cp /staging/byuan43/stable-diffusion-v1-4.tar.gz ./
+# cp /staging/byuan43/python.tar.gz ./
+# cp /staging/byuan43/stable-diffusion-v1-4.tar.gz ./
 
 
 mkdir python
