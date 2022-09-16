@@ -278,7 +278,7 @@ def fetch_submitted_jobs():
                        and x['status'] == 'submitted'
                        and x['type'] == 'general'
                        ]
-            logger.info("Found {} jobs batch inference".format(len(bi_jobs)))
+            logger.info("Found {} general jobs".format(len(bi_jobs)))
             if len(bi_jobs) > 0:
                 bi_coordinator = BatchInferenceCoordinator(
                     "batch_inference",

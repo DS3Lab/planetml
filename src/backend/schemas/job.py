@@ -12,6 +12,7 @@ class JobStatus(str, enum.Enum):
     RUNNING = "running"
     FINISHED = "finished"
     FAILED = "failed"
+    PULLED = "pulled"
 
 class JobType(str, enum.Enum):
     GENERAL = 'general'

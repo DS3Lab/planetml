@@ -1,3 +1,4 @@
+from copy import deepcopy
 import boto3
 import rollbar
 import requests
@@ -228,21 +229,37 @@ def get_job(id):
         return job
 
 @app.get("/jobs/submitted", response_model=List[Job])
-def get_unfinished_jobs():
+def get_unfinished_jobs(limit=10):
     """
     Get only submitted jobs (for local coordinators to dispatch)
+    * limit: the number of jobs to return
+    * Each pulled job will be marked as "pulled" in its status, meaning that it has arrived at the local coordinator
+    * The local coordinator should then mark the job as "running" when it starts to process the job
     """
     with Session(engine) as session:
-        return session.query(Job).where(Job.status=='submitted').all()
+        results = session.query(Job).where(Job.status=='submitted').limit(limit).all()
+        returned_results = deepcopy(results)
+        
+        if len(results) > 0:
+            for job in results:
+                job.status = 'pulled'
+                session.add(job)
+            session.commit()
+        else:
+            returned_results = []
+        return returned_results
 
-@app.patch("/jobs/{id}", response_model=Job)
+
+@app.patch("/jobs/{id}")
 def update_job(id: str, job: Job):
     """
     Update a job
     """
     with Session(engine) as session:
         job_to_update = select(Job).where(Job.id == job.id)
-        job_to_update = session.exec(job_to_update).one()
+        job_to_update = session.exec(job_to_update).first()
+        if job_to_update is None:
+            return {"message": "job not found"}
         if job_to_update.status != 'finished':
             if job_to_update is None:
                 return {"message": "Job not found"}

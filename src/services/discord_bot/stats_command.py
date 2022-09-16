@@ -70,6 +70,8 @@ def get_model_status(args):
             warmness = 'VRAM'
         elif model['warmness'] == 0:
             warmness = 'Disk'
+        elif model['warmness'] == 0.5:
+            warmness = 'Booting'
         heartbeat_time = parser.parse(model['last_heartbeat']).strftime("%Y-%m-%d %H:%M:%S")
         body.append(
             (model['name'], warmness, f"< {model['expected_runtime']}", str(heartbeat_time))
