@@ -73,8 +73,10 @@ def get_model_status(args):
         elif model['warmness'] == 0.5:
             warmness = 'Booting'
         heartbeat_time = parser.parse(model['last_heartbeat']).strftime("%Y-%m-%d %H:%M:%S")
+        comparator = "<" if model['warmness'] == 1 else ">"
+
         body.append(
-            (model['name'], warmness, f"< {model['expected_runtime']}", str(heartbeat_time))
+            (model['name'], warmness, f"{comparator} {model['expected_runtime']}", str(heartbeat_time))
         )
 
     footer = ("","","For the first query","")
