@@ -113,6 +113,9 @@ async def health():
 async def node_join():
     return {"message": "ok"}
 
+@lc_app.get("/eth/status")
+async def get_coord_status():
+    return coord_status
 
 @lc_app.post("/eth/rank/{job_id}")
 async def post_rank(job_id, req: Request):
@@ -306,7 +309,8 @@ def fetch_submitted_jobs():
 
                     job_payload[each['id']] = each['payload']
                     dispatch_result = bi_coordinator.dispatch(each)
-                    coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
+                    if dispatch_result is not None:
+                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
                 else:
                     # for interactive job
                     # first check warmness
@@ -323,7 +327,8 @@ def fetch_submitted_jobs():
                         # this model is warm in the past, but not now
                         job_payload[each['id']] = each['payload']
                         dispatch_result = bi_coordinator.dispatch(each)
-                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
+                        if dispatch_result is not None:
+                            coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
             # release submit lock
             submit_lock = False
         except Exception as e:

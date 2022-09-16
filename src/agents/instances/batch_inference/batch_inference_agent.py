@@ -101,10 +101,6 @@ class BatchInferenceCoordinator(LocalCoordinator):
             else:
                 lsf_script_path = job['lsf_script_path']
             job_payload = job['payload']
-            # logger.info("job_payload: {}", job_payload[0])
-
-            # check model type and find target cluster
-
             if "machine_size" in job_payload[0] and "world_size" in job_payload[0]:
                 machine_size, world_size = job_payload[0]["machine_size"], job_payload["world_size"][0]
             elif 'model' in job_payload[0]:
@@ -117,10 +113,11 @@ class BatchInferenceCoordinator(LocalCoordinator):
                 raise ValueError("Cannot understand input!")
             target_cluster = target_cluster_mapping[model_type]
             # now find the rate limit from coord status, we assume all clusters have a rate limit
+            logger.info(f"target cluster: {target_cluster}, coord status: {self.coord_status}")
             rate_limit = self.coord_status['rate_limit'][target_cluster]
             inqueue_jobs = self.coord_status['inqueue_jobs'][target_cluster]
-
-            if inqueue_jobs >= rate_limit:
+            logger.info(f"rate limit: {rate_limit}, inqueue jobs: {inqueue_jobs}")
+            if len(inqueue_jobs) >= rate_limit:
                 logger.info("rate limit reached, waiting for next round")
                 return
             logger.info(f"Deploying to cluster: {target_cluster}")
