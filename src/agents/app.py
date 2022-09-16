@@ -81,7 +81,7 @@ coord_status = {
     },
     'rate_limit':{
         'stanford': 2,
-        'euler': 5,
+        'euler': 9999,
     }
 }
 
