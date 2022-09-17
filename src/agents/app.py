@@ -77,7 +77,7 @@ coord_status = {
         'stable_diffusion': 1
     },
     'inqueue_jobs': {
-        'stanford': ['6e97de25-88ce-4bfe-b68c-0186d6a7cfd0'],
+        'stanford': ['17ea7fc5-1062-4948-b4ea-5ca4667c1df0','c336e85b-cad7-4f34-a547-77c52f9d263b','8255a26a-068c-4e8b-b153-054493da7643'],
         'euler': []
     },
     'rate_limit': {
