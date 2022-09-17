@@ -1,5 +1,6 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
 
+
 import sys
 import time
 import json
@@ -13,8 +14,8 @@ from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 
 sys.path.append('./')
-from src.agents.utils.planetml import PlanetML
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
+from src.agents.utils.planetml import PlanetML
 
 class Settings(BaseSettings):
     euler_lsf_host: Optional[str]
@@ -75,12 +76,12 @@ coord_status = {
     'minimal_warmness': {
         'stable_diffusion': 1
     },
-    'inqueue_jobs':{
-        'stanford': [],
+    'inqueue_jobs': {
+        'stanford': ['6e97de25-88ce-4bfe-b68c-0186d6a7cfd0'],
         'euler': []
     },
-    'rate_limit':{
-        'stanford': 2,
+    'rate_limit': {
+        'stanford': 3,
         'euler': 9999,
     }
 }
@@ -113,9 +114,11 @@ async def health():
 async def node_join():
     return {"message": "ok"}
 
+
 @lc_app.get("/eth/status")
 async def get_coord_status():
     return coord_status
+
 
 @lc_app.post("/eth/rank/{job_id}")
 async def post_rank(job_id, req: Request):
@@ -137,6 +140,7 @@ async def post_rank(job_id, req: Request):
         "nccl_port": watched_ports[job_id],
     }
 
+
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
     request_json = await req.json()
@@ -147,7 +151,7 @@ async def update_status(id, req: Request):
             coord_status['inqueue_jobs']['stanford'].remove(id)
         elif id in coord_status['inqueue_jobs']['euler']:
             coord_status['inqueue_jobs']['euler'].remove(id)
-    
+
     # here we update instructions and heartbeats
     # if this job is in the list of instructions, we update the instructions such that the job is removed from the database
     for model_name in model_instructions:
@@ -310,7 +314,8 @@ def fetch_submitted_jobs():
                     job_payload[each['id']] = each['payload']
                     dispatch_result = bi_coordinator.dispatch(each)
                     if dispatch_result is not None:
-                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
+                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
+                            each['id'])
                 else:
                     # for interactive job
                     # first check warmness
@@ -328,7 +333,8 @@ def fetch_submitted_jobs():
                         job_payload[each['id']] = each['payload']
                         dispatch_result = bi_coordinator.dispatch(each)
                         if dispatch_result is not None:
-                            coord_status['inqueue_jobs'][dispatch_result['cluster']].append(each['id'])
+                            coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
+                                each['id'])
             # release submit lock
             submit_lock = False
         except Exception as e:

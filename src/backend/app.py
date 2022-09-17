@@ -229,7 +229,7 @@ def get_job(id):
         return job
 
 @app.get("/jobs/submitted", response_model=List[Job])
-def get_unfinished_jobs(limit=10):
+def get_unfinished_jobs(limit=100):
     """
     Get only submitted jobs (for local coordinators to dispatch)
     * limit: the number of jobs to return
@@ -240,13 +240,13 @@ def get_unfinished_jobs(limit=10):
         results = session.query(Job).where(Job.status=='submitted').limit(limit).all()
         returned_results = deepcopy(results)
         
-        if len(results) > 0:
-            for job in results:
-                job.status = 'pulled'
-                session.add(job)
-            session.commit()
-        else:
-            returned_results = []
+        # if len(results) > 0:
+        #     for job in results:
+        #         job.status = 'pulled'
+        #         session.add(job)
+        #     session.commit()
+        # else:
+        #     returned_results = []
         return returned_results
 
 
