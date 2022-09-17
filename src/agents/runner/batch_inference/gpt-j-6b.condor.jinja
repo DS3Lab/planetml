@@ -1,21 +1,21 @@
-executable = /home/ce.zhang/fm/new/planetml/src/agents/runner/batch_inference/stable_diffusion.osg.sh
+executable = /home/ce.zhang/fm/new/planetml/src/agents/runner/batch_inference/gpt-j-6b.condor.sh
 
-transfer_input_files = /home/ce.zhang/fm/new/GPT-home-private, stash:///ospool/PROTECTED/ce.zhang/python.tar.gz, stash:///ospool/PROTECTED/ce.zhang/stable-diffusion-v1-4.tar.gz
+transfer_input_files = /home/ce.zhang/fm/new/GPT-home-private, stash:///ospool/PROTECTED/ce.zhang/python.tar.gz, stash:///ospool/PROTECTED/ce.zhang/gpt-j-6b-new.tar.gz
 
 # We need to name the files that HTCondor should create to save the
 #  terminal output (stdout) and error (stderr) created by our job.
 #  Similarly, we need to name the log file where HTCondor will save
 #  information about job execution steps.
-error = /home/ce.zhang/fm/exec_logs/diffusion.error
-output = /home/ce.zhang/fm/exec_logs/diffusion.output
-log = /home/ce.zhang/fm/exec_logs/diffusion.log
+error = /home/ce.zhang/fm/exec_logs/gpt-j-6b.error
+output = /home/ce.zhang/fm/exec_logs/gpt-j-6b.output
+log = /home/ce.zhang/fm/exec_logs/gpt-j-6b.log
 
 # We need to request the resources that this job will need:
 # requirements = (CUDACapability >= 6.1)
 requirements = (HAS_MODULES =?= true)
 request_cpus = 1
-request_gpus = 1
-request_memory = 10000 MB
+request_gpus = 2
+request_memory = 16000 MB
 request_disk = 16000 MB
 
 # getenv = !PATH, !INCLUDE

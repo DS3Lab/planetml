@@ -1,6 +1,6 @@
 #!/bin/bash
 # short.sh: a short discovery job
-echo "Working hard..."
+echo "Relax ..."
 nvidia-smi
 lscpu
 
@@ -9,6 +9,10 @@ module load stashcache
 # stashcp /public/biyuan/xxx ./
 
 ls -l
+
+# cp /staging/byuan43/python.tar.gz ./
+# cp /staging/byuan43/stable-diffusion-v1-4.tar.gz ./
+
 
 mkdir python
 tar -xzf python.tar.gz -C python
