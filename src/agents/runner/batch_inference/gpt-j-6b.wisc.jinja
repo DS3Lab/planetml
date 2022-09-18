@@ -1,4 +1,5 @@
 executable = /home/byuan43/fm/new/planetml/src/agents/runner/batch_inference/gpt-j-6b.wisc.sh
+arguments = $JOBID
 
 transfer_input_files = /home/byuan43/fm/new/GPT-home-private, /home/byuan43/fm/pretrained_models/python.tar.gz, /home/byuan43/fm/pretrained_models/pretrained_debug_models/gpt-j-6b-new.tar.gz
 
@@ -7,9 +8,9 @@ transfer_input_files = /home/byuan43/fm/new/GPT-home-private, /home/byuan43/fm/p
 #  Similarly, we need to name the log file where HTCondor will save
 #  information about job execution steps.
 
-error = /home/byuan43/fm/exec_logs/gpt-j-6b.error.$(Process)
-output = /home/byuan43/fm/exec_logs/gpt-j-6b.output.$(Process)
-log = /home/byuan43/fm/exec_logs/gpt-j-6b.log.$(Process)
+error = /home/byuan43/fm/exec_logs/gpt-j-6b.error.$(Cluster)_$(Process)
+output = /home/byuan43/fm/exec_logs/gpt-j-6b.output.$(Cluster)_$(Process)
+log = /home/byuan43/fm/exec_logs/gpt-j-6b.log.$(Cluster)_$(Process)
 
 # We need to request the resources that this job will need:
 # requirements = (CUDACapability >= 6.1)
@@ -26,4 +27,4 @@ request_disk = 16000 MB
 
 # The last line of a submit file indicates how many jobs of the above
 #  description should be queued.
-queue 2
+queue 1
