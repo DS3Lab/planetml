@@ -15,22 +15,23 @@ class PlanetML():
 
     def update_job_status(self,
                           job_id: str,
-                          processed_by: str="",
-                          status: str="",
-                          source: str="",
-                          type: str="",
-                          returned_payload: Dict=None):
+                          processed_by: str = "",
+                          status: str = "",
+                          source: str = "",
+                          type: str = "",
+                          returned_payload: Dict = None,
+                          debug: bool = False):
         data = {
             "id": job_id,
             "status": status,
             "type": type,
             "source": source,
         }
-        if processed_by!='':
+        if processed_by != '':
             data['processed_by'] = processed_by
-        if status !='':
+        if status != '':
             data['status'] = status
-        if source !='':
+        if source != '':
             data['source'] = source
         if type != '':
             data["type"] = type
@@ -38,8 +39,12 @@ class PlanetML():
             data['returned_payload'] = returned_payload
         else:
             data['returned_payload'] = {}
-        res = requests.patch(self.endpoint+f"/jobs/{job_id}", json=data)
-        return res.json()
+        if debug:
+            print(f"update_job_status<debug mode, try to post>: {data}")
+            return None
+        else:
+            res = requests.patch(self.endpoint+f"/jobs/{job_id}", json=data)
+            return res.json()
 
     def write_json_to_s3(self, data):
         tmp_file_id = random.randint(0, 100000000)

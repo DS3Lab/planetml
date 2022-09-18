@@ -1,0 +1,29 @@
+executable = /home/byuan43/fm/new/planetml/src/agents/runner/batch_inference/gpt-j-6b.wisc.sh
+
+transfer_input_files = /home/byuan43/fm/new/GPT-home-private, /home/byuan43/fm/pretrained_models/python.tar.gz, /home/byuan43/fm/pretrained_models/pretrained_debug_models/gpt-j-6b-new.tar.gz
+
+# We need to name the files that HTCondor should create to save the
+#  terminal output (stdout) and error (stderr) created by our job.
+#  Similarly, we need to name the log file where HTCondor will save
+#  information about job execution steps.
+
+error = /home/byuan43/fm/exec_logs/gpt-j-6b.error.$(Process)
+output = /home/byuan43/fm/exec_logs/gpt-j-6b.output.$(Process)
+log = /home/byuan43/fm/exec_logs/gpt-j-6b.log.$(Process)
+
+# We need to request the resources that this job will need:
+# requirements = (CUDACapability >= 6.1)
+requirements = (HAS_MODULES =?= true)
+request_cpus = 1
+request_gpus = 1
+request_memory = 16000 MB
+request_disk = 16000 MB
+
+# getenv = !PATH, !INCLUDE
+# getenv = true
+
++WantsStashCache = true
+
+# The last line of a submit file indicates how many jobs of the above
+#  description should be queued.
+queue 2
