@@ -1,3 +1,4 @@
+from godalle import get_typesense_client
 from views import FeedbackView
 from stats_command import get_cluster_status, get_model_status
 import discord
@@ -13,6 +14,14 @@ TOKEN = os.environ['TOMA_DISCORD_BOT_TOKEN']
 endpoint = 'http://192.168.191.9:5005'
 bot = discord.Bot()
 
+available_models_mapping = {
+    "Image: stable_diffusion": "stable_diffusion",
+    "Text: GPT-6B": 'gpt-j-6b',
+    "Text: GPT-Neox": 'gpt-neox-20b',
+    "Text: T0PP": 't0pp',
+    "Text: T5": 't5-11b',
+    "Text: UL2": 'ul2',
+}
 
 async def submit_job(prompt, model='stable_diffusion', task='Image Generation', args=None):
     print(task)
@@ -69,7 +78,10 @@ async def fetching_results(job_id):
     if 'output' in raw_output:
         return raw_output['output']
     else:
-        return raw_output['result']['choices'][0]['text']
+        if 'choices' in raw_output['result']:
+            return raw_output['result']['choices'][0]['text']
+        elif 'result' in raw_output['result']:
+            return raw_output['result']['result']['choices'][0]['text']
 
 
 async def respond_image(ctx, job_id, prompt, model):
@@ -102,6 +114,8 @@ async def respond_text(ctx, job_id, prompt, model):
     embed_job_info = discord.Embed(
         title=f"Job Results {job_id}", description="Results for Job " + job_id, color=0x00ff00, url=f"https://toma.pages.dev/report/{job_id}")
     embed_job_info.add_field(name=f"Prompts", value=f"{prompt}", inline=False)
+    embed_job_info.add_field(
+            name=f"Model", value=f"{model}", inline=False)
     embed_job_info.add_field(name=f"Results", value=f"{results}", inline=False)
     embed_job_info.add_field(name=f"Feedback", value="""
         👍 => Good   👎 => Bad   🤣 => Funny
@@ -179,6 +193,40 @@ async def together(
         print(error)
         await ctx.send_followup(f"sorry, something went wrong. \n\n ```{error}```")
 
+@bot.slash_command()
+async def search(
+    ctx: discord.ApplicationContext,
+    prompt: discord.Option(str, description="Input your prompts", name="prompts"),
+):
+    ts_client = get_typesense_client()
+    await ctx.defer()
+    search_parameters = {
+        'q': prompt,
+        'query_by': 'title',
+    }
+    records = ts_client.collections['records'].documents.search(search_parameters)
+    embed_job_info = discord.Embed(
+            title=f"A search query created!", description="Keyword: " + prompt, color=0x00ff00)
+    embed_job_info.add_field(name=f"Prompts", value=f"{prompt}", inline=False)
+    for idx, record in enumerate(records['hits']):
+        rs = record['document']
+        rs['img_name'] = rs['img_name'].replace(".bmp", ".jpg")
+        if not rs['img_name'].startswith("https://"):
+            rs['img_name'] = os.path.join(rs['category'], rs['img_name'])
+            rs['img_name'] = "http://52.36.141.204/imgs/" + rs['img_name']
+        records['hits'][idx]['document'] = rs
+    embed_job_info.set_image(url=records['hits'][0]['document']['img_name'])
+    embed_job_info.add_field(name=f"Feedback", value="""
+        👍 => Good   👎 => Bad   🤣 => Funny
+        🚫 => Inappropriate   😱 => Scary
+    """, inline=False)
+    view = FeedbackView()
+    msg = await ctx.send_followup(embed=embed_job_info, view=view)
+    await msg.add_reaction('👍')
+    await msg.add_reaction('👎')
+    await msg.add_reaction('🤣')
+    await msg.add_reaction('🚫')
+    await msg.add_reaction('😱')
 
 @bot.slash_command()
 async def toma(
@@ -192,6 +240,10 @@ async def toma(
                           choices=[
                               "Image: stable_diffusion",
                               "Text: gpt-j-6b",
+                              "Text: gpt-neox-20b",
+                              "Text: t0pp",
+                              "Text: t5",
+                              "Text: ul2"
                           ],
                           default="Image: stable_diffusion"),
     max_tokens: discord.Option(int, min_value=1, max_value=1024, required=False, description="(Text Generation) max_tokens",default=140),
@@ -213,6 +265,14 @@ async def toma(
         elif mode == "Text Generation":
             if model == 'Text: gpt-j-6b':
                 model = 'gpt-j-6b'
+            elif model =='Text: gpt-neox-20b':
+                model = 'gpt-neox-20b'
+            elif model == 'Text: t0pp':
+                model = 't0pp'
+            elif model == 'Text: t5':
+                model = 't5-11b'
+            elif model == 'Text: ul2':
+                model = 'ul2'
             else:
                 await ctx.send_followup(f"Error: Model {model} not found")
                 return
@@ -239,6 +299,8 @@ async def toma(
 
         embed_job_info.add_field(
             name=f"Prompts", value=f"{prompt}", inline=False)
+        embed_job_info.add_field(
+            name=f"Model", value=f"{model}", inline=False)
 
         if mode == "Image Generation":
             await ctx.send_followup(embed=embed_job_info)
