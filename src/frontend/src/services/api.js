@@ -65,7 +65,7 @@ const available_models = {
     "gpt-j-6b": {
         "best_of": 1,
         "logprobs": 1,
-        "max_tokens": 300,
+        "max_tokens": 32,
         "n": 1,
         "temperature": 0,
         "top_p": 1
@@ -73,7 +73,7 @@ const available_models = {
     "gpt-neox-20b": {
         "best_of": 1,
         "logprobs": 1,
-        "max_tokens": 300,
+        "max_tokens": 32,
         "n": 1,
         "temperature": 0,
         "top_p": 1
@@ -82,7 +82,7 @@ const available_models = {
     "t5-11b": {
         "best_of": 1,
         "logprobs": 1,
-        "max_tokens": 300,
+        "max_tokens": 32,
         "n": 1,
         "temperature": 0,
         "top_p": 1
@@ -90,7 +90,7 @@ const available_models = {
     "t0pp": {
         "best_of": 1,
         "logprobs": 1,
-        "max_tokens": 300,
+        "max_tokens": 32,
         "n": 1,
         "temperature": 0,
         "top_p": 1
@@ -98,7 +98,7 @@ const available_models = {
     "ul2": {
         "best_of": 1,
         "logprobs": 1,
-        "max_tokens": 300,
+        "max_tokens": 32,
         "n": 1,
         "temperature": 0,
         "top_p": 1

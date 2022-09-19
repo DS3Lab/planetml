@@ -30,9 +30,6 @@ function update_job_status(job_id) {
         job_status.value.status = response.data.status
         job_status.value.processed_by = response.data.processed_by
         job_status.value.returned_payload = response.data.returned_payload
-        if (!('output' in job_status.value.returned_payload)) {
-            job_status.value.returned_payload = { "output": [[]] }
-        }
     })
 }
 
@@ -103,12 +100,6 @@ function highlighter(code) {
                     </p>
                 </div>
             </CardBox>
-        </div>
-        <div v-for="img_src in job_status.returned_payload.output[0]"
-            class="max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-            <a href="#">
-                <img class="rounded-t-lg" :src="img_src" alt="" />
-            </a>
         </div>
     </SectionMain>
 </template>

@@ -68,22 +68,31 @@ async def submit_job(prompt, model='stable_diffusion', task='Image Generation', 
 
 async def fetching_results(job_id):
     addr = None
+    is_succ = False
+    error = None
     while True:
         res = requests.get(endpoint + '/job/' + job_id).json()
         if res['status'] == 'finished':
+            is_succ = True
             addr = res['returned_payload']['filename']
             break
+        elif res['status'] == 'failed':
+            is_succ = False
+            error = res['returned_payload']
         await asyncio.sleep(5)
     raw_output = requests.get(addr).json()
-    if 'output' in raw_output:
-        return raw_output['output']
-    else:
-        if 'choices' in raw_output['result']:
-            return raw_output['result']['choices'][0]['text']
-        elif 'result' in raw_output['result'][0]:
-            return raw_output['result'][0]['result']['choices'][0]['text']
+    if is_succ:
+        if 'output' in raw_output:
+            return raw_output['output']
         else:
-            return "something went wrong"
+            if 'choices' in raw_output['result']:
+                return raw_output['result']['choices'][0]['text']
+            elif 'result' in raw_output['result'][0]:
+                return raw_output['result'][0]['result']['choices'][0]['text']
+            else:
+                return "something went wrong"
+    else:
+        return f"something went wrong {str(error)}"
 
 async def respond_image(ctx, job_id, prompt, model):
     results = await fetching_results(job_id)
@@ -244,7 +253,7 @@ async def toma(
                               "Text: ul2"
                           ],
                           default="Image: stable_diffusion"),
-    max_tokens: discord.Option(int, min_value=1, max_value=1024, required=False, description="(Text Generation) max_tokens",default=140),
+    max_tokens: discord.Option(int, min_value=1, max_value=1024, required=False, description="(Text Generation) max_tokens",default=32),
     temperature: discord.Option(float, min_value=0, max_value=1, required=False, description="(Text Generation) temperature", default=0),
     top_p: discord.Option(float, min_value=0, max_value=1, default=1,
                           required=False, description="(Text Generation) top_p")

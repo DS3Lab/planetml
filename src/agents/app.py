@@ -92,8 +92,7 @@ coord_status = {
     },
     'inqueue_jobs': {
         'stanford': [
-            "b0179680-a445-4a71-9aca-e9ae9b13cc95", "de8abdf2-2f55-4f7c-9ec0-806ffc3885ac", "eb160b16-d4d0-432a-9fe8-dc61e345bbb2"
-        ],
+            "b0179680-a445-4a71-9aca-e9ae9b13cc95","eb160b16-d4d0-432a-9fe8-dc61e345bbb2","b1cc2d88-ad48-4f09-99b2-eaae195f8645"],
         'euler': []
     },
     'rate_limit': {
@@ -300,6 +299,14 @@ def update_warmnesses():
                     "warmness": 0,
                     "last_heartbeat": ""
                 })
+                # then we need to redispatch the job in the instructions queue
+                for instruction in coord_status['models']['instructions'][model_name]:
+                    if instruction['message'] == 'run':
+                        if instruction['payload']['status'] != 'submitted':
+                            planetml_client.update_job_status(
+                                job_id=instruction['payload']['id'],
+                                status="submitted",
+                            )
 
     for model_name in coord_status['minimal_warmness']:
         if coord_status['models']['warmness'][model_name] >= 0.5:

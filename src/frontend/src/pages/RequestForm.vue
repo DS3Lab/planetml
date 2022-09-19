@@ -29,9 +29,7 @@ function update_job_status(job_id) {
         job_status.value.status = response.data.status
         job_status.value.processed_by = response.data.processed_by
         job_status.value.returned_payload = response.data.returned_payload
-        if (!('output' in job_status.value.returned_payload)) {
-            job_status.value.returned_payload = { "output": [[]] }
-        }
+
     })
 }
 
@@ -40,7 +38,8 @@ const submitPass = () => {
         alert("Please select a model")
         return
     }
-    let request_payload = submit_params.value
+    // a deep copy
+    let request_payload = JSON.parse(JSON.stringify(submit_params.value))
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
@@ -51,7 +50,8 @@ const submitPass = () => {
         request_payload.stop = [" "]
         request_payload.echo = false
     }
-    add_new_job(submit_params.value).then((response) => {
+    console.log(request_payload)
+    add_new_job(request_payload).then((response) => {
         job_status.value.id = response.data.id
         job_status.value.status = response.data.status
         setInterval(() => {
@@ -64,10 +64,8 @@ function highlighter(code) {
     return highlight(code, languages.json);
 }
 
-
 watch(selected_model, (newValue, oldValue) => {
     submit_params.value = available_models[newValue]
-    console.log(submit_params.value)
 });
 
 
@@ -129,14 +127,16 @@ watch(selected_model, (newValue, oldValue) => {
                         v-if="job_status.status === 'finished'"> >>> Your job
                         returned {{ job_status.returned_payload }}
                     </p>
+                    <p class="status_indicator"
+                        v-if="job_status.status === 'failed'"> >>> Your job
+                        returned {{ job_status.returned_payload }}
+                    </p>
+                    <p class="status_indicator"
+                        v-if="job_status.status === 'failed'||job_status.status === 'finished'  "> >>> Goto <a :href='"/report/" + job_status.id'>{{
+                        job_status.id }}</a> for more detail
+                    </p>
                 </div>
             </CardBox>
-        </div>
-        <div v-for="img_src in job_status.returned_payload.output[0]"
-            class="max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-            <a href="#">
-                <img class="rounded-t-lg" :src="img_src" alt="" />
-            </a>
         </div>
     </SectionMain>
 </template>
