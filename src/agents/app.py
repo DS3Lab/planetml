@@ -1,7 +1,7 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
 
+
 import sys
-import time
 import json
 import random
 import requests
@@ -13,9 +13,8 @@ from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 import traceback
 sys.path.append('./')
-from src.agents.utils.planetml import PlanetML
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
-
+from src.agents.utils.planetml import PlanetML
 
 class Settings(BaseSettings):
     euler_lsf_host: Optional[str]
@@ -51,12 +50,15 @@ machine_size_mapping = {
     'yalm': 8,
     'glm': 8,
 }
+
 job_status = {}
 watched_jobs = {}
+kwnown_jobs_data = {
+
+}
 watched_ports = {}
 job_payload = {}
 model_warmness = {}
-model_instructions = {}
 model_heartbeats = {}
 example_jobs = {
     'stable_diffusion': {
@@ -89,7 +91,9 @@ coord_status = {
         'stable_diffusion': 1
     },
     'inqueue_jobs': {
-        'stanford': ["b0179680-a445-4a71-9aca-e9ae9b13cc95","cd253ad3-a60e-4ce4-bc63-03845294bd15"],
+        'stanford': [
+            "b0179680-a445-4a71-9aca-e9ae9b13cc95", "de8abdf2-2f55-4f7c-9ec0-806ffc3885ac", "eb160b16-d4d0-432a-9fe8-dc61e345bbb2"
+        ],
         'euler': []
     },
     'rate_limit': {
@@ -103,7 +107,8 @@ coord_status = {
         't0pp',
         'gpt-neox-20b',
         'ul2'
-    ]
+    ],
+    'known_jobs': []
 }
 
 
@@ -171,11 +176,11 @@ async def update_status(id, req: Request):
             coord_status['inqueue_jobs']['stanford'].remove(id)
         elif id in coord_status['inqueue_jobs']['euler']:
             coord_status['inqueue_jobs']['euler'].remove(id)
-
+        # delete the job from the known_jobs:
     # here we update instructions and heartbeats
     # if this job is in the list of instructions, we update the instructions such that the job is removed from the database
-    for model_name in model_instructions:
-        instructions = model_instructions[model_name]
+    for model_name in coord_status['models']['instructions']:
+        instructions = coord_status['models']['instructions'][model_name]
         for instruction in instructions:
             if instruction['message'] == 'run':
                 if instruction['payload']['id'] == id:
@@ -218,8 +223,8 @@ async def get_job_payload(job_id):
 
 @lc_app.get("/eth/warmness/{model_name}")
 async def get_model_warmness(model_name):
-    if model_name in model_warmness:
-        warmness = model_warmness[model_name]
+    if model_name in coord_status['models']['warmness']:
+        warmness = coord_status['models']['warmness'][model_name]
     else:
         warmness = 0
     return {"warmness": warmness, 'message': 'ok'}
@@ -227,7 +232,7 @@ async def get_model_warmness(model_name):
 
 @lc_app.get("/eth/warmnesses")
 async def get_all_warmness():
-    return {"warmness": model_warmness, 'message': 'ok'}
+    return {"warmness": coord_status['models']['warmness'], 'message': 'ok'}
 
 
 @lc_app.get("/eth/instructions/{model_name}/{rank_id}")
@@ -239,7 +244,8 @@ async def get_instruction(model_name, rank_id):
         coord_status['models']['warmness'][model_name] = 0
 
     # put the rank_id into the heartbeats
-    coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow()
+    coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow(
+    )
     # now scan the heartbeats of the requested model_name, the tolerance is 30 seconds, i.e., only when all ranks appear in the heartbeats within 30 seconds, we consider the model is still alive
     up_count = 0
     is_alive = False
@@ -257,7 +263,7 @@ async def get_instruction(model_name, rank_id):
         })
         coord_status['models']['warmness'][model_name] = 1
     # regarding returned value, if model_name not in instructions, set it to default
-    if model_name not in model_instructions:
+    if model_name not in coord_status['models']['instructions']:
         coord_status['models']['instructions'][model_name] = [
             {"message": "continue"}]
     return coord_status['models']['instructions'][model_name]
@@ -267,40 +273,39 @@ async def get_instruction(model_name, rank_id):
 def shutdown_event():
     logger.info("dumping results to local db...")
 
+
 def update_warmnesses():
     current_time = datetime.utcnow()
     logger.info("updating warmnesses...")
     for model_name in coord_status['warm_watch']:
-        up_count = 0
-        for rank_id in coord_status['models']['heartbeats']:
-            if (current_time - coord_status['models']['heartbeats'][rank_id]).total_seconds() < 30:
-                up_count += 1
-        if up_count == machine_size_mapping[model_name]:
-            coord_status['models']['warmness'][model_name] = 1
-            planetml_client.update_model_status(model=model_name, payload={
-                "warmness": 1,
-                "last_heartbeat": str(current_time)
-            })
+        if model_name in coord_status['models']['warmness']:
+            if coord_status['models']["warmness"][model_name] == 0.5:
+                continue
         else:
             coord_status['models']['warmness'][model_name] = 0
-            planetml_client.update_model_status(model=model_name, payload={
-                "warmness": 0,
-                "last_heartbeat": ""
-            })
+        if model_name in coord_status['models']['heartbeats']:
+            up_count = 0
+            for rank_id in coord_status['models']['heartbeats'][model_name]:
+                if (current_time - coord_status['models']['heartbeats'][model_name][rank_id]).total_seconds() < 30:
+                    up_count += 1
+            if up_count == machine_size_mapping[model_name]:
+                coord_status['models']['warmness'][model_name] = 1
+                planetml_client.update_model_status(model=model_name, payload={
+                    "warmness": 1,
+                    "last_heartbeat": str(current_time)
+                })
+            else:
+                coord_status['models']['warmness'][model_name] = 0
+                planetml_client.update_model_status(model=model_name, payload={
+                    "warmness": 0,
+                    "last_heartbeat": ""
+                })
 
     for model_name in coord_status['minimal_warmness']:
-        if model_name in coord_status['models']['warmness']:
-            if coord_status['models']['warmness'][model_name] >= 0.5:
-                logger.info(
-                    f"{model_name} is being warmed up or is warmed, skipping...")
-                continue
-        
-        if model_name not in coord_status['models']['warmness'] and coord_status['minimal_warmness'][model_name] >= 1:
-            logger.info(f"dispatching a warming job for model {model_name}")
-            requests.post("https://planetd.shift.ml/jobs",
-                          json=example_jobs[model_name])
-            coord_status['models']['warmness'][model_name] = 0.5
-        
+        if coord_status['models']['warmness'][model_name] >= 0.5:
+            logger.info(
+                f"{model_name} is being warmed up or is warmed, skipping...")
+
         elif coord_status['models']['warmness'][model_name] < coord_status['minimal_warmness'][model_name]:
             # means we need to start a test job
             logger.info(f"dispatching a warming job for model {model_name}")
@@ -308,28 +313,32 @@ def update_warmnesses():
                           json=example_jobs[model_name])
             coord_status['models']['warmness'][model_name] = 0.5
 
+
 def fetch_submitted_jobs():
-    try:
-        logger.info("Fetching and dispatching jobs")
-        jobs = planetml_client.get_jobs()
-        bi_jobs = [x for x in jobs
-                    if x['source'] == 'dalle'
-                    and x['status'] == 'submitted'
-                    and x['type'] == 'general'
-                    ]
-        logger.info("Found {} general jobs".format(len(bi_jobs)))
-        if len(bi_jobs) > 0:
-            bi_coordinator = BatchInferenceCoordinator(
-                "batch_inference",
-                coord_status=coord_status,
-            )
-        for each in bi_jobs:
-            # acquire submit lock
-            submit_lock = True
+    logger.info("Fetching and dispatching jobs")
+    jobs = planetml_client.get_jobs()
+    bi_jobs = [x for x in jobs
+               if x['source'] == 'dalle'
+               and x['status'] == 'submitted'
+               and x['type'] == 'general'
+               ]
+    logger.info("Found {} general jobs".format(len(bi_jobs)))
+    if len(bi_jobs) > 0:
+        bi_coordinator = BatchInferenceCoordinator(
+            "batch_inference",
+            coord_status=coord_status,
+        )
+    for each in bi_jobs:
+        if each['id'] in coord_status['known_jobs']:
+            each, is_interactive = kwnown_jobs_data[each['id']]
+        else:
             try:
                 each, is_interactive = preprocess_job(each)
+                kwnown_jobs_data[each['id']] = (each, is_interactive)
+                coord_status['known_jobs'].append(each['id'])
             except Exception as e:
-                submit_lock = False
+                error = traceback.format_exc()
+                logger.error(error)
                 planetml_client.update_job_status(
                     job_id=each['id'],
                     processed_by="",
@@ -339,23 +348,27 @@ def fetch_submitted_jobs():
                     returned_payload={"message": str(e)}
                 )
                 return
-            # here if it is a file, i.e., url is provided, we regard it as a batch inference job
-            # otherwise, it is an interactive job - we will dispatch it to a live coordinator
-            # if no live coordinator is available, we will create a new one
+        # here if it is a file, i.e., url is provided, we regard it as a batch inference job
+        # otherwise, it is an interactive job - we will dispatch it to a live coordinator
+        # if no live coordinator is available, we will create a new one
+        try:
             if not is_interactive or not each['payload'][0]['model'] in coord_status['models']['warmness']:
                 # it's not an interactive job, or the model is not warm,
                 # dispatch it to a cluster
-
                 job_payload[each['id']] = each['payload']
                 dispatch_result = bi_coordinator.dispatch(each)
                 if dispatch_result is not None:
                     coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
                         each['id'])
+                    if each['id'] in coord_status['known_jobs']:
+                        coord_status['known_jobs'].remove(each['id'])
+                        del kwnown_jobs_data[each['id']]
             else:
                 # for interactive job
                 # first check warmness
                 # put it into instructions list
                 if coord_status['models']['warmness'][each['payload'][0]['model']] >= 1:
+                    logger.info(f"model {each['payload'][0]['model']} is warm, dispatching to live worker")
                     if each['payload'][0]['model'] not in coord_status['models']['instructions']:
                         coord_status['models']['instructions'][each['payload'][0]['model']] = [
                             {"message": "continue"}]
@@ -363,6 +376,9 @@ def fetch_submitted_jobs():
                         "message": "run",
                         "payload": each
                     })
+                    if each['id'] in coord_status['known_jobs']:
+                        coord_status['known_jobs'].remove(each['id'])
+                        del kwnown_jobs_data[each['id']]
                 else:
                     # this model is warm in the past, but not now
                     job_payload[each['id']] = each['payload']
@@ -370,27 +386,29 @@ def fetch_submitted_jobs():
                     if dispatch_result is not None:
                         coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
                             each['id'])
-            
-    except Exception as e:
-        error = traceback.format_exc()
-        logger.error(error)
-        planetml_client.update_job_status(
-                    job_id=each['id'],
-                    processed_by="",
-                    status="failed",
-                    source=each['source'],
-                    type=each['type'],
-                    returned_payload={"message": error}
-                )
-        raise e.with_traceback()
-
+                        if each['id'] in coord_status['known_jobs']:
+                            coord_status['known_jobs'].remove(each['id'])
+                            del kwnown_jobs_data[each['id']]
+        except Exception as e:
+            error = traceback.format_exc()
+            logger.error(error)
+            planetml_client.update_job_status(
+                job_id=each['id'],
+                processed_by="",
+                status="failed",
+                source=each['source'],
+                type=each['type'],
+                returned_payload={"message": error}
+            )
+            del coord_status['known_jobs'][each['id']]
+            raise e.with_traceback()
 
 @lc_app.on_event("startup")
 @repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
 def periodical():
-    fetch_submitted_jobs()
     update_warmnesses()
-    
+    fetch_submitted_jobs()
+
     failed_job = planetml_client.check_job_timeout()
     # update coord_status['inqueue_jobs']
     for cluster in coord_status['inqueue_jobs']:

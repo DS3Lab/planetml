@@ -44,6 +44,7 @@ const submitPass = () => {
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
+        request_payload.num_returns = 1
     } else {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"

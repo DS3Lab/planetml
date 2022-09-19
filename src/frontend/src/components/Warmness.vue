@@ -45,11 +45,9 @@
                                     <td
                                         class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                         {{ model.expected_runtime }}</td>
-                                    <td
+                                    <td 
                                         class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                        {{
-                                        dayjs().to(dayjs(model.last_heartbeat))
-                                        }}</td>
+                                        {{ dayjs().to(dayjs(model.last_heartbeat))}} ({{model.last_heartbeat }})</td>
                                 </tr>
                             </tbody>
                         </table>
