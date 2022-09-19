@@ -112,7 +112,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
                 raise ValueError("Cannot understand input!")
             target_cluster = target_cluster_mapping[model_type]
             # now find the rate limit from coord status, we assume all clusters have a rate limit
-            logger.info(f"target cluster: {target_cluster}, coord status: {self.coord_status}")
+            logger.info(f"target cluster: {target_cluster}")
             rate_limit = self.coord_status['rate_limit'][target_cluster]
             inqueue_jobs = self.coord_status['inqueue_jobs'][target_cluster]
             logger.info(f"rate limit: {rate_limit}, inqueue jobs: {inqueue_jobs}")

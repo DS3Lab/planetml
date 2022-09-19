@@ -13,11 +13,7 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism-tomorrow.css';
 import { add_new_job, get_job_status, available_models } from '@/services/api';
 
-const request_json = ref(`{
-"jsinput": "['hippo', 'dog', 'cat', 'bee'].map(animal => ['beijing', 'tokyo', 'palo alto', 'zurich'].map(city => \`Painting of a \$\{animal\} riding a bicycle on the street of \$\{city\}, raining, cat in bicycle basket, trending on artstation\`)).flat()",
-"model": "stable_diffusion",
-"num_returns": 2
-}`)
+const request_prompt = ref(`Freely type anything...`)
 
 const job_status = ref({
     "id": "",
@@ -25,11 +21,7 @@ const job_status = ref({
     "processed_by": "",
     "returned_payload": { "output": [[]] }
 })
-
-const submit_params = ref({
-
-})
-
+const submit_params = ref({})
 const selected_model = ref("")
 
 function update_job_status(job_id) {
@@ -51,9 +43,9 @@ const submitPass = () => {
     let request_payload = submit_params.value
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
-        request_payload.input = [request_json.value]
+        request_payload.input = [request_prompt.value]
     } else {
-        request_payload.prompt = [request_json.value]
+        request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
         request_payload.stop = [" "]
         request_payload.echo = false
@@ -87,7 +79,7 @@ watch(selected_model, (newValue, oldValue) => {
             <CardBox>
                 <FormField label="Prompt" help="Required. Your Prompt">
                     <div class="content">
-                        <prism-editor class="my-editor" v-model="request_json"
+                        <prism-editor class="my-editor" v-model="request_prompt"
                             :highlight="highlighter" line-numbers>
                         </prism-editor>
                     </div>

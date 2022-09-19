@@ -1,6 +1,5 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
 
-
 import sys
 import time
 import json
@@ -90,13 +89,21 @@ coord_status = {
         'stable_diffusion': 1
     },
     'inqueue_jobs': {
-        'stanford': [],
+        'stanford': ["b0179680-a445-4a71-9aca-e9ae9b13cc95","cd253ad3-a60e-4ce4-bc63-03845294bd15"],
         'euler': []
     },
     'rate_limit': {
         'stanford': 3,
         'euler': 9999,
-    }
+    },
+    'warm_watch': [
+        'gpt-j-6b',
+        'stable_diffusion',
+        't5-11b',
+        't0pp',
+        'gpt-neox-20b',
+        'ul2'
+    ]
 }
 
 
@@ -232,8 +239,7 @@ async def get_instruction(model_name, rank_id):
         coord_status['models']['warmness'][model_name] = 0
 
     # put the rank_id into the heartbeats
-    coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow(
-    )
+    coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow()
     # now scan the heartbeats of the requested model_name, the tolerance is 30 seconds, i.e., only when all ranks appear in the heartbeats within 30 seconds, we consider the model is still alive
     up_count = 0
     is_alive = False
@@ -261,128 +267,122 @@ async def get_instruction(model_name, rank_id):
 def shutdown_event():
     logger.info("dumping results to local db...")
 
-
 def update_warmnesses():
+    current_time = datetime.utcnow()
     logger.info("updating warmnesses...")
-
-    for model_name in model_heartbeats:
-        if time.time() - model_heartbeats[model_name] > 60:
-            # now this model is not warm anymore, we do the following
-            # set it's warmness to 0
-            model_warmness[model_name] = 0
-            # tell global coordinator that this model is not warm anymore
+    for model_name in coord_status['warm_watch']:
+        up_count = 0
+        for rank_id in coord_status['models']['heartbeats']:
+            if (current_time - coord_status['models']['heartbeats'][rank_id]).total_seconds() < 30:
+                up_count += 1
+        if up_count == machine_size_mapping[model_name]:
+            coord_status['models']['warmness'][model_name] = 1
+            planetml_client.update_model_status(model=model_name, payload={
+                "warmness": 1,
+                "last_heartbeat": str(current_time)
+            })
+        else:
+            coord_status['models']['warmness'][model_name] = 0
             planetml_client.update_model_status(model=model_name, payload={
                 "warmness": 0,
                 "last_heartbeat": ""
             })
-        # now check model warmness again - if it is not warm, but there is a limitation specified in coord_status['minimal_warmness'], we starts a test job
 
     for model_name in coord_status['minimal_warmness']:
-        if model_name in model_warmness:
-            if model_warmness[model_name] >= 0.5:
+        if model_name in coord_status['models']['warmness']:
+            if coord_status['models']['warmness'][model_name] >= 0.5:
                 logger.info(
                     f"{model_name} is being warmed up or is warmed, skipping...")
                 continue
-        if model_name not in model_warmness and coord_status['minimal_warmness'][model_name] >= 1:
+        
+        if model_name not in coord_status['models']['warmness'] and coord_status['minimal_warmness'][model_name] >= 1:
             logger.info(f"dispatching a warming job for model {model_name}")
             requests.post("https://planetd.shift.ml/jobs",
                           json=example_jobs[model_name])
-            model_warmness[model_name] = 0.5
-            # add 3 minutes buffer to the heartbeats
-            model_heartbeats[model_name] = time.time() + 180
-        elif model_warmness[model_name] < coord_status['minimal_warmness'][model_name]:
+            coord_status['models']['warmness'][model_name] = 0.5
+        
+        elif coord_status['models']['warmness'][model_name] < coord_status['minimal_warmness'][model_name]:
             # means we need to start a test job
             logger.info(f"dispatching a warming job for model {model_name}")
             requests.post("https://planetd.shift.ml/jobs",
                           json=example_jobs[model_name])
-            model_warmness[model_name] = 0.5
-            # add 3 minutes buffer to the heartbeats
-            model_heartbeats[model_name] = time.time() + 180
-
+            coord_status['models']['warmness'][model_name] = 0.5
 
 def fetch_submitted_jobs():
-    global submit_lock
-    if not submit_lock:
-        try:
-            logger.info("Fetching and dispatching jobs")
-            jobs = planetml_client.get_jobs()
-            bi_jobs = [x for x in jobs
-                       if x['source'] == 'dalle'
-                       and x['status'] == 'submitted'
-                       and x['type'] == 'general'
-                       ]
-            logger.info("Found {} general jobs".format(len(bi_jobs)))
-            if len(bi_jobs) > 0:
-                bi_coordinator = BatchInferenceCoordinator(
-                    "batch_inference",
-                    coord_status=coord_status,
+    try:
+        logger.info("Fetching and dispatching jobs")
+        jobs = planetml_client.get_jobs()
+        bi_jobs = [x for x in jobs
+                    if x['source'] == 'dalle'
+                    and x['status'] == 'submitted'
+                    and x['type'] == 'general'
+                    ]
+        logger.info("Found {} general jobs".format(len(bi_jobs)))
+        if len(bi_jobs) > 0:
+            bi_coordinator = BatchInferenceCoordinator(
+                "batch_inference",
+                coord_status=coord_status,
+            )
+        for each in bi_jobs:
+            # acquire submit lock
+            submit_lock = True
+            try:
+                each, is_interactive = preprocess_job(each)
+            except Exception as e:
+                submit_lock = False
+                planetml_client.update_job_status(
+                    job_id=each['id'],
+                    processed_by="",
+                    status="failed",
+                    source=each['source'],
+                    type=each['type'],
+                    returned_payload={"message": str(e)}
                 )
-            for each in bi_jobs:
-                # acquire submit lock
-                submit_lock = True
-                try:
-                    each, is_interactive = preprocess_job(each)
-                except Exception as e:
-                    submit_lock = False
-                    planetml_client.update_job_status(
-                        job_id=each['id'],
-                        processed_by="",
-                        status="failed",
-                        source=each['source'],
-                        type=each['type'],
-                        returned_payload={"message": str(e)}
-                    )
-                    return
-                # here if it is a file, i.e., url is provided, we regard it as a batch inference job
-                # otherwise, it is an interactive job - we will dispatch it to a live coordinator
-                # if no live coordinator is available, we will create a new one
-                try:
-                    if not is_interactive or not each['payload'][0]['model'] in coord_status['models']['warmness']:
-                        # it's not an interactive job, or the model is not warm,
-                        # dispatch it to a cluster
+                return
+            # here if it is a file, i.e., url is provided, we regard it as a batch inference job
+            # otherwise, it is an interactive job - we will dispatch it to a live coordinator
+            # if no live coordinator is available, we will create a new one
+            if not is_interactive or not each['payload'][0]['model'] in coord_status['models']['warmness']:
+                # it's not an interactive job, or the model is not warm,
+                # dispatch it to a cluster
 
-                        job_payload[each['id']] = each['payload']
-                        dispatch_result = bi_coordinator.dispatch(each)
-                        if dispatch_result is not None:
-                            coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
-                                each['id'])
-                    else:
-                        # for interactive job
-                        # first check warmness
-                        # put it into instructions list
-                        if model_warmness[each['payload'][0]['model']] >= 1:
-                            if each['payload'][0]['model'] not in coord_status['models']['instructions']:
-                                coord_status['models']['instructions'][each['payload'][0]['model']] = [
-                                    {"message": "continue"}]
-                            coord_status['models']['instructions'][each['payload'][0]['model']].append({
-                                "message": "run",
-                                "payload": each
-                            })
-                        else:
-                            # this model is warm in the past, but not now
-                            job_payload[each['id']] = each['payload']
-                            dispatch_result = bi_coordinator.dispatch(each)
-                            if dispatch_result is not None:
-                                coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
-                                    each['id'])
-                except Exception as e:
-                    submit_lock = False
-                    planetml_client.update_job_status(
-                        job_id=each['id'],
-                        processed_by="",
-                        status="failed",
-                        source=each['source'],
-                        type=each['type'],
-                        returned_payload={"message": str(e)}
-                    )
-        except Exception as e:
-            submit_lock = False
-            error = traceback.format_exc()
-            logger.error(error)
-            raise e.with_traceback()
-    else:
-        logger.info("Submit lock is on, skipping this round")
-    # in any case, we need to update warmnesses
+                job_payload[each['id']] = each['payload']
+                dispatch_result = bi_coordinator.dispatch(each)
+                if dispatch_result is not None:
+                    coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
+                        each['id'])
+            else:
+                # for interactive job
+                # first check warmness
+                # put it into instructions list
+                if coord_status['models']['warmness'][each['payload'][0]['model']] >= 1:
+                    if each['payload'][0]['model'] not in coord_status['models']['instructions']:
+                        coord_status['models']['instructions'][each['payload'][0]['model']] = [
+                            {"message": "continue"}]
+                    coord_status['models']['instructions'][each['payload'][0]['model']].append({
+                        "message": "run",
+                        "payload": each
+                    })
+                else:
+                    # this model is warm in the past, but not now
+                    job_payload[each['id']] = each['payload']
+                    dispatch_result = bi_coordinator.dispatch(each)
+                    if dispatch_result is not None:
+                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
+                            each['id'])
+            
+    except Exception as e:
+        error = traceback.format_exc()
+        logger.error(error)
+        planetml_client.update_job_status(
+                    job_id=each['id'],
+                    processed_by="",
+                    status="failed",
+                    source=each['source'],
+                    type=each['type'],
+                    returned_payload={"message": error}
+                )
+        raise e.with_traceback()
 
 
 @lc_app.on_event("startup")
@@ -390,6 +390,7 @@ def fetch_submitted_jobs():
 def periodical():
     fetch_submitted_jobs()
     update_warmnesses()
+    
     failed_job = planetml_client.check_job_timeout()
     # update coord_status['inqueue_jobs']
     for cluster in coord_status['inqueue_jobs']:

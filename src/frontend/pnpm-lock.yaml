@@ -13,6 +13,7 @@ specifiers:
   chartjs-adapter-date-fns: ^2.0.0
   d3: ^7.6.1
   date-fns: ^2.29.2
+  dayjs: ^1.11.5
   firebase: ^9.9.4
   flowbite: ^1.5.3
   highlight.js: ^11.6.0
@@ -43,6 +44,7 @@ dependencies:
   chartjs-adapter-date-fns: 2.0.0_chart.js@3.9.1
   d3: 7.6.1
   date-fns: 2.29.2
+  dayjs: 1.11.5
   firebase: 9.9.4
   flowbite: 1.5.3
   highlight.js: 11.6.0
@@ -1282,6 +1284,10 @@ packages:
   /date-fns/2.29.2:
     resolution: {integrity: sha512-0VNbwmWJDS/G3ySwFSJA3ayhbURMTJLtwM2DTxf9CWondCnh6DTNlO9JgRSq6ibf4eD0lfMJNBxUdEAHHix+bA==}
     engines: {node: '>=0.11'}
+    dev: false
+
+  /dayjs/1.11.5:
+    resolution: {integrity: sha512-CAdX5Q3YW3Gclyo5Vpqkgpj8fSdLQcRuzfX6mC6Phy0nfJ0eGYOeS7m4mt2plDWLAtA4TqTakvbboHvUxfe4iA==}
     dev: false
 
   /defined/1.0.0:

@@ -2,8 +2,10 @@
     <div class="px-4 sm:px-6 lg:px-8">
         <div class="sm:flex sm:items-center">
             <div class="sm:flex-auto">
-                <h1 class="text-xl font-semibold text-gray-900">Model Warmness</h1>
-                <p class="mt-2 text-sm text-gray-700">How long you can expect your model to process your query
+                <h1 class="text-xl font-semibold text-gray-900">Model Warmness
+                </h1>
+                <p class="mt-2 text-sm text-gray-700">How long you can expect
+                    your model to process your query
                 </p>
             </div>
         </div>
@@ -24,7 +26,7 @@
                                         Warmness</th>
                                     <th scope="col"
                                         class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                        Expected Runtime</th>
+                                        Expected Runtime (s)</th>
                                     <th scope="col"
                                         class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                         Last Heartbeat</th>
@@ -38,13 +40,16 @@
                                         {{ model.name }}</td>
                                     <td
                                         class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                        {{ model.warmness }}</td>
+                                        {{ warmness_level[model.warmness] }}
+                                    </td>
                                     <td
                                         class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                         {{ model.expected_runtime }}</td>
                                     <td
                                         class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                        {{ model.last_heartbeat }}</td>
+                                        {{
+                                        dayjs().to(dayjs(model.last_heartbeat))
+                                        }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -58,10 +63,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { get_model_status } from '@/services/api'
+import * as dayjs from 'dayjs'
+import * as relativeTime from 'dayjs/plugin/relativeTime'
+dayjs.extend(relativeTime)
 
 const is_loaded = ref(false)
 const model_warmness = ref([])
-
+const warmness_level = {
+    "0": "Scratch",
+    "1": "VRAM",
+    "0.5": "Booting"
+}
 onMounted(() => {
     get_model_status().then(res => {
         model_warmness.value = res.data

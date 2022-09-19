@@ -5,6 +5,7 @@ import datetime
 from sqlalchemy.types import DateTime
 from sqlalchemy import Column
 from typing import Union
+
 class ModelStatus(SQLModel, table=True):
     id: Optional[uuid_pkg.UUID] = Field(
         default_factory=uuid_pkg.uuid4,

@@ -29,7 +29,7 @@ class PlanetML():
             "source": source,
         }
         self.last_job_update[job_id] = datetime.utcnow()
-        if processed_by!='':
+        if processed_by != '':
             data['processed_by'] = processed_by
         if status !='':
             data['status'] = status
@@ -60,8 +60,8 @@ class PlanetML():
     def update_model_status(self, model, payload):
         warmed_runtime = {
             'stable_diffusion': 30,
-            'gpt-j-6b': 30,
-            't5-11b': 60,
+            'gpt-j-6b': 60,
+            't5-11b': 120,
             't0pp': 60,
             'ul2': 240,
             'gpt-neox-20b': 60
@@ -72,7 +72,7 @@ class PlanetML():
             't5-11b': 240,
             't0pp': 240,
             'ul2': 480,
-            'gpt-neox-20b': 240
+            'gpt-neox-20b': 480
         }
         res = requests.patch(self.endpoint+f"/model_statuses/{model}", json={
             "name": model,

@@ -19,6 +19,7 @@
     "chartjs-adapter-date-fns": "^2.0.0",
     "d3": "^7.6.1",
     "date-fns": "^2.29.2",
+    "dayjs": "^1.11.5",
     "firebase": "^9.9.4",
     "flowbite": "^1.5.3",
     "highlight.js": "^11.6.0",
