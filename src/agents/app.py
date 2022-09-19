@@ -13,8 +13,9 @@ from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 
 sys.path.append('./')
-from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 from src.agents.utils.planetml import PlanetML
+from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
+
 
 class Settings(BaseSettings):
     euler_lsf_host: Optional[str]
@@ -37,6 +38,19 @@ class Settings(BaseSettings):
 lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 # sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
+machine_size_mapping = {
+    'gpt-j-6b': 4,
+    'gpt-neox-20b': 11,
+    't0pp': 6,
+    't5-11b': 6,
+    'ul2': 16,
+    'stable_diffusion': 1,
+    'opt-66b': 8,
+    'opt-175b': 8,
+    'bloom': 8,
+    'yalm': 8,
+    'glm': 8,
+}
 job_status = {}
 watched_jobs = {}
 watched_ports = {}
@@ -76,7 +90,7 @@ coord_status = {
         'stable_diffusion': 1
     },
     'inqueue_jobs': {
-        'stanford': ['308f6050-d65e-416b-9257-fe9724665fb8'],
+        'stanford': ['d4d98b31-b6c1-436e-af86-65f2e64e368e','4538e5c4-7cf7-47b7-8bcc-cd91ad1c7ef3','a1db5668-3928-4576-b41d-1caf6a12480a'],
         'euler': []
     },
     'rate_limit': {
@@ -209,22 +223,36 @@ async def get_all_warmness():
     return {"warmness": model_warmness, 'message': 'ok'}
 
 
-@lc_app.get("/eth/instructions/{model_name}")
-async def get_instruction(model_name):
-    # tell global coordinator that this model is alive
-    planetml_client.update_model_status(model=model_name, payload={
-        "warmness": 1,
-        "last_heartbeat": datetime.utcnow()
-    })
-    if model_name not in model_instructions:
-        # at this moment, the worker is asking for instructions of a model, so it is ready to accept jobs
-        # we can set the warmness of the model to be 1
-        model_warmness[model_name] = 1
-        model_instructions[model_name] = [{"message": "continue"}]
-    elif model_warmness[model_name] < 1:
-        model_warmness[model_name] = 1
-    model_heartbeats[model_name] = time.time()
-    return model_instructions[model_name]
+@lc_app.get("/eth/instructions/{model_name}/{rank_id}")
+async def get_instruction(model_name, rank_id):
+    current_time = datetime.utcnow()
+    # first check if model_name is in the list of heartbeats
+    if model_name not in coord_status['models']['heartbeats']:
+        coord_status['models']['heartbeats'][model_name] = {}
+        coord_status['models']['warmness'][model_name] = 0
+    # put the rank_id into the heartbeats
+    coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow(
+    )
+    # now scan the heartbeats of the requested model_name, the tolerance is 30 seconds, i.e., only when all ranks appear in the heartbeats within 30 seconds, we consider the model is still alive
+    up_count = 0
+    is_alive = False
+    for rank_id in coord_status['models']['heartbeats'][model_name]:
+        if (current_time - coord_status['models']['heartbeats'][model_name][rank_id]).total_seconds() < 30:
+            up_count += 1
+    if up_count == machine_size_mapping[model_name]:
+        is_alive = True
+
+    if is_alive:
+        # tell global coordinator that this model is alive
+        planetml_client.update_model_status(model=model_name, payload={
+            "warmness": 1,
+            "last_heartbeat": datetime.utcnow()
+        })
+        coord_status['models']['warmness'][model_name] = 1
+        coord_status['models']['instructions'][model_name] = [
+            {"message": "continue"}]
+
+    return coord_status['models']['instructions'][model_name]
 
 
 @lc_app.on_event("shutdown")
@@ -320,10 +348,10 @@ def fetch_submitted_jobs():
                     # first check warmness
                     # put it into instructions list
                     if model_warmness[each['payload'][0]['model']] >= 1:
-                        if each['payload'][0]['model'] not in model_instructions:
-                            model_instructions[each['payload'][0]['model']] = [
+                        if each['payload'][0]['model'] not in coord_status['models']['instructions']:
+                            coord_status['models']['instructions'][each['payload'][0]['model']] = [
                                 {"message": "continue"}]
-                        model_instructions[each['payload'][0]['model']].append({
+                        coord_status['models']['instructions'][each['payload'][0]['model']].append({
                             "message": "run",
                             "payload": each
                         })
