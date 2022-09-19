@@ -1,5 +1,6 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
 
+
 import sys
 import time
 import json
@@ -11,7 +12,7 @@ from datetime import datetime
 from pydantic import BaseSettings
 from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
-
+import traceback
 sys.path.append('./')
 from src.agents.utils.planetml import PlanetML
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
@@ -80,7 +81,6 @@ planetml_client = PlanetML()
 
 coord_status = {
     'health': 'ok',
-    'jobs': {},
     'models': {
         'warmness': {},
         'instructions': {},
@@ -90,7 +90,7 @@ coord_status = {
         'stable_diffusion': 1
     },
     'inqueue_jobs': {
-        'stanford': ['d4d98b31-b6c1-436e-af86-65f2e64e368e','4538e5c4-7cf7-47b7-8bcc-cd91ad1c7ef3','a1db5668-3928-4576-b41d-1caf6a12480a'],
+        'stanford': [],
         'euler': []
     },
     'rate_limit': {
@@ -230,6 +230,7 @@ async def get_instruction(model_name, rank_id):
     if model_name not in coord_status['models']['heartbeats']:
         coord_status['models']['heartbeats'][model_name] = {}
         coord_status['models']['warmness'][model_name] = 0
+
     # put the rank_id into the heartbeats
     coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow(
     )
@@ -249,9 +250,10 @@ async def get_instruction(model_name, rank_id):
             "last_heartbeat": datetime.utcnow()
         })
         coord_status['models']['warmness'][model_name] = 1
+    # regarding returned value, if model_name not in instructions, set it to default
+    if model_name not in model_instructions:
         coord_status['models']['instructions'][model_name] = [
             {"message": "continue"}]
-
     return coord_status['models']['instructions'][model_name]
 
 
@@ -334,39 +336,49 @@ def fetch_submitted_jobs():
                 # here if it is a file, i.e., url is provided, we regard it as a batch inference job
                 # otherwise, it is an interactive job - we will dispatch it to a live coordinator
                 # if no live coordinator is available, we will create a new one
-                if not is_interactive or not each['payload'][0]['model'] in model_warmness:
-                    # it's not an interactive job, or the model is not warm,
-                    # dispatch it to a cluster
+                try:
+                    if not is_interactive or not each['payload'][0]['model'] in coord_status['models']['warmness']:
+                        # it's not an interactive job, or the model is not warm,
+                        # dispatch it to a cluster
 
-                    job_payload[each['id']] = each['payload']
-                    dispatch_result = bi_coordinator.dispatch(each)
-                    if dispatch_result is not None:
-                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
-                            each['id'])
-                else:
-                    # for interactive job
-                    # first check warmness
-                    # put it into instructions list
-                    if model_warmness[each['payload'][0]['model']] >= 1:
-                        if each['payload'][0]['model'] not in coord_status['models']['instructions']:
-                            coord_status['models']['instructions'][each['payload'][0]['model']] = [
-                                {"message": "continue"}]
-                        coord_status['models']['instructions'][each['payload'][0]['model']].append({
-                            "message": "run",
-                            "payload": each
-                        })
-                    else:
-                        # this model is warm in the past, but not now
                         job_payload[each['id']] = each['payload']
                         dispatch_result = bi_coordinator.dispatch(each)
                         if dispatch_result is not None:
                             coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
                                 each['id'])
-            # release submit lock
-            submit_lock = False
+                    else:
+                        # for interactive job
+                        # first check warmness
+                        # put it into instructions list
+                        if model_warmness[each['payload'][0]['model']] >= 1:
+                            if each['payload'][0]['model'] not in coord_status['models']['instructions']:
+                                coord_status['models']['instructions'][each['payload'][0]['model']] = [
+                                    {"message": "continue"}]
+                            coord_status['models']['instructions'][each['payload'][0]['model']].append({
+                                "message": "run",
+                                "payload": each
+                            })
+                        else:
+                            # this model is warm in the past, but not now
+                            job_payload[each['id']] = each['payload']
+                            dispatch_result = bi_coordinator.dispatch(each)
+                            if dispatch_result is not None:
+                                coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
+                                    each['id'])
+                except Exception as e:
+                    submit_lock = False
+                    planetml_client.update_job_status(
+                        job_id=each['id'],
+                        processed_by="",
+                        status="failed",
+                        source=each['source'],
+                        type=each['type'],
+                        returned_payload={"message": str(e)}
+                    )
         except Exception as e:
             submit_lock = False
-            logger.error(e)
+            error = traceback.format_exc()
+            logger.error(error)
             raise e.with_traceback()
     else:
         logger.info("Submit lock is on, skipping this round")
