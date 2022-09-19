@@ -9,6 +9,7 @@ import DashboardView from '@/pages/DashboardView.vue';
 import BatchSubmission from '@/pages/BatchSubmission.vue';
 import ReportView from '@/pages/ReportView.vue';
 import FileUploadSubmission from '@/pages/FileUploadSubmission.vue';
+import RequestForm from '@/pages/RequestForm.vue';
 
 const routes = [
     { path: '/', component: Landing },
@@ -20,6 +21,8 @@ const routes = [
     { path: '/login', component: Login},
     { path: '/register', component: Register},
     { path: '/profile', component: ProfilePage},
+    { path: '/req_form', component: RequestForm},
+
 ]
 const router = createRouter({
     history: createWebHistory(),

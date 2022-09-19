@@ -38,11 +38,16 @@ function add_new_job(job_payload) {
     }
     const headers = {
         'Content-Type': 'application/json',
-      }
+    }
     return axios.post(tomaapi_endpoint + '/jobs', request_json, {
         headers: headers
-      })
+    })
 }
+
+function get_model_status() {
+    return axios.get(tomaapi_endpoint + '/model_statuses')
+}
+
 
 function domain_to_name(domain) {
     if (domain === 'ethz.ch') {
@@ -56,6 +61,50 @@ function domain_to_name(domain) {
     }
 }
 
+const available_models = {
+    "gpt-j-6b": {
+        "best_of": 1,
+        "logprobs": 1,
+        "max_tokens": 300,
+        "n": 1,
+        "temperature": 0,
+        "top_p": 1
+    },
+    "gpt-neox-20b": {
+        "best_of": 1,
+        "logprobs": 1,
+        "max_tokens": 300,
+        "n": 1,
+        "temperature": 0,
+        "top_p": 1
+    },
+    "stable_diffusion": {},
+    "t5-11b": {
+        "best_of": 1,
+        "logprobs": 1,
+        "max_tokens": 300,
+        "n": 1,
+        "temperature": 0,
+        "top_p": 1
+    },
+    "t0pp": {
+        "best_of": 1,
+        "logprobs": 1,
+        "max_tokens": 300,
+        "n": 1,
+        "temperature": 0,
+        "top_p": 1
+    },
+    "ul2": {
+        "best_of": 1,
+        "logprobs": 1,
+        "max_tokens": 300,
+        "n": 1,
+        "temperature": 0,
+        "top_p": 1
+    }
+}
+
 export {
     get_site_status,
     get_jobs_list,
@@ -64,4 +113,6 @@ export {
     add_new_job,
     get_job_status,
     upload_file_to_planetd,
+    get_model_status,
+    available_models,
 }
