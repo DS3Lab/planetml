@@ -61,8 +61,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { get_model_status } from '@/services/api'
-import * as dayjs from 'dayjs'
-import * as relativeTime from 'dayjs/plugin/relativeTime'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 dayjs.extend(relativeTime)
 
 const is_loaded = ref(false)
