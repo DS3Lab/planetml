@@ -65,11 +65,14 @@ def get_model_status(args):
 
     header = ("Model Name", "Warmness", "Exp. Response Time (s)", "Last Heartbeat")
     body = []
-    for model in x.json():
+    models = x.json()
+    print(models)
+    models = sorted(models, key=lambda x: x["name"])
+    for model in models:
         if model['warmness'] == 1:
             warmness = 'VRAM'
         elif model['warmness'] == 0:
-            warmness = 'Disk'
+            warmness = 'Scratch'
         elif model['warmness'] == 0.5:
             warmness = 'Booting'
         heartbeat_time = parser.parse(model['last_heartbeat']).strftime("%Y-%m-%d %H:%M:%S")

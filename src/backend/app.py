@@ -122,6 +122,7 @@ def add_job(job: Job):
                     session.commit()
                     session.refresh(job)
             else:
+                # if it is not managed by us, we will just add it to the database
                 session.add(job)
                 session.commit()
                 session.refresh(job)

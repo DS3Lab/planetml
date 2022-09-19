@@ -80,9 +80,10 @@ async def fetching_results(job_id):
     else:
         if 'choices' in raw_output['result']:
             return raw_output['result']['choices'][0]['text']
-        elif 'result' in raw_output['result']:
-            return raw_output['result']['result']['choices'][0]['text']
-
+        elif 'result' in raw_output['result'][0]:
+            return raw_output['result'][0]['result']['choices'][0]['text']
+        else:
+            return "something went wrong"
 
 async def respond_image(ctx, job_id, prompt, model):
     results = await fetching_results(job_id)
@@ -233,9 +234,6 @@ async def toma(
     ctx: discord.ApplicationContext,
     prompt: discord.Option(str, description="Input your prompts",
                            name="prompts"),
-    mode: discord.Option(str, description="Choose your mode",
-                         choices=['Image Generation', 'Text Generation'],
-                         default="Image Generation"),
     model: discord.Option(str, description="Choose your model",
                           choices=[
                               "Image: stable_diffusion",
@@ -254,6 +252,12 @@ async def toma(
     await ctx.defer()
     try:
         job_id = None
+        if model.startswith("Image"):
+            mode = 'Image Generation'
+        elif model.startswith("Text"):
+            mode = 'Text Generation'
+        else:
+            raise Exception("Invalid model")
         if mode == "Image Generation":
             if model == 'Image: stable_diffusion':
                 model = 'stable_diffusion'

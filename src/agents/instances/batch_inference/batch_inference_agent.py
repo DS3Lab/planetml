@@ -106,8 +106,7 @@ class BatchInferenceCoordinator(LocalCoordinator):
             elif 'model' in job_payload[0]:
                 if job_payload[0]['model'] not in machine_size_mapping:
                     raise ValueError(f"model {job_payload[0]['model']} not supported")
-                machine_size, world_size = machine_size_mapping[job_payload[0]
-                                                                ['model']], machine_size_mapping[job_payload[0]['model']]
+                machine_size, world_size = machine_size_mapping[job_payload[0]['model']], machine_size_mapping[job_payload[0]['model']]
                 model_type = job_payload[0]['model']
             else:
                 raise ValueError("Cannot understand input!")

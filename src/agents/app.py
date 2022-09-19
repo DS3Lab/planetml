@@ -76,7 +76,7 @@ coord_status = {
         'stable_diffusion': 1
     },
     'inqueue_jobs': {
-        'stanford': [],
+        'stanford': ['308f6050-d65e-416b-9257-fe9724665fb8'],
         'euler': []
     },
     'rate_limit': {
@@ -350,3 +350,9 @@ def fetch_submitted_jobs():
 def periodical():
     fetch_submitted_jobs()
     update_warmnesses()
+    failed_job = planetml_client.check_job_timeout()
+    # update coord_status['inqueue_jobs']
+    for cluster in coord_status['inqueue_jobs']:
+        for job_id in coord_status['inqueue_jobs'][cluster]:
+            if job_id in failed_job:
+                coord_status['inqueue_jobs'][cluster].remove(job_id)
