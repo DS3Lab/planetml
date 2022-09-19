@@ -64,7 +64,7 @@ class PlanetML():
     def update_model_status(self, model, payload):
         warmed_runtime = {
             'stable_diffusion': 30,
-            'gpt-j-6b': 60,
+            'gpt-j-6b': 120,
             't5-11b': 120,
             't0pp': 60,
             'ul2': 240,

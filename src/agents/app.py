@@ -12,9 +12,11 @@ from pydantic import BaseSettings
 from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 import traceback
+
 sys.path.append('./')
-from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
 from src.agents.utils.planetml import PlanetML
+from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
+
 
 class Settings(BaseSettings):
     euler_lsf_host: Optional[str]
@@ -53,7 +55,7 @@ machine_size_mapping = {
 
 job_status = {}
 watched_jobs = {}
-kwnown_jobs_data = {
+known_jobs_data = {
 
 }
 watched_ports = {}
@@ -92,7 +94,7 @@ coord_status = {
     },
     'inqueue_jobs': {
         'stanford': [
-            "b0179680-a445-4a71-9aca-e9ae9b13cc95","eb160b16-d4d0-432a-9fe8-dc61e345bbb2","b1cc2d88-ad48-4f09-99b2-eaae195f8645"],
+            "b0179680-a445-4a71-9aca-e9ae9b13cc95", "eb160b16-d4d0-432a-9fe8-dc61e345bbb2", "b1cc2d88-ad48-4f09-99b2-eaae195f8645"],
         'euler': []
     },
     'rate_limit': {
@@ -176,6 +178,10 @@ async def update_status(id, req: Request):
         elif id in coord_status['inqueue_jobs']['euler']:
             coord_status['inqueue_jobs']['euler'].remove(id)
         # delete the job from the known_jobs:
+        if id in coord_status['known_jobs']:
+            coord_status['known_jobs'].remove(id)
+            del known_jobs_data[id]
+
     # here we update instructions and heartbeats
     # if this job is in the list of instructions, we update the instructions such that the job is removed from the database
     for model_name in coord_status['models']['instructions']:
@@ -307,7 +313,11 @@ def update_warmnesses():
                                 job_id=instruction['payload']['id'],
                                 status="submitted",
                             )
-
+        else:
+            planetml_client.update_model_status(model=model_name, payload={
+                "warmness": 0,
+                "last_heartbeat": ""
+            })
     for model_name in coord_status['minimal_warmness']:
         if coord_status['models']['warmness'][model_name] >= 0.5:
             logger.info(
@@ -337,11 +347,11 @@ def fetch_submitted_jobs():
         )
     for each in bi_jobs:
         if each['id'] in coord_status['known_jobs']:
-            each, is_interactive = kwnown_jobs_data[each['id']]
+            each, is_interactive = known_jobs_data[each['id']]
         else:
             try:
                 each, is_interactive = preprocess_job(each)
-                kwnown_jobs_data[each['id']] = (each, is_interactive)
+                known_jobs_data[each['id']] = (each, is_interactive)
                 coord_status['known_jobs'].append(each['id'])
             except Exception as e:
                 error = traceback.format_exc()
@@ -369,13 +379,14 @@ def fetch_submitted_jobs():
                         each['id'])
                     if each['id'] in coord_status['known_jobs']:
                         coord_status['known_jobs'].remove(each['id'])
-                        del kwnown_jobs_data[each['id']]
+                        del known_jobs_data[each['id']]
             else:
                 # for interactive job
                 # first check warmness
                 # put it into instructions list
                 if coord_status['models']['warmness'][each['payload'][0]['model']] >= 1:
-                    logger.info(f"model {each['payload'][0]['model']} is warm, dispatching to live worker")
+                    logger.info(
+                        f"model {each['payload'][0]['model']} is warm, dispatching to live worker")
                     if each['payload'][0]['model'] not in coord_status['models']['instructions']:
                         coord_status['models']['instructions'][each['payload'][0]['model']] = [
                             {"message": "continue"}]
@@ -385,7 +396,7 @@ def fetch_submitted_jobs():
                     })
                     if each['id'] in coord_status['known_jobs']:
                         coord_status['known_jobs'].remove(each['id'])
-                        del kwnown_jobs_data[each['id']]
+                        del known_jobs_data[each['id']]
                 else:
                     # this model is warm in the past, but not now
                     job_payload[each['id']] = each['payload']
@@ -395,7 +406,7 @@ def fetch_submitted_jobs():
                             each['id'])
                         if each['id'] in coord_status['known_jobs']:
                             coord_status['known_jobs'].remove(each['id'])
-                            del kwnown_jobs_data[each['id']]
+                            del known_jobs_data[each['id']]
         except Exception as e:
             error = traceback.format_exc()
             logger.error(error)
@@ -409,6 +420,7 @@ def fetch_submitted_jobs():
             )
             del coord_status['known_jobs'][each['id']]
             raise e.with_traceback()
+
 
 @lc_app.on_event("startup")
 @repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
