@@ -1,6 +1,8 @@
 executable = /home/byuan43/fm/new/planetml/src/agents/runner/batch_inference/stable_diffusion.wisc.sh
 
-transfer_input_files = /home/byuan43/fm/new/GPT-home-private
+# This is wrong, we should not copy model from home, to be fixed soon.
+transfer_input_files = /home/byuan43/fm/new/GPT-home-private, /home/byuan43/fm/pretrained_models/python.tar.gz, /home/byuan43/fm/pretrained_models/stable-diffusion-v1-4.tar.gz
+
 
 # We need to name the files that HTCondor should create to save the
 #  terminal output (stdout) and error (stderr) created by our job.
