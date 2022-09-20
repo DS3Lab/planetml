@@ -10,8 +10,7 @@
                             Job Report</h1>
                         <p class="text-sm font-medium text-gray-500">ID
                             <a href="#" class="text-gray-900">{{job_id}}</a> on
-                            <time
-                                datetime="2020-08-25">{{job_data.created_at}}</time>
+                            <time datetime="2020-08-25">{{job_data.created_at}}</time>
                         </p>
                     </div>
                 </div>
@@ -266,9 +265,11 @@ function update_job_status() {
         }
         // now process and format the outputs
         if (response.data.status == 'finished' && 'filename' in response.data.returned_payload) {
+            
             get_original_outputs(job_data.value.returned_payload.filename).then((response) => {
                 outputs.value = []
                 response = response.data
+                console.log(response)
                 if ('output' in response) {
                     let trial_id = 0
                     let nimg = 0
@@ -276,6 +277,15 @@ function update_job_status() {
                         nimg = nimg + 1;
                         outputs.value.push(response.output[trial_id][prompt_id])
                         if (nimg > 500) {
+                            break
+                        }
+                    }
+                } else if (response['request']['request_type']==='language-model-inference') {
+                    let return_id = 0
+                    let input_id = 0
+                    for (const returned_id in response['result']['choices']) {
+                        text_outputs.value.push(response['result']['choices'][returned_id]['text'])
+                        if (return_id > 500) {
                             break
                         }
                     }

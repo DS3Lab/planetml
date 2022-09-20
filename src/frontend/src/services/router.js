@@ -21,7 +21,7 @@ const routes = [
     { path: '/login', component: Login},
     { path: '/register', component: Register},
     { path: '/profile', component: ProfilePage},
-    { path: '/req_form', component: RequestForm},
+    { path: '/interactive', component: RequestForm},
 
 ]
 const router = createRouter({
