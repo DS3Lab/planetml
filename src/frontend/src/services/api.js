@@ -109,6 +109,15 @@ const available_models = {
         "temperature": 0,
         "top_p": 1,
         "stop":".;"
+    },
+    "opt-175b": {
+        "best_of": 1,
+        "logprobs": 1,
+        "max_tokens": 32,
+        "n": 1,
+        "temperature": 0,
+        "top_p": 1,
+        "stop":".;"
     }
 }
 
