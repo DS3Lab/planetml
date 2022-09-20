@@ -18,15 +18,15 @@
                         class="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white md:py-4 md:px-10 md:text-lg">Upload
                         File</a>
                 </div>
-                <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+                <!-- <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
                     <a href="/batch"
                         class="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white md:py-4 md:px-10 md:text-lg">
                         Batch Prompt</a>
-                </div>
+                </div> -->
                 <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
                     <a href="/req_form"
                         class="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white md:py-4 md:px-10 md:text-lg">
-                        Request Form</a>
+                        (Best Effort) Interactive Mode</a>
                 </div>
             </div>
         </div>
