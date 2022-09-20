@@ -11,3 +11,4 @@ dstool
 paramiko
 boto3
 aiobotocore
+fastapi_utils
