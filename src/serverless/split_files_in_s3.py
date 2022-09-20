@@ -43,7 +43,7 @@ def lambda_handler(event, context):
         contents = [json.loads(x) for x in fp.readlines()]
 
     clusters = defaultdict(list)
-    for i, q in enumerate(queries):
+    for i, q in enumerate(contents):
         k = (q.get('model', None), q.get('echo', False), q.get('logprobs', 0), q.get('max_tokens', 1), q.get('n', 1), 
              q.get('temperature', 0), q.get('best_of', 1), q.get('top_p', 1),
              (tuple(sorted(q['stop'])) if q.get('stop', None) is not None else None)
