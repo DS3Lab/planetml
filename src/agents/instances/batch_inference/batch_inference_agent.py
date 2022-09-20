@@ -14,14 +14,14 @@ class Settings(BaseSettings):
     euler_lsf_password: Optional[str]
     euler_lsf_wd: Optional[str]
     euler_lsf_init: Optional[str]
-    
+
     stanford_host: Optional[str]
     stanford_username: Optional[str]
     stanford_password: Optional[str]
     stanford_wd: Optional[str]
     stanford_init: Optional[str]
     stanford_gateway: Optional[str]
-    
+
     toma_host: Optional[str]
     toma_username: Optional[str]
     toma_password: Optional[str]

@@ -125,9 +125,9 @@ coord_status = {
         'toma': []
     },
     'rate_limit': {
-        'stanford': 3,
-        'euler': 9999,
-        'toma':9999,
+        'stanford': 0,
+        'euler': 0,
+        'toma':999,
     },
     'warm_watch': [
         'gpt-j-6b',
