@@ -1,6 +1,7 @@
 import os
 import json
 import boto3
+import traceback
 from collections import defaultdict
 
 SPLIT_THRESHOLD = 1000
@@ -10,7 +11,8 @@ SPLIT_CHUNKSIZE = 1000
 def lambda_handler(event, context):
     try:
         s3 = boto3.client('s3')
-        event = event['body']
+        raw_event = event.copy()
+        event = json.loads(event['body'])
         with open(os.path.join("/tmp",event['file_id']), 'wb') as fp:
             s3.download_fileobj(event['bucket'], event['file_id'], fp)
         with open(os.path.join("/tmp",event['file_id']), 'r') as fp:
@@ -47,4 +49,6 @@ def lambda_handler(event, context):
         else:
             return {'status_code': 100, 'original_length': len(contents), 'file_id':event['file_id']}
     except Exception as e:
-        return {'status_code': 100, 'original_length': len(contents), 'file_id':event['file_id'], "msg": str(e)}
+        error = traceback.format_exc()
+        print(error)
+        return {'status_code': 400, 'event':raw_event, "msg": error}
