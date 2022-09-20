@@ -39,8 +39,6 @@ class PlanetML():
             data["type"] = type
         if returned_payload:
             data['returned_payload'] = returned_payload
-        else:
-            data['returned_payload'] = {}
         if debug:
             print(f"update_job_status<debug mode, try to post>: {data}")
             return None
