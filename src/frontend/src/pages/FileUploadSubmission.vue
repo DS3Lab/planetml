@@ -10,7 +10,6 @@ import { add_new_job, get_job_status, upload_file_to_planetd } from '@/services/
 const file_uploader = ref(null)
 const selected_file = ref(null)
 
-
 function upload_file() {
     selected_file.value = file_uploader.value.files[0];
 }
@@ -38,16 +37,6 @@ function update_job_status(job_id) {
         }
     })
 }
-
-const expandPass = () => {
-    let json_input = JSON.parse(request_json.value);
-    try {
-        json_input["input"] = eval(json_input["jsinput"])
-        request_json.value = JSON.stringify(json_input, null, 4);
-    } catch (error) {
-        alert(`Error Expanding jsinput: ${error}`);
-    }
-};
 
 const submitPass = () => {
     let request_payload

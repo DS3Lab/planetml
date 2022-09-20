@@ -26,7 +26,7 @@
                 <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
                     <a href="/interactive"
                         class="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white md:py-4 md:px-10 md:text-lg">
-                        (Best Effort) Interactive Mode</a>
+                        Interactive Mode</a>
                 </div>
             </div>
         </div>
@@ -37,9 +37,4 @@
 
 import { useRouter } from 'vue-router';
 const router = useRouter()
-
-function jumpTo(page) {
-    router.replace(page)
-}
-
 </script>
