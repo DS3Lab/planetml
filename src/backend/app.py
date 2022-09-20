@@ -95,6 +95,7 @@ def add_job(job: Job):
                     "file_id": job.payload['url'].rsplit('/')[-1],
                     "bucket": "toma-all"
                 })
+                print(res.text)
                 response = res.json()
                 if response['status_code'] == 100:
                     # no split happened
@@ -256,8 +257,9 @@ def update_job(id: str, job: Job):
     """
     Update a job
     """
+    print(job)
     with Session(engine) as session:
-        job_to_update = select(Job).where(Job.id == job.id)
+        job_to_update = select(Job).where(Job.id == id)
         job_to_update = session.exec(job_to_update).first()
         if job_to_update is None:
             return {"message": "job not found"}
@@ -275,7 +277,7 @@ def update_job(id: str, job: Job):
             session.refresh(job_to_update)
             return job_to_update
         else:
-            return {"message": "Job is already finished, and in an immutable state"}
+            return job_to_update
 
 @app.get("/files/{filename}")
 def access_s3(filename: str):

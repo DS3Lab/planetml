@@ -35,7 +35,6 @@ class Settings(BaseSettings):
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
 
-
 lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 # sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
@@ -90,11 +89,15 @@ coord_status = {
         'heartbeats': {}
     },
     'minimal_warmness': {
-        'stable_diffusion': 1
+        'stable_diffusion': 1,
+        'gpt-j-6b': 1
     },
     'inqueue_jobs': {
         'stanford': [
-            "b0179680-a445-4a71-9aca-e9ae9b13cc95", "eb160b16-d4d0-432a-9fe8-dc61e345bbb2", "b1cc2d88-ad48-4f09-99b2-eaae195f8645"],
+            "3b97dff0-d14a-404e-afd8-596c6cd6f816",
+            "6866135d-2df8-4bef-999b-6673a30b47f1",
+            "855982e7-9455-4f57-a301-3bf4172c156d"
+        ],
         'euler': []
     },
     'rate_limit': {
@@ -125,16 +128,15 @@ def preprocess_job(job):
             job['payload']) != list else job['payload']
     return job, is_interactive
 
-
-@lc_app.get("/eth/heartbeat/:id")
-async def root():
-    return {"message": "ok"}
-
-
 @lc_app.get("/eth/health")
 async def health():
     return {"message": "ok"}
 
+@lc_app.get("/remove_inqueue_jobs/{job_id}")
+async def remove_inqueue_jobs(job_id):
+    for cluster in coord_status['inqueue_jobs']:
+        if id in coord_status['inqueue_jobs'][cluster]:
+            coord_status['inqueue_jobs'][cluster].remove(id)
 
 @lc_app.post("/eth/node_join")
 async def node_join():
