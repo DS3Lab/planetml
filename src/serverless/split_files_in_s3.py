@@ -5,7 +5,7 @@ SPLIT_THRESHOLD = 1000
 SPLIT_CHUNKSIZE = 1000
 
 # This function capitalizes all text in the original object
-def lambda_handler(event, context):
+def lambda_handler_deprecated(event, context):
     s3 = boto3.client('s3')
     event = json.loads(event['body'])
     with open(os.path.join("/tmp",event['file_id']), 'wb') as fp:
