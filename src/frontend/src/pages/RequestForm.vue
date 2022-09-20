@@ -29,7 +29,6 @@ function update_job_status(job_id) {
         job_status.value.status = response.data.status
         job_status.value.processed_by = response.data.processed_by
         job_status.value.returned_payload = response.data.returned_payload
-
     })
 }
 
@@ -43,13 +42,13 @@ const submitPass = () => {
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
-        request_payload.num_returns = 1
+        request_payload.num_returns = request_payload.num_returns
     } else {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
          // request_payload.max_tokens = parseInt(request_payload.max_tokens)
-        request_payload.max_tokens = 32
-        request_payload.stop = [" "]
+        request_payload.max_tokens = Math.max(32, parseInt(request_payload.max_tokens))
+        request_payload.stop = request_payload.stop.split(';').filter(word => word.length > 0);
         request_payload.echo = false
     }
     console.log(request_payload)
@@ -59,6 +58,7 @@ const submitPass = () => {
         setInterval(() => {
             update_job_status(job_status.value.id)
         }, 5000)
+        window.open("https://toma.pages.dev/report/"+response.data.id, '_blank');
     })
 }
 
@@ -96,8 +96,10 @@ watch(selected_model, (newValue, oldValue) => {
                     <div v-if="selected_model!=''"
                         v-for="(value, key) in available_models[selected_model]">
                         <div>
-                            <label :for="'arg-'+key"
+                            <label :for="'arg-'+key" v-if="key!=='stop'"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{key}}</label>
+                                <label :for="'arg-'+key" v-if="key==='stop'"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{key}}, split by ;</label>
                             <input type="text" :id="'arg-'+key"
                                 v-model="submit_params[key]"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"

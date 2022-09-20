@@ -68,7 +68,8 @@ const available_models = {
         "max_tokens": 32,
         "n": 1,
         "temperature": 0,
-        "top_p": 1
+        "top_p": 1,
+        "stop":".;"
     },
     "gpt-neox-20b": {
         "best_of": 1,
@@ -76,16 +77,20 @@ const available_models = {
         "max_tokens": 32,
         "n": 1,
         "temperature": 0,
-        "top_p": 1
+        "top_p": 1,
+        "stop":".;"
     },
-    "stable_diffusion": {},
+    "stable_diffusion": {
+        "num_returns": 1
+    },
     "t5-11b": {
         "best_of": 1,
         "logprobs": 1,
         "max_tokens": 32,
         "n": 1,
         "temperature": 0,
-        "top_p": 1
+        "top_p": 1,
+        "stop":".;"
     },
     "t0pp": {
         "best_of": 1,
@@ -93,7 +98,8 @@ const available_models = {
         "max_tokens": 32,
         "n": 1,
         "temperature": 0,
-        "top_p": 1
+        "top_p": 1,
+        "stop":".;"
     },
     "ul2": {
         "best_of": 1,
@@ -101,7 +107,8 @@ const available_models = {
         "max_tokens": 32,
         "n": 1,
         "temperature": 0,
-        "top_p": 1
+        "top_p": 1,
+        "stop":".;"
     }
 }
 

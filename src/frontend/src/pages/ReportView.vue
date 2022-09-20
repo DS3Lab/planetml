@@ -265,7 +265,6 @@ function update_job_status() {
         }
         // now process and format the outputs
         if (response.data.status == 'finished' && 'filename' in response.data.returned_payload) {
-            
             get_original_outputs(job_data.value.returned_payload.filename).then((response) => {
                 outputs.value = []
                 response = response.data
