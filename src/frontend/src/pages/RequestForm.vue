@@ -44,7 +44,7 @@ const submitPass = () => {
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
-        request_payload.num_returns = parseInt(request_payload.num_returns)
+        request_payload.num_returns = Math.max(5, parseInt(request_payload.num_returns))
         // check if num_returns is a valid integer
         if (isNaN(request_payload.num_returns)) {
             alert("Please enter a valid integer for num_returns")
