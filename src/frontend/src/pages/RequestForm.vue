@@ -93,14 +93,14 @@ const submitPass = () => {
             return
         }
     }
-    // add_new_job(request_payload).then((response) => {
-    //     job_status.value.id = response.data.id
-    //     job_status.value.status = response.data.status
-    //     setInterval(() => {
-    //         update_job_status(job_status.value.id)
-    //     }, 5000)
-    //     window.open("https://toma.pages.dev/report/"+response.data.id, '_blank');
-    // })
+    add_new_job(request_payload).then((response) => {
+        job_status.value.id = response.data.id
+        job_status.value.status = response.data.status
+        setInterval(() => {
+            update_job_status(job_status.value.id)
+        }, 5000)
+        window.open("https://toma.pages.dev/report/"+response.data.id, '_blank');
+    })
 }
 
 function highlighter(code) {
