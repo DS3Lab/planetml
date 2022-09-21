@@ -45,6 +45,11 @@ const submitPass = () => {
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
         request_payload.num_returns = parseInt(request_payload.num_returns)
+        // check if num_returns is a valid integer
+        if (isNaN(request_payload.num_returns)) {
+            alert("Please enter a valid integer for num_returns")
+            return
+        }
     } else {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
@@ -53,18 +58,49 @@ const submitPass = () => {
         request_payload.stop = request_payload.stop.split(';').filter(word => word.length > 0);
         request_payload.temperature = parseFloat(request_payload.temperature)
         request_payload.top_p = parseFloat(request_payload.top_p)
+        request_payload.best_of = parseInt(request_payload.best_of)
         request_payload.n = parseInt(request_payload.n)
-        request_payload.logprobs = ParseFloat(request_payload.logprobs)
+        request_payload.logprobs = parseFloat(request_payload.logprobs)
         request_payload.echo = false
+        // check if max_tokens is a valid integer
+        if (isNaN(request_payload.max_tokens)) {
+            alert("Please enter a valid integer for max_tokens")
+            return
+        }
+        // check if temperature is a valid float
+        if (isNaN(request_payload.temperature)) {
+            alert("Please enter a valid float for temperature")
+            return
+        }
+        // check if top_p is a valid float
+        if (isNaN(request_payload.top_p)) {
+            alert("Please enter a valid float for top_p")
+            return
+        }
+        // check if best_of is a valid integer
+        if (isNaN(request_payload.best_of)) {
+            alert("Please enter a valid integer for best_of")
+            return
+        }
+        // check if n is a valid integer
+        if (isNaN(request_payload.n)) {
+            alert("Please enter a valid integer for n")
+            return
+        }
+        // check if logprobs is a valid float
+        if (isNaN(request_payload.logprobs)) {
+            alert("Please enter a valid float for logprobs")
+            return
+        }
     }
-    add_new_job(request_payload).then((response) => {
-        job_status.value.id = response.data.id
-        job_status.value.status = response.data.status
-        setInterval(() => {
-            update_job_status(job_status.value.id)
-        }, 5000)
-        window.open("https://toma.pages.dev/report/"+response.data.id, '_blank');
-    })
+    // add_new_job(request_payload).then((response) => {
+    //     job_status.value.id = response.data.id
+    //     job_status.value.status = response.data.status
+    //     setInterval(() => {
+    //         update_job_status(job_status.value.id)
+    //     }, 5000)
+    //     window.open("https://toma.pages.dev/report/"+response.data.id, '_blank');
+    // })
 }
 
 function highlighter(code) {
