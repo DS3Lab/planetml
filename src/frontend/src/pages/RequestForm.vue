@@ -54,7 +54,7 @@ const submitPass = () => {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
          // request_payload.max_tokens = parseInt(request_payload.max_tokens)
-        request_payload.max_tokens = Math.max(32, parseInt(request_payload.max_tokens))
+        request_payload.max_tokens = Math.max(128, parseInt(request_payload.max_tokens))
         request_payload.stop = request_payload.stop.split(';').filter(word => word.length > 0);
         request_payload.temperature = parseFloat(request_payload.temperature)
         request_payload.top_p = parseFloat(request_payload.top_p)
