@@ -8,7 +8,7 @@ from datetime import datetime
 
 @singleton
 class PlanetML():
-    def __init__(self, endpoint="http://localhost:5005") -> None:
+    def __init__(self, endpoint="https://planetd.shift.ml") -> None:
         self.endpoint = endpoint
         self.last_job_update = {}
 

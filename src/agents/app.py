@@ -32,21 +32,12 @@ class Settings(BaseSettings):
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
 
-
 lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 # sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
 machine_size_mapping = {
     'gpt-j-6b': 4,
-    'gpt-neox-20b': 11,
-    't0pp': 6,
-    't5-11b': 6,
-    'ul2': 16,
-    'stable_diffusion': 1,
-    'opt-66b': 8,
-    'bloom': 8,
-    'yalm': 8,
-    'glm': 8,
+    'stable_diffusion':1
 }
 
 job_status = {}
@@ -129,10 +120,6 @@ coord_status = {
     'warm_watch': [
         'gpt-j-6b',
         'stable_diffusion',
-        't5-11b',
-        't0pp',
-        'gpt-neox-20b',
-        'ul2',
     ],
     'known_jobs': []
 }
@@ -367,7 +354,6 @@ def update_warmnesses():
             requests.post("https://planetd.shift.ml/jobs",
                           json=example_jobs[model_name])
             coord_status['models']['warmness'][model_name] = 0.5
-
 
 def fetch_submitted_jobs():
     logger.info("Fetching and dispatching jobs")
