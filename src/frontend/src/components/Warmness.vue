@@ -75,6 +75,10 @@ const warmness_level = {
 onMounted(() => {
     get_model_status().then(res => {
         model_warmness.value = res.data
+        // sort model_warmness by the last heartbeat
+        model_warmness.value.sort((a, b) => {
+            return dayjs(b.last_heartbeat).diff(dayjs(a.last_heartbeat))
+        })
         is_loaded.value = true
         console.log(model_warmness.value)
     })

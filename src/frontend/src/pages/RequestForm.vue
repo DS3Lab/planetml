@@ -58,7 +58,7 @@ const submitPass = () => {
         request_payload.stop = request_payload.stop.split(';').filter(word => word.length > 0);
         request_payload.temperature = parseFloat(request_payload.temperature)
         request_payload.top_p = parseFloat(request_payload.top_p)
-        request_payload.best_of = parseInt(request_payload.best_of)
+        request_payload.best_of = 1
         request_payload.n = parseInt(request_payload.n)
         request_payload.logprobs = parseFloat(request_payload.logprobs)
         request_payload.echo = false

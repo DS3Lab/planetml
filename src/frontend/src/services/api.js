@@ -63,7 +63,6 @@ function domain_to_name(domain) {
 
 const available_models = {
     "gpt-j-6b": {
-        "best_of": 1,
         "logprobs": 1,
         "max_tokens": 32,
         "n": 1,
@@ -72,7 +71,6 @@ const available_models = {
         "stop":".;"
     },
     "gpt-neox-20b": {
-        "best_of": 1,
         "logprobs": 1,
         "max_tokens": 32,
         "n": 1,
@@ -84,7 +82,6 @@ const available_models = {
         "num_returns": 1
     },
     "t5-11b": {
-        "best_of": 1,
         "logprobs": 1,
         "max_tokens": 32,
         "n": 1,
@@ -93,7 +90,6 @@ const available_models = {
         "stop":".;"
     },
     "t0pp": {
-        "best_of": 1,
         "logprobs": 1,
         "max_tokens": 32,
         "n": 1,
@@ -102,7 +98,6 @@ const available_models = {
         "stop":".;"
     },
     "ul2": {
-        "best_of": 1,
         "logprobs": 1,
         "max_tokens": 32,
         "n": 1,
@@ -111,7 +106,6 @@ const available_models = {
         "stop":".;"
     },
     "opt-175b": {
-        "best_of": 1,
         "logprobs": 1,
         "max_tokens": 32,
         "n": 1,
