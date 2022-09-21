@@ -121,6 +121,21 @@ const available_models = {
     }
 }
 
+function get_available_models() {
+    let available_models = available_models
+    return axios.get(tomaapi_endpoint + '/model_statuses').then((response) => {
+        let model_statuses = response.data
+        let available_models = {}
+        for (let model_name in model_statuses) {
+            console.log(model_statuses[model_name])
+            if (model_statuses[model_name].status === 'available') {
+                available_models[model_name] = model_statuses[model_name].parameters
+            }
+        }
+        return available_models
+    })
+}
+
 export {
     get_site_status,
     get_jobs_list,
@@ -131,4 +146,5 @@ export {
     upload_file_to_planetd,
     get_model_status,
     available_models,
+    get_available_models,
 }

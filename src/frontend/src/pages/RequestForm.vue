@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted,computed } from "vue";
 import SectionMain from "@/components/SectionMain.vue";
 import CardBox from "@/components/CardBox.vue";
 import FormField from "@/components/FormField.vue";
@@ -11,7 +11,7 @@ import 'vue-prism-editor/dist/prismeditor.min.css';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism-tomorrow.css';
-import { add_new_job, get_job_status, available_models } from '@/services/api';
+import { add_new_job, get_job_status, available_models, get_model_status } from '@/services/api';
 
 const request_prompt = ref(`Freely type anything...`)
 
@@ -23,6 +23,8 @@ const job_status = ref({
 })
 const submit_params = ref({})
 const selected_model = ref("")
+const warmed_models = ref([])
+const cold_models = ref([])
 
 function update_job_status(job_id) {
     get_job_status(job_id).then((response) => {
@@ -42,16 +44,19 @@ const submitPass = () => {
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
-        request_payload.num_returns = request_payload.num_returns
+        request_payload.num_returns = parseInt(request_payload.num_returns)
     } else {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
          // request_payload.max_tokens = parseInt(request_payload.max_tokens)
         request_payload.max_tokens = Math.max(32, parseInt(request_payload.max_tokens))
         request_payload.stop = request_payload.stop.split(';').filter(word => word.length > 0);
+        request_payload.temperature = parseFloat(request_payload.temperature)
+        request_payload.top_p = parseFloat(request_payload.top_p)
+        request_payload.n = parseInt(request_payload.n)
+        request_payload.logprobs = ParseFloat(request_payload.logprobs)
         request_payload.echo = false
     }
-    console.log(request_payload)
     add_new_job(request_payload).then((response) => {
         job_status.value.id = response.data.id
         job_status.value.status = response.data.status
@@ -70,7 +75,16 @@ watch(selected_model, (newValue, oldValue) => {
     submit_params.value = available_models[newValue]
 });
 
-
+onMounted(() => {
+    get_model_status().then((response) => {
+        for (let model in response.data) {
+            if (response.data[model].warmness == 1) {
+                warmed_models.value.push(response.data[model]['name'])
+            }
+        }
+        cold_models.value = Object.keys(available_models).filter(model => !warmed_models.value.includes(model))
+    })
+})
 </script>
     
 <template>
@@ -90,7 +104,9 @@ watch(selected_model, (newValue, oldValue) => {
                     <select id="models"
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         v-model="selected_model">
-                        <option v-for="(value, key) in available_models"
+                        <option v-for="key in warmed_models"
+                            :value="key">{{key}}</option>
+                        <option disabled v-for="key in cold_models"
                             :value="key">{{key}}</option>
                     </select>
                     <div v-if="selected_model!=''"
