@@ -55,12 +55,12 @@ const submitPass = () => {
         request_payload.request_type = "language-model-inference"
          // request_payload.max_tokens = parseInt(request_payload.max_tokens)
         request_payload.max_tokens = Math.min(128, parseInt(request_payload.max_tokens))
-        request_payload.stop = request_payload.stop.split(';').filter(word => word.length > 0);
+        request_payload.stop = [];
         request_payload.temperature = parseFloat(request_payload.temperature)
         request_payload.top_p = parseFloat(request_payload.top_p)
         request_payload.best_of = 1
         request_payload.n = parseInt(request_payload.n)
-        request_payload.logprobs = parseFloat(request_payload.logprobs)
+        request_payload.logprobs = 1
         request_payload.echo = false
         // check if max_tokens is a valid integer
         if (isNaN(request_payload.max_tokens)) {

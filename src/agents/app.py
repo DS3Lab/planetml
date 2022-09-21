@@ -93,7 +93,7 @@ example_jobs = {
 settings = Settings()
 submit_lock = False
 planetml_client = PlanetML()
-
+counter_instructions = {}
 coord_status = {
     'health': 'ok',
     'models': {
@@ -148,11 +148,9 @@ def preprocess_job(job):
             job['payload']) != list else job['payload']
     return job, is_interactive
 
-
 @lc_app.get("/eth/health")
 async def health():
     return {"message": "ok"}
-
 
 @lc_app.get("/eth/remove_inqueue_jobs/{job_id}")
 async def remove_inqueue_jobs(job_id):
@@ -169,7 +167,6 @@ async def node_join():
 @lc_app.get("/eth/status")
 async def get_coord_status():
     return coord_status
-
 
 @lc_app.post("/eth/rank/{job_id}")
 async def post_rank(job_id, req: Request):
@@ -265,8 +262,9 @@ async def get_all_warmness():
     return {"warmness": coord_status['models']['warmness'], 'message': 'ok'}
 
 
-@lc_app.get("/eth/instructions/{model_name}/{rank_id}")
-async def get_instruction(model_name, rank_id):
+@lc_app.get("/eth/instructions/{model_name}/{rank_id}/{counter}")
+async def get_instruction(model_name, rank_id, counter=0):
+    counter = int(counter)
     current_time = datetime.utcnow()
     # first check if model_name is in the list of heartbeats
     if model_name not in coord_status['models']['heartbeats']:
@@ -296,8 +294,15 @@ async def get_instruction(model_name, rank_id):
     if model_name not in coord_status['models']['instructions']:
         coord_status['models']['instructions'][model_name] = [
             {"message": "continue"}]
-    return coord_status['models']['instructions'][model_name]
-
+    if model_name not in counter_instructions:
+        counter_instructions[model_name] = {}
+        counter_instructions[model_name][0] = coord_status['models']['instructions'][model_name]
+    else:
+        if counter not in counter_instructions[model_name]:
+            counter_instructions[model_name][counter] = coord_status['models']['instructions'][model_name]
+        else:
+            pass
+    return counter_instructions[model_name][counter]
 
 @lc_app.on_event("shutdown")
 def shutdown_event():
