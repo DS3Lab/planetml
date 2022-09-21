@@ -44,7 +44,7 @@ const submitPass = () => {
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
-        request_payload.num_returns = Math.max(5, parseInt(request_payload.num_returns))
+        request_payload.num_returns = Math.min(5, parseInt(request_payload.num_returns))
         // check if num_returns is a valid integer
         if (isNaN(request_payload.num_returns)) {
             alert("Please enter a valid integer for num_returns")
@@ -54,7 +54,7 @@ const submitPass = () => {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
          // request_payload.max_tokens = parseInt(request_payload.max_tokens)
-        request_payload.max_tokens = Math.max(128, parseInt(request_payload.max_tokens))
+        request_payload.max_tokens = Math.min(128, parseInt(request_payload.max_tokens))
         request_payload.stop = request_payload.stop.split(';').filter(word => word.length > 0);
         request_payload.temperature = parseFloat(request_payload.temperature)
         request_payload.top_p = parseFloat(request_payload.top_p)
