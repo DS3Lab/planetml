@@ -76,6 +76,7 @@ onMounted(() => {
     get_model_status().then(res => {
         model_warmness.value = res.data
         is_loaded.value = true
+        console.log(model_warmness.value)
     })
 })
 </script>

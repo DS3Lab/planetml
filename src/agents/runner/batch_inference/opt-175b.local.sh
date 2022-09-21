@@ -30,7 +30,7 @@ do
   INFERENCE_CONF="--fp16 --budget 20400 --batch-size 24 --input-seq-length 512 --generate-seq-length 32 --micro-batch-size 1 --num-layers 12 --max-layers 96"
   COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /root/fm/new/working_dir --profiling no-profiling --net-interface $netif --job_id $job_id"
 
-  python -u dist_batch_and_latency_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
+  nohup python -u dist_batch_and_latency_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF &
 
   ((port++))
   ((i++))

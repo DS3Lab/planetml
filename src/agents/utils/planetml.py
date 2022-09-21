@@ -66,7 +66,8 @@ class PlanetML():
             't5-11b': 120,
             't0pp': 60,
             'ul2': 240,
-            'gpt-neox-20b': 60
+            'gpt-neox-20b': 60,
+            'opt-175b': 480,
         }
         cold_runtime = {
             'stable_diffusion': 120,
@@ -74,7 +75,8 @@ class PlanetML():
             't5-11b': 240,
             't0pp': 240,
             'ul2': 480,
-            'gpt-neox-20b': 480
+            'gpt-neox-20b': 480,
+            'opt-175b': 8192,
         }
         res = requests.patch(self.endpoint+f"/model_statuses/{model}", json={
             "name": model,

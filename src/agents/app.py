@@ -1,6 +1,4 @@
 # the behavior of this script should be controlled by a config file - which agents should be loaded and supervised, etc. - later later...
-
-
 import sys
 import json
 import random
@@ -14,9 +12,8 @@ from fastapi_utils.tasks import repeat_every
 import traceback
 
 sys.path.append('./')
-from src.agents.utils.planetml import PlanetML
 from src.agents.instances.batch_inference.batch_inference_agent import BatchInferenceCoordinator
-
+from src.agents.utils.planetml import PlanetML
 
 class Settings(BaseSettings):
     euler_lsf_host: Optional[str]
@@ -35,6 +32,7 @@ class Settings(BaseSettings):
         env_file = 'src/agents/.env'
         env_file_encoding = 'utf-8'
 
+
 lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 # sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
@@ -46,7 +44,6 @@ machine_size_mapping = {
     'ul2': 16,
     'stable_diffusion': 1,
     'opt-66b': 8,
-    'opt-175b': 8,
     'bloom': 8,
     'yalm': 8,
     'glm': 8,
@@ -75,6 +72,31 @@ example_jobs = {
         "status": "submitted",
         "source": "dalle",
         "processed_by": ""
+    },
+    'gpt-j-6b': {
+        "type": "general",
+        "payload": {
+                "best_of": 1,
+                "logprobs": 1,
+                "max_tokens": 140,
+                "n": 1,
+                "temperature": 0,
+                "top_p": 1,
+                "stop": [
+                    "\n",
+                    "\n\n"
+                ],
+                "model": "gpt-j-6b",
+                "prompt": [
+                    "The return value of window.open() is a reference to the newly created window or tab or null if it failed. Do not add a third parameter to it as it will result in the opening of a new window rather than a tab"
+                ],
+                "request_type": "language-model-inference",
+                "echo": False
+        },
+        "returned_payload": {},
+        "status": "submitted",
+        "source": "dalle",
+        "processed_by": ""
     }
 }
 settings = Settings()
@@ -94,15 +116,15 @@ coord_status = {
     },
     'inqueue_jobs': {
         'stanford': [
-            "3b97dff0-d14a-404e-afd8-596c6cd6f816",
-            "6866135d-2df8-4bef-999b-6673a30b47f1",
-            "855982e7-9455-4f57-a301-3bf4172c156d"
+           
         ],
-        'euler': []
+        'euler': [],
+        'toma': []
     },
     'rate_limit': {
         'stanford': 3,
         'euler': 9999,
+        'toma':999,
     },
     'warm_watch': [
         'gpt-j-6b',
@@ -110,10 +132,21 @@ coord_status = {
         't5-11b',
         't0pp',
         'gpt-neox-20b',
-        'ul2'
+        'ul2',
     ],
     'known_jobs': []
 }
+
+
+def update_instructions():
+    logger.info("updating instructions")
+    for model in coord_status['models']['instructions']:
+        for instruction in coord_status['models']['instructions'][model]:
+            if instruction['message'] == 'run':
+                payload_status = instruction['payload']['status']
+                if payload_status == 'finished' or payload_status == 'failed':
+                    coord_status['models']['instructions'][model].remove(
+                        instruction)
 
 
 def preprocess_job(job):
@@ -128,15 +161,18 @@ def preprocess_job(job):
             job['payload']) != list else job['payload']
     return job, is_interactive
 
+
 @lc_app.get("/eth/health")
 async def health():
     return {"message": "ok"}
 
-@lc_app.get("/remove_inqueue_jobs/{job_id}")
+
+@lc_app.get("/eth/remove_inqueue_jobs/{job_id}")
 async def remove_inqueue_jobs(job_id):
     for cluster in coord_status['inqueue_jobs']:
-        if id in coord_status['inqueue_jobs'][cluster]:
-            coord_status['inqueue_jobs'][cluster].remove(id)
+        if job_id in coord_status['inqueue_jobs'][cluster]:
+            coord_status['inqueue_jobs'][cluster].remove(job_id)
+
 
 @lc_app.post("/eth/node_join")
 async def node_join():
@@ -367,6 +403,10 @@ def fetch_submitted_jobs():
                     returned_payload={"message": str(e)}
                 )
                 return
+        if each['payload'][0]['model'] not in machine_size_mapping:
+            logger.warning(
+                f"model {each['payload'][0]['model']} not in machine_size_mapping, skipping...")
+            continue
         # here if it is a file, i.e., url is provided, we regard it as a batch inference job
         # otherwise, it is an interactive job - we will dispatch it to a live coordinator
         # if no live coordinator is available, we will create a new one
@@ -427,12 +467,16 @@ def fetch_submitted_jobs():
 @lc_app.on_event("startup")
 @repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
 def periodical():
-    update_warmnesses()
-    fetch_submitted_jobs()
-
+    try:
+        update_warmnesses()
+        fetch_submitted_jobs()
+    except Exception as e:
+        error = traceback.format_exc()
+        logger.error(error)
     failed_job = planetml_client.check_job_timeout()
     # update coord_status['inqueue_jobs']
     for cluster in coord_status['inqueue_jobs']:
         for job_id in coord_status['inqueue_jobs'][cluster]:
             if job_id in failed_job:
                 coord_status['inqueue_jobs'][cluster].remove(job_id)
+    update_instructions()

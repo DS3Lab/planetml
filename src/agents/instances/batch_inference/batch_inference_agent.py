@@ -1,4 +1,5 @@
 # This handles batch inference jobs
+import traceback
 from loguru import logger
 from .._base import LocalCoordinator
 from typing import Optional
@@ -13,12 +14,18 @@ class Settings(BaseSettings):
     euler_lsf_password: Optional[str]
     euler_lsf_wd: Optional[str]
     euler_lsf_init: Optional[str]
+
     stanford_host: Optional[str]
     stanford_username: Optional[str]
     stanford_password: Optional[str]
     stanford_wd: Optional[str]
     stanford_init: Optional[str]
     stanford_gateway: Optional[str]
+
+    toma_host: Optional[str]
+    toma_username: Optional[str]
+    toma_password: Optional[str]
+    toma_wd: Optional[str]
 
     class Config:
         env_file = 'src/agents/.env'
@@ -46,7 +53,7 @@ target_cluster_mapping = {
     'ul2': 'euler',
     'stable_diffusion': 'euler',
     'opt-66b': 'stanford',
-    'opt-175b': 'stanford',
+    'opt-175b': 'toma',
     'bloom': 'stanford',
     'yalm': 'stanford',
     'glm': 'stanford',
@@ -71,6 +78,13 @@ clients = {
         init=settings.stanford_init,
         gateway=settings.stanford_gateway,
         infra='slurm',
+    ),
+    "toma": LSFClient(
+        host=settings.toma_host,
+        username=settings.toma_username,
+        password=settings.toma_password,
+        wd=settings.toma_wd,
+        infra='local'
     )
 }
 
@@ -130,55 +144,80 @@ class BatchInferenceCoordinator(LocalCoordinator):
             self.client.execute_raw_in_wd(
                 f"cd working_dir && curl -X 'GET' 'https://coordinator.shift.ml/eth/job_payload/{job['id']}' -o input_{job['id']}.json"
             )
-            demand_worker_num = machine_size
-            for i in range(demand_worker_num):
-                logger.info("preparing files")
-                result = self.client.execute_raw_in_wd(
-                    f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
+            if self.client.infra == 'local':
+                # check status
+                local_path = '/root/fm/new/planetml/src/agents/runner/batch_inference/'
+                log_path = f'/root/fm/new/exe_log/' + job['id'] + '.log'
+                num_processes = self.client.execute_raw_in_wd(
+                    "pgrep python3 | wc -l")
+                print(num_processes)
+                if int(num_processes) > 0:
+                    logger.info("worker is busy! --> A new worker cluster is expected")
+                    return
+                else:
+                    logger.info("worker is idle, start a new job")
+                    self.client.execute_raw_in_wd(
+                        f"cd {local_path} && bash {job_payload[0]['model']}.{self.client.infra}.sh {job['id']}"
+                    )
+                    self.planetml.update_job_status(
+                        job_id=job['id'],
+                        processed_by="tcomp",
+                        status="queued",
+                        source=job['source'],
+                        type=job['type'],
+                        returned_payload={}
+                    )
+            else:
+                demand_worker_num = machine_size
+                for i in range(demand_worker_num):
+                    logger.info("preparing files")
+                    result = self.client.execute_raw_in_wd(
+                        f"cd {lsf_script_path} && cp ../{job_payload[0]['model']}.{self.client.infra}.jinja ./submit_{i + 1}.bsub")
 
-                print('copied template to submit.bsub')
-                if self.client.infra == 'lsf':
-                    result = self.client.execute_raw_in_wd(
-                        f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
-                    )
-                logger.info(f"submission file for worker {i} is prepared...")
-                if self.client.infra == 'lsf':
-                    result = self.client.execute_raw_in_wd(
-                        f"cd {lsf_script_path} && bsub < submit_{i + 1}.bsub"
-                    )
-                elif self.client.infra == 'slurm':
-                    result = self.client.execute_raw_in_wd(
-                        f"cd {lsf_script_path} && sbatch submit_{i + 1}.bsub {job['id']}"
-                    )
-                job_id = ""
-                queue_id = ""
-                if self.client.infra == 'lsf':
-                    job_id = result.split("<")[1].split(">")[0]
-                    queue_id = result.split("<")[2].split(">")[0]
-                    logger.info(
-                        f"job submitted, job_id: {job_id}, queue_id: {queue_id}")
-            self.planetml.update_job_status(
-                job_id=job['id'],
-                processed_by=f"{job_id}:{queue_id}:{self.client.host}",
-                status="queued",
-                source=job['source'],
-                type=job['type'],
-                returned_payload={}
-            )
-            result = self.client.execute_raw_in_wd(
-                f"cd {lsf_script_path} && rm *.bsub"
-            )
-            return {
-                'status': 'queued',
-                'model': job_payload[0]['model'],
-                'cluster': target_cluster
-            }
+                    print('copied template to submit.bsub')
+                    if self.client.infra == 'lsf':
+                        result = self.client.execute_raw_in_wd(
+                            f"cd {lsf_script_path} && ls && echo \'--lsf-job-no {self._allocate_index()} --job_id {job['id']}\' >> submit_{i + 1}.bsub"
+                        )
+                    logger.info(f"submission file for worker {i} is prepared...")
+                    if self.client.infra == 'lsf':
+                        result = self.client.execute_raw_in_wd(
+                            f"cd {lsf_script_path} && bsub < submit_{i + 1}.bsub"
+                        )
+                    elif self.client.infra == 'slurm':
+                        result = self.client.execute_raw_in_wd(
+                            f"cd {lsf_script_path} && sbatch submit_{i + 1}.bsub {job['id']}"
+                        )
+                    job_id = ""
+                    queue_id = ""
+                    if self.client.infra == 'lsf':
+                        job_id = result.split("<")[1].split(">")[0]
+                        queue_id = result.split("<")[2].split(">")[0]
+                        logger.info(
+                            f"job submitted, job_id: {job_id}, queue_id: {queue_id}")
+                self.planetml.update_job_status(
+                    job_id=job['id'],
+                    processed_by=f"{job_id}:{queue_id}:{self.client.host}",
+                    status="queued",
+                    source=job['source'],
+                    type=job['type'],
+                    returned_payload={}
+                )
+                result = self.client.execute_raw_in_wd(
+                    f"cd {lsf_script_path} && rm *.bsub"
+                )
+                return {
+                    'status': 'queued',
+                    'model': job_payload[0]['model'],
+                    'cluster': target_cluster
+                }
         except Exception as e:
+            error = traceback.format_exc()
             self.planetml.update_job_status(
                 job_id=job['id'],
                 processed_by="",
                 status="failed",
                 source=job['source'],
                 type=job['type'],
-                returned_payload={"message": str(e)}
+                returned_payload={"message": str(error)}
             )

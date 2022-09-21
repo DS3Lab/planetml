@@ -64,6 +64,7 @@ class LSFClient(object):
         except Exception as e:
             logger.error(e)
             return None
+
     def execute(self, command):
         parsed_command = f"cd {self.wd} && {self.init} ;{command}"
         return self.execute_raw(parsed_command)
@@ -71,6 +72,10 @@ class LSFClient(object):
     def execute_raw_in_wd(self, command):
         command = f"cd {self.wd} && {command}"
         return self.execute_raw(command)
+
+    def execute_in_background(self, command):
+        channel = self.ssh_client.get_transport().open_session()
+        channel.exec_command(command)
 
     def is_successful(self, work_dir, filename):
         file_content = self.execute_raw(

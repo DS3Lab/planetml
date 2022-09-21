@@ -138,6 +138,18 @@
                                         <dd class="mt-1 text-sm text-gray-900">
                                             {{job_data.processed_by}}</dd>
                                     </div>
+                                    <div v-if="job_data.subjobs"
+                                        class="sm:col-span-1">
+                                        <dt
+                                            class="text-sm font-medium text-gray-500">
+                                            Subjobs</dt>
+
+                                        <dd v-for="job in job_data.subjobs"
+                                            class="mt-1 text-sm text-gray-900">
+                                            <a
+                                                :href="'/report/'+job">{{job}}</a>
+                                        </dd>
+                                    </div>
                                     <div class="sm:col-span-2">
                                         <dt
                                             class="text-sm font-medium text-gray-500">
@@ -169,8 +181,7 @@
                                 class="block bg-gray-50 shadow px-4 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 sm:rounded-b-lg">Read
                                 full output</a>
                         </div>
-                        <div
-                            v-if="outputs.length>0"
+                        <div v-if="outputs.length>0"
                             class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500">Images
                             </dt>
@@ -178,10 +189,10 @@
                                 style="float:left; padding:5px" width="200"
                                 height="200" :src='o' />
                         </div>
-                        <div
-                            v-if="text_outputs.length>0"
+                        <div v-if="text_outputs.length>0"
                             class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                            <dt class="text-sm font-medium text-gray-500">Returned Text
+                            <dt class="text-sm font-medium text-gray-500">
+                                Returned Text
                             </dt>
                             <span v-for="o of text_outputs">{{o}}</span>
                         </div>
@@ -269,6 +280,7 @@ function update_job_status() {
             get_original_outputs(job_data.value.returned_payload.filename).then((response) => {
                 outputs.value = []
                 response = response.data
+                console.log(response)
                 if ('output' in response) {
                     let trial_id = 0
                     let nimg = 0
@@ -279,7 +291,19 @@ function update_job_status() {
                             break
                         }
                     }
-                } else if (response['result'][0]['request']['request_type']==='language-model-inference') {
+                } else if ('request' in response) {
+                    if (response['request']['request_type'] === 'language-model-inference') {
+                        let return_id = 0
+                        let input_id = 0
+                        for (const returned_id in response['result']['choices']) {
+                            text_outputs.value.push(response['result']['choices'][returned_id]['text'])
+                            if (return_id > 500) {
+                                break
+                            }
+                        }
+                    }
+                }
+                else if (response['result'][0]['request']['request_type'] === 'language-model-inference') {
                     let return_id = 0
                     let input_id = 0
                     for (const returned_id in response['result'][input_id]['result']['choices']) {
