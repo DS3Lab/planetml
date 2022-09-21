@@ -149,16 +149,15 @@ class BatchInferenceCoordinator(LocalCoordinator):
                 local_path = '/root/fm/new/planetml/src/agents/runner/batch_inference/'
                 log_path = f'/root/fm/new/exe_log/' + job['id'] + '.log'
                 num_processes = self.client.execute_raw_in_wd(
-                    "pgrep dist_batch_and_latency_inference_w_httpclient.py| wc -l")
+                    "pgrep python3 | wc -l")
                 print(num_processes)
-                print(int(num_processes))
                 if int(num_processes) > 0:
                     logger.info("worker is busy! --> A new worker cluster is expected")
                     return
                 else:
                     logger.info("worker is idle, start a new job")
                     self.client.execute_raw_in_wd(
-                        f"cd {local_path} && bash {job_payload[0]['model']}.{self.client.infra}.sh {job['id']} >> {log_path}"
+                        f"cd {local_path} && bash {job_payload[0]['model']}.{self.client.infra}.sh {job['id']}"
                     )
                     self.planetml.update_job_status(
                         job_id=job['id'],

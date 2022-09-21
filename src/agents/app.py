@@ -44,7 +44,6 @@ machine_size_mapping = {
     'ul2': 16,
     'stable_diffusion': 1,
     'opt-66b': 8,
-    'opt-175b': 8,
     'bloom': 8,
     'yalm': 8,
     'glm': 8,
@@ -112,21 +111,19 @@ coord_status = {
         'heartbeats': {}
     },
     'minimal_warmness': {
-        'stable_diffusion': 0,
-        'gpt-j-6b': 0
+        'stable_diffusion': 1,
+        'gpt-j-6b': 1
     },
     'inqueue_jobs': {
         'stanford': [
-            "aa122288-3994-4c53-aca8-a576d88dd0e3",
-            "6866135d-2df8-4bef-999b-6673a30b47f1",
-            "f89a6c86-9529-4e9f-8206-e765f1649542",
+           
         ],
         'euler': [],
         'toma': []
     },
     'rate_limit': {
-        'stanford': 0,
-        'euler': 0,
+        'stanford': 3,
+        'euler': 9999,
         'toma':999,
     },
     'warm_watch': [
@@ -135,7 +132,7 @@ coord_status = {
         't5-11b',
         't0pp',
         'gpt-neox-20b',
-        'ul2'
+        'ul2',
     ],
     'known_jobs': []
 }
@@ -406,6 +403,10 @@ def fetch_submitted_jobs():
                     returned_payload={"message": str(e)}
                 )
                 return
+        if each['payload'][0]['model'] not in machine_size_mapping:
+            logger.warning(
+                f"model {each['payload'][0]['model']} not in machine_size_mapping, skipping...")
+            continue
         # here if it is a file, i.e., url is provided, we regard it as a batch inference job
         # otherwise, it is an interactive job - we will dispatch it to a live coordinator
         # if no live coordinator is available, we will create a new one
@@ -466,8 +467,12 @@ def fetch_submitted_jobs():
 @lc_app.on_event("startup")
 @repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
 def periodical():
-    update_warmnesses()
-    fetch_submitted_jobs()
+    try:
+        update_warmnesses()
+        fetch_submitted_jobs()
+    except Exception as e:
+        error = traceback.format_exc()
+        logger.error(error)
     failed_job = planetml_client.check_job_timeout()
     # update coord_status['inqueue_jobs']
     for cluster in coord_status['inqueue_jobs']:
