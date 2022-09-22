@@ -75,7 +75,7 @@ const available_models = {
         "top_p": 1,
     },
     "stable_diffusion": {
-        "num_returns": 1
+        "num_returns": null
     },
     "t5-11b": {
         "max_tokens": 32,
@@ -96,11 +96,19 @@ const available_models = {
         "top_p": 1,
     },
     "opt-175b": {
-        "max_tokens": 32,
-        "n": 1,
-        "temperature": 0,
-        "top_p": 1,
+        "max_tokens": null,
+        "n": null,
+        "temperature": null,
+        "top_p": null,
     }
+}
+
+const default_args = {
+    "max_tokens": 32,
+    "n": 1,
+    "temperature": 0,
+    "top_p": 1,
+    "num_returns": 1
 }
 
 function get_available_models() {
@@ -129,4 +137,5 @@ export {
     get_model_status,
     available_models,
     get_available_models,
+    default_args,
 }

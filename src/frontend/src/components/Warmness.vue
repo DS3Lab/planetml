@@ -1,14 +1,5 @@
 <template>
     <div class="px-4 sm:px-6 lg:px-8">
-        <div class="sm:flex sm:items-center">
-            <div class="sm:flex-auto">
-                <h1 class="text-xl font-semibold text-gray-900">Model Warmness
-                </h1>
-                <p class="mt-2 text-sm text-gray-700">How long you can expect
-                    your model to process your query
-                </p>
-            </div>
-        </div>
         <div class="mt-8 flex flex-col" v-if="is_loaded">
             <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div
