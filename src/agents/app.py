@@ -36,7 +36,7 @@ lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 # sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
 machine_size_mapping = {
-    'gpt-j-6b': 4,
+     # 'gpt-j-6b': 4,
     'stable_diffusion':1
 }
 
@@ -106,11 +106,9 @@ coord_status = {
         'gpt-j-6b': 1
     },
     'inqueue_jobs': {
-        'stanford': [
-           
-        ],
-        'euler': [],
-        'toma': []
+        'stanford': set(),
+        'euler': set(),
+        'toma': set()
     },
     'rate_limit': {
         'stanford': 3,
@@ -124,7 +122,6 @@ coord_status = {
     'known_jobs': []
 }
 
-
 def update_instructions():
     logger.info("updating instructions")
     for model in coord_status['models']['instructions']:
@@ -134,7 +131,6 @@ def update_instructions():
                 if payload_status == 'finished' or payload_status == 'failed':
                     coord_status['models']['instructions'][model].remove(
                         instruction)
-
 
 def preprocess_job(job):
     is_interactive = True
@@ -157,7 +153,6 @@ async def remove_inqueue_jobs(job_id):
     for cluster in coord_status['inqueue_jobs']:
         if job_id in coord_status['inqueue_jobs'][cluster]:
             coord_status['inqueue_jobs'][cluster].remove(job_id)
-
 
 @lc_app.post("/eth/node_join")
 async def node_join():
@@ -187,7 +182,6 @@ async def post_rank(job_id, req: Request):
         "rank": len(watched_jobs[job_id])-1,
         "nccl_port": watched_ports[job_id],
     }
-
 
 @lc_app.post("/eth/update_status/{id}")
 async def update_status(id, req: Request):
@@ -262,9 +256,8 @@ async def get_all_warmness():
     return {"warmness": coord_status['models']['warmness'], 'message': 'ok'}
 
 
-@lc_app.get("/eth/instructions/{model_name}/{rank_id}/{counter}")
-async def get_instruction(model_name, rank_id, counter=0):
-    counter = int(counter)
+@lc_app.get("/eth/instructions/{model_name}/{rank_id}")
+async def get_instruction(model_name, rank_id):
     current_time = datetime.utcnow()
     # first check if model_name is in the list of heartbeats
     if model_name not in coord_status['models']['heartbeats']:
@@ -272,8 +265,7 @@ async def get_instruction(model_name, rank_id, counter=0):
         coord_status['models']['warmness'][model_name] = 0
 
     # put the rank_id into the heartbeats
-    coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow(
-    )
+    coord_status['models']['heartbeats'][model_name][f"rank_{rank_id}"] = datetime.utcnow()
     # now scan the heartbeats of the requested model_name, the tolerance is 30 seconds, i.e., only when all ranks appear in the heartbeats within 30 seconds, we consider the model is still alive
     up_count = 0
     is_alive = False
@@ -294,15 +286,7 @@ async def get_instruction(model_name, rank_id, counter=0):
     if model_name not in coord_status['models']['instructions']:
         coord_status['models']['instructions'][model_name] = [
             {"message": "continue"}]
-    if model_name not in counter_instructions:
-        counter_instructions[model_name] = {}
-        counter_instructions[model_name][0] = coord_status['models']['instructions'][model_name]
-    else:
-        if counter not in counter_instructions[model_name]:
-            counter_instructions[model_name][counter] = coord_status['models']['instructions'][model_name]
-        else:
-            pass
-    return counter_instructions[model_name][counter]
+    return coord_status['models']['instructions'][model_name]
 
 @lc_app.on_event("shutdown")
 def shutdown_event():
@@ -348,6 +332,7 @@ def update_warmnesses():
                 "warmness": 0,
                 "last_heartbeat": ""
             })
+    
     for model_name in coord_status['minimal_warmness']:
         if coord_status['models']['warmness'][model_name] >= 0.5:
             logger.info(
@@ -408,7 +393,7 @@ def fetch_submitted_jobs():
                 job_payload[each['id']] = each['payload']
                 dispatch_result = bi_coordinator.dispatch(each)
                 if dispatch_result is not None:
-                    coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
+                    coord_status['inqueue_jobs'][dispatch_result['cluster']].add(
                         each['id'])
                     if each['id'] in coord_status['known_jobs']:
                         coord_status['known_jobs'].remove(each['id'])
@@ -423,10 +408,14 @@ def fetch_submitted_jobs():
                     if each['payload'][0]['model'] not in coord_status['models']['instructions']:
                         coord_status['models']['instructions'][each['payload'][0]['model']] = [
                             {"message": "continue"}]
-                    coord_status['models']['instructions'][each['payload'][0]['model']].append({
-                        "message": "run",
-                        "payload": each
-                    })
+                    if each['id'] not in coord_status['inqueue_jobs']['euler']:
+                        coord_status['models']['instructions'][each['payload'][0]['model']].append({
+                            "message": "run",
+                            "payload": each
+                        })
+                    # put it into inqueue jobs
+                    coord_status['inqueue_jobs']['euler'].add(
+                        each['id'])
                     if each['id'] in coord_status['known_jobs']:
                         coord_status['known_jobs'].remove(each['id'])
                         del known_jobs_data[each['id']]
@@ -435,7 +424,7 @@ def fetch_submitted_jobs():
                     job_payload[each['id']] = each['payload']
                     dispatch_result = bi_coordinator.dispatch(each)
                     if dispatch_result is not None:
-                        coord_status['inqueue_jobs'][dispatch_result['cluster']].append(
+                        coord_status['inqueue_jobs'][dispatch_result['cluster']].add(
                             each['id'])
                         if each['id'] in coord_status['known_jobs']:
                             coord_status['known_jobs'].remove(each['id'])
@@ -451,7 +440,6 @@ def fetch_submitted_jobs():
                 type=each['type'],
                 returned_payload={"message": error}
             )
-            del coord_status['known_jobs'][each['id']]
             raise e.with_traceback()
 
 

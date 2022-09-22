@@ -44,17 +44,22 @@ const submitPass = () => {
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
-        request_payload.num_returns = Math.min(5, parseInt(request_payload.num_returns))
+        request_payload.num_returns = parseInt(request_payload.num_returns)
         // check if num_returns is a valid integer
         if (isNaN(request_payload.num_returns)) {
             alert("Please enter a valid integer for num_returns")
+            return
+        }
+        // alert if num_returns is larger than 5
+        if (request_payload.num_returns > 5) {
+            alert("num_returns is limited to < 5")
             return
         }
     } else {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
          // request_payload.max_tokens = parseInt(request_payload.max_tokens)
-        request_payload.max_tokens = Math.min(128, parseInt(request_payload.max_tokens))
+        request_payload.max_tokens = parseInt(request_payload.max_tokens)
         request_payload.stop = [];
         request_payload.temperature = parseFloat(request_payload.temperature)
         request_payload.top_p = parseFloat(request_payload.top_p)
@@ -90,6 +95,31 @@ const submitPass = () => {
         // check if logprobs is a valid float
         if (isNaN(request_payload.logprobs)) {
             alert("Please enter a valid float for logprobs")
+            return
+        }
+        // alert if max_tokens is larger than 128
+        if (request_payload.max_tokens > 128) {
+            alert("max_tokens is limited to < 128")
+            return
+        }
+        // alert if temperature is larger than 1
+        if (request_payload.temperature > 1) {
+            alert("temperature is limited to <= 1")
+            return
+        }
+        // alert if top_p is larger than 1
+        if (request_payload.top_p > 1) {
+            alert("top_p is limited to <= 1)")
+            return
+        }
+        // alert if prompt is longer than 512
+        if (request_payload.prompt[0].split(/\s+/).length > 512) {
+            alert("prompt length is limited to < 512 words")
+            return
+        }
+        // alert if n is larger than 5
+        if (request_payload.n > 5) {
+            alert("n is limited to < 5")
             return
         }
     }
