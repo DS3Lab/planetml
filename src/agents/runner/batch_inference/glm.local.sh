@@ -26,11 +26,11 @@ do
   fi
 
   DIST_CONF="--pp-mode pipe_sync_sample_mask_token_pipe --pipeline-group-size $world_size --cuda-id $i"
-  MODEL_CONF="--model-type opt --model-name /root/fm/new/models/opt-175b-new --num-iters 9999999999999"
-  INFERENCE_CONF="--fp16 --budget 20400 --batch-size 1 --input-seq-length 1024 --generate-seq-length 256 --micro-batch-size 1 --num-layers 12 --max-layers 96"
+  MODEL_CONF="--model-type glm --model-name /root/fm/new/models/glm-130b-new --num-iters 9999999999999"
+  INFERENCE_CONF="--fp16 --budget 22400 --batch-size 1 --input-seq-length 1024 --generate-seq-length 256 --micro-batch-size 1 --num-layers 9 --max-layers 70"
   COOR_CONF="--coordinator-server-ip 10.6.7.244 --working-directory /root/fm/new/working_dir --profiling no-profiling --net-interface $netif --job_id $job_id"
 
-  python3 -u dist_batch_and_latency_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF > /root/fm/new/exe_log/nohup.log.$i 2>&1 &
+  python3 -u dist_batch_and_latency_inference_w_httpclient.py $DIST_CONF $MODEL_CONF $INFERENCE_CONF $COOR_CONF > /root/fm/new/exe_log/glm_nohup_b.log.$i 2>&1 &
 
   ((port++))
   ((i++))
