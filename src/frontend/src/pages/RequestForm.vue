@@ -47,7 +47,12 @@ const submitPass = () => {
     request_payload.model = selected_model.value
     if (selected_model.value == 'stable_diffusion') {
         request_payload.input = [request_prompt.value]
-        request_payload.num_returns = parseInt(request_payload.num_returns)
+        // if num_returns is null, set it to default_args
+        if (request_payload.num_returns == null) {
+            request_payload.num_returns = default_args.num_returns
+        } else {
+            request_payload.num_returns = parseInt(request_payload.num_returns)
+        }
         // check if num_returns is a valid integer
         if (isNaN(request_payload.num_returns)) {
             alert("Please enter a valid integer for num_returns")
@@ -62,12 +67,32 @@ const submitPass = () => {
         request_payload.prompt = [request_prompt.value]
         request_payload.request_type = "language-model-inference"
         // request_payload.max_tokens = parseInt(request_payload.max_tokens)
-        request_payload.max_tokens = parseInt(request_payload.max_tokens)
+        // if max_tokens is null, set it to default_args
+        if (request_payload.max_tokens == null) {
+            request_payload.max_tokens = default_args.max_tokens
+        } else {
+            request_payload.max_tokens = parseInt(request_payload.max_tokens)
+        }
+        // if temperature is null, set it to default_args
+        if (request_payload.temperature == null) {
+            request_payload.temperature = default_args.temperature
+        } else {
+            request_payload.temperature = parseFloat(request_payload.temperature)
+        }
+        // if top_p is null, set it to default_args
+        if (request_payload.top_p == null) {
+            request_payload.top_p = default_args.top_p
+        } else {
+            request_payload.top_p = parseFloat(request_payload.top_p)
+        }
+        // if n is null, set it to default_args
+        if (request_payload.n == null) {
+            request_payload.n = default_args.n
+        } else {
+            request_payload.n = parseInt(request_payload.n)
+        }
         request_payload.stop = [];
-        request_payload.temperature = parseFloat(request_payload.temperature)
-        request_payload.top_p = parseFloat(request_payload.top_p)
         request_payload.best_of = 1
-        request_payload.n = parseInt(request_payload.n)
         request_payload.logprobs = 1
         request_payload.echo = false
         // check if max_tokens is a valid integer
@@ -211,7 +236,7 @@ onMounted(() => {
                             <input type="text" :id="'arg-'+key"
                                 v-model="submit_params[key]"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                :placeholder="key+' ('+default_args[key]+')'" required>
+                                :placeholder="default_args[key]" required>
                         </div>
                     </div>
                 </FormField>
