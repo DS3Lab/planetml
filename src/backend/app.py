@@ -1,10 +1,11 @@
-from copy import deepcopy
+import os
+import json
 import boto3
 import rollbar
 import requests
 from uuid import uuid4
 from typing import List
-import os
+from copy import deepcopy
 from pydantic import BaseSettings
 from fastapi.datastructures import UploadFile
 from fastapi.responses import StreamingResponse
@@ -257,27 +258,60 @@ def update_job(id: str, job: Job):
     """
     Update a job
     """
-    print(job)
     with Session(engine) as session:
         job_to_update = select(Job).where(Job.id == id)
         job_to_update = session.exec(job_to_update).first()
         if job_to_update is None:
             return {"message": "job not found"}
-        if job_to_update.status != 'finished':
-            if job_to_update is None:
-                return {"message": "Job not found"}
-            if job.processed_by != "":
-                job_to_update.processed_by = job.processed_by
-            if job.status != "":
-                job_to_update.status = job.status
-            if job.returned_payload != {}:
-                job_to_update.returned_payload = job.returned_payload
-            session.add(job_to_update)
-            session.commit()
-            session.refresh(job_to_update)
-            return job_to_update
+        payload = job_to_update.payload
+        if payload['model'] == 'stable_diffusion':
+            num_returns = payload['num_returns']
+            # dedicated for interactive job
+            if len(payload['input'])==1:
+                existing_results = job_to_update.returned_payload['output'][0]
+                # with the new returned results, if the number of results is the same as the number of returns, we will mark the job as finished
+                job_to_update.returned_payload['output'][0].extend(job.returned_payload['output'][0])
+                job_to_update.processed_by += ";" + job.processed_by
+                if len(existing_results) + len(job.returned_payload['output'][0]) == num_returns:
+                    job_to_update.status = 'finished'
+                else:
+                    job_to_update.status = 'submitted'
+                session.add(job_to_update)
+                session.commit()
+                session.refresh(job_to_update)
+                return job_to_update
+            else:
+                if job_to_update.status != 'finished':
+                    if job_to_update is None:
+                        return {"message": "Job not found"}
+                    if job.processed_by != "":
+                        job_to_update.processed_by = job.processed_by
+                    if job.status != "":
+                        job_to_update.status = job.status
+                    if job.returned_payload != {}:
+                        job_to_update.returned_payload = job.returned_payload
+                    session.add(job_to_update)
+                    session.commit()
+                    session.refresh(job_to_update)
+                    return job_to_update
+                else:
+                    return job_to_update
         else:
-            return job_to_update
+            if job_to_update.status != 'finished':
+                if job_to_update is None:
+                    return {"message": "Job not found"}
+                if job.processed_by != "":
+                    job_to_update.processed_by = job.processed_by
+                if job.status != "":
+                    job_to_update.status = job.status
+                if job.returned_payload != {}:
+                    job_to_update.returned_payload = job.returned_payload
+                session.add(job_to_update)
+                session.commit()
+                session.refresh(job_to_update)
+                return job_to_update
+            else:
+                return job_to_update
 
 @app.get("/files/{filename}")
 def access_s3(filename: str):
@@ -299,7 +333,7 @@ def upload_file_to_s3(file: UploadFile = File(...)):
         except Exception as e:
             return {"status":"error","message": str(e)}
     return {"message":"ok", "filename": f"https://planetd.shift.ml/files/{filename}"}
-
+    
 if __name__ == "__main__":
     settings = Settings()
     engine = create_engine(

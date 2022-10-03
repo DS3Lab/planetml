@@ -14,7 +14,7 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism-tomorrow.css';
 import { add_new_job, get_job_status, available_models, get_model_status, default_args } from '@/services/api';
 
-const request_prompt = ref(`Freely type anything...`)
+const request_prompt = ref(``)
 
 const job_status = ref({
     "id": "",
@@ -29,6 +29,7 @@ const warmed_models = ref([])
 const cold_models = ref([])
 const open_warmness = ref(false)
 const open_jobmodal = ref(false)
+
 function update_job_status(job_id) {
     get_job_status(job_id).then((response) => {
         job_status.value.status = response.data.status
@@ -192,16 +193,23 @@ onMounted(() => {
     <SectionMain>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Teleport to="body">
-                <div v-if="open_warmness" class="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700 warmness_modal">
-                        <Warmness></Warmness>
-                        <button class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 close_button" @click="open_warmness = false">Close</button>
+                <div v-if="open_warmness"
+                    class="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700 warmness_modal">
+                    <Warmness></Warmness>
+                    <button
+                        class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 close_button"
+                        @click="open_warmness = false">Close</button>
                 </div>
                 <div v-if="open_jobmodal" class="job_modal">
                     <ReportViewDialog :job_id="current_job"></ReportViewDialog>
-                    <button class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 newtab_button" @click="go_report(current_job)">Open in
+                    <button
+                        class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 newtab_button"
+                        @click="go_report(current_job)">Open in
                         New Tab</button>
-                    <button class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 close_button" @click="open_jobmodal = false">Close</button>
-                    
+                    <button
+                        class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 close_button"
+                        @click="open_jobmodal = false">Close</button>
+
                 </div>
             </Teleport>
             <CardBox>
@@ -328,6 +336,7 @@ onMounted(() => {
     justify-content: center;
     align-items: center;
 }
+
 .close_button {
     position: absolute;
     top: 0;

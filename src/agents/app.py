@@ -103,7 +103,6 @@ coord_status = {
     },
     'minimal_warmness': {
         'stable_diffusion': 1,
-        'gpt-j-6b': 1
     },
     'inqueue_jobs': {
         'stanford': set(),
@@ -116,7 +115,6 @@ coord_status = {
         'toma':999,
     },
     'warm_watch': [
-        'gpt-j-6b',
         'stable_diffusion',
     ],
     'known_jobs': []
@@ -413,6 +411,12 @@ def fetch_submitted_jobs():
                             "message": "run",
                             "payload": each
                         })
+                        # update its status to queued
+                        planetml_client.update_job_status(
+                            job_id=each['id'],
+                            processed_by="live worker",
+                            status="queued",
+                        )
                     # put it into inqueue jobs
                     coord_status['inqueue_jobs']['euler'].add(
                         each['id'])
@@ -444,7 +448,7 @@ def fetch_submitted_jobs():
 
 
 @lc_app.on_event("startup")
-@repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
+@repeat_every(seconds=2)  # fetch jobs every $ seconds， but check submit lock
 def periodical():
     try:
         update_warmnesses()
