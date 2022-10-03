@@ -268,11 +268,10 @@ def update_job(id: str, job: Job):
             num_returns = payload['num_returns']
             # dedicated for interactive job
             if len(payload['input'])==1:
-                existing_results = job_to_update.returned_payload['output'][0]
                 # with the new returned results, if the number of results is the same as the number of returns, we will mark the job as finished
                 job_to_update.returned_payload['output'][0].extend(job.returned_payload['output'][0])
                 job_to_update.processed_by += ";" + job.processed_by
-                if len(existing_results) + len(job.returned_payload['output'][0]) == num_returns:
+                if len(job_to_update.returned_payload['output'][0]) >= num_returns:
                     job_to_update.status = 'finished'
                 else:
                     job_to_update.status = 'submitted'
