@@ -5,6 +5,7 @@ from sqlalchemy import Column
 from typing import Optional, Dict, List, Union
 from sqlmodel import Field, SQLModel,JSON
 from sqlalchemy.types import Enum, DateTime
+from sqlalchemy.ext.mutable import MutableDict
 
 class JobStatus(str, enum.Enum):
     SUBMITTED = "submitted"
@@ -35,7 +36,7 @@ class Job(SQLModel, table=True):
     )
     type: JobType = Field(sa_column=Column(Enum(JobType)))
     payload: Union[Dict, List] = Field(default={}, sa_column=Column(JSON))
-    returned_payload: Union[Dict, List] = Field(default={}, sa_column=Column(JSON))
+    returned_payload: Union[Dict, List] = Field(MutableDict.as_mutable(JSON), sa_column=Column(JSON))
 
     status: JobStatus = Field(sa_column=Column(Enum(JobStatus)))
     source: JobSource = Field(sa_column=Column(Enum(JobSource)))

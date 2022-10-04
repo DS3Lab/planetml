@@ -1,5 +1,4 @@
 import os
-import json
 import boto3
 import rollbar
 import requests
@@ -13,11 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from sqlmodel import create_engine, SQLModel, Session, select
 from rollbar.contrib.fastapi import add_to as rollbar_add_to
-
+from loguru import logger
 from schemas.job import Job
 from schemas.resource import Site, SiteStat
 from schemas.model import ModelStatus
 from constants import SPLIT_LAMBDA_URL
+from sqlalchemy.orm.attributes import flag_modified
 
 class Settings(BaseSettings):
     db_database: str
@@ -259,26 +259,53 @@ def update_job(id: str, job: Job):
     Update a job
     """
     with Session(engine) as session:
-        job_to_update = select(Job).where(Job.id == id)
-        job_to_update = session.exec(job_to_update).first()
+        job_to_update = session.get(Job, id)
         if job_to_update is None:
             return {"message": "job not found"}
         payload = job_to_update.payload
+        
         if payload['model'] == 'stable_diffusion':
             num_returns = payload['num_returns']
             # dedicated for interactive job
+            
             if len(payload['input'])==1:
                 # with the new returned results, if the number of results is the same as the number of returns, we will mark the job as finished
-                job_to_update.returned_payload['output'][0].extend(job.returned_payload['output'][0])
-                job_to_update.processed_by += ";" + job.processed_by
-                if len(job_to_update.returned_payload['output'][0]) >= num_returns:
-                    job_to_update.status = 'finished'
+                if 'output' in job_to_update.returned_payload:
+                    newoutputs = job_to_update.returned_payload['output'][0]
+                    newoutputs.append(job.returned_payload['output'][0][0])
+                    job_to_update.processed_by += ";" + job.processed_by
+                    
+                    logger.info(f"num_returns: {num_returns}, current: {len(job_to_update.returned_payload['output'][0])}")
+                    
+                    
+                    if len(job_to_update.returned_payload['output'][0]) >= num_returns:
+                        job_to_update.status = 'finished'
+                    else:
+                        job_to_update.status = 'submitted'
+                    
+                    job_to_update.returned_payload = {'output': [newoutputs]}
+                    flag_modified(job_to_update, "returned_payload")
+                    session.add(job_to_update)
+                    session.commit()
+                    session.refresh(job_to_update)
+                    logger.info(job_to_update.returned_payload['output'][0])
+                    return job_to_update
                 else:
-                    job_to_update.status = 'submitted'
-                session.add(job_to_update)
-                session.commit()
-                session.refresh(job_to_update)
-                return job_to_update
+                    if job_to_update.status != 'finished':
+                        if job_to_update is None:
+                            return {"message": "Job not found"}
+                        if job.processed_by != "":
+                            job_to_update.processed_by = job.processed_by
+                        if job.status != "":
+                            job_to_update.status = job.status
+                        if job.returned_payload != {}:
+                            job_to_update.returned_payload = job.returned_payload
+                        session.add(job_to_update)
+                        session.commit()
+                        session.refresh(job_to_update)
+                        return job_to_update
+                    else:
+                        return job_to_update
             else:
                 if job_to_update.status != 'finished':
                     if job_to_update is None:
