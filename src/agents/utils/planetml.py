@@ -68,6 +68,14 @@ class PlanetML():
             'ul2': 240,
             'gpt-neox-20b': 60,
             'opt-175b': 480,
+            'Together-gpt-J-6B-ProxAdam-50x': 280,
+            'Together-gpt-neox-20B': 280,
+            'bloom': 480,
+            'glm': 480,
+            'glm-int8': 480,
+            'glm-int4': 480,
+            'bloomz': 480,
+            'flan-t5-xxl': 200,
         }
         cold_runtime = {
             'stable_diffusion': 120,
@@ -77,6 +85,14 @@ class PlanetML():
             'ul2': 480,
             'gpt-neox-20b': 480,
             'opt-175b': 8192,
+            'Together-gpt-J-6B-ProxAdam-50x': 280,
+            'Together-gpt-neox-20B': 280,
+            'bloom': 8192,
+            'bloomz': 8192,
+            'glm': 8192,
+            'glm-int8': 8192,
+            'glm-int4': 8192,
+            'flan-t5-xxl': 200,
         }
         res = requests.patch(self.endpoint+f"/model_statuses/{model}", json={
             "name": model,

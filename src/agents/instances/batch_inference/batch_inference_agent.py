@@ -32,53 +32,16 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8'
 
 machine_size_mapping = {
-    'gpt-j-6b': 4,
-    'gpt-neox-20b': 11,
-    't0pp': 6,
-    't5-11b': 6,
-    'ul2': 16,
-    'stable_diffusion': 1,
-    'opt-66b': 8,
-    'opt-175b': 8,
     'bloom': 8,
-    'yalm': 8,
-    'glm': 8,
 }
 
 target_cluster_mapping = {
-    'gpt-j-6b': 'euler',
-    'gpt-neox-20b': 'euler',
-    't0pp': 'euler',
-    't5-11b': 'euler',
-    'ul2': 'euler',
-    'stable_diffusion': 'euler',
-    'opt-66b': 'stanford',
-    'opt-175b': 'toma',
-    'bloom': 'stanford',
-    'yalm': 'stanford',
-    'glm': 'stanford',
+    'bloom': 'toma',
 }
 
 settings = Settings()
 
 clients = {
-    "euler": LSFClient(
-        host=settings.euler_lsf_host,
-        username=settings.euler_lsf_username,
-        password=settings.euler_lsf_password,
-        wd=settings.euler_lsf_wd,
-        init=settings.euler_lsf_init,
-        infra='lsf',
-    ),
-    "stanford": LSFClient(
-        host=settings.stanford_host,
-        username=settings.stanford_username,
-        password=settings.stanford_password,
-        wd=settings.stanford_wd,
-        init=settings.stanford_init,
-        gateway=settings.stanford_gateway,
-        infra='slurm',
-    ),
     "toma": LSFClient(
         host=settings.toma_host,
         username=settings.toma_username,
@@ -146,8 +109,8 @@ class BatchInferenceCoordinator(LocalCoordinator):
             )
             if self.client.infra == 'local':
                 # check status
-                local_path = '/root/fm/new/planetml/src/agents/runner/batch_inference/'
-                log_path = f'/root/fm/new/exe_log/' + job['id'] + '.log'
+                local_path = '/root/fm/dev/planetml/src/agents/runner/batch_inference'
+                log_path = f'/root/fm/working_dir/' + job['id'] + '.log'
                 num_processes = self.client.execute_raw_in_wd(
                     "pgrep python3 | wc -l")
                 print(num_processes)

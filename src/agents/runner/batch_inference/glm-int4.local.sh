@@ -6,8 +6,8 @@ echo job_id $job_id
 
 
 MODEL_TYPE="glm-130b"
-CHECKPOINT_PATH="/root/fm/models/glm-130b-sat"
-MP_SIZE=8
+CHECKPOINT_PATH="/root/fm/models/glm-130b-sat-int4-tp4"
+MP_SIZE=4
 SEED=1234
 MAX_OUTPUT_LENGTH=128
 MIN_GEN_LENGTH=0
@@ -15,9 +15,8 @@ MIN_GEN_LENGTH=0
 TEMP=0.9
 TOPK=1
 TOPP=0
-S3TOKEN="Gathering-Open-teeth-7office-Irene-drill-alec2-Unguided-Hardening2-Darkish-humid-Coset-gaze-8Pines-clambake"
 
-
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 MODEL_ARGS="--model-parallel-size ${MP_SIZE} \
             --num-layers 70 \
@@ -31,10 +30,11 @@ MODEL_ARGS="--model-parallel-size ${MP_SIZE} \
             --load ${CHECKPOINT_PATH} \
             --skip-init \
             --fp16 \
+            --from-quantized-checkpoint \
             --seed $SEED \
-            --upload-token $S3TOKEN \
             --mode inference \
             --sampling-strategy BeamSearchStrategy \
+            --quantization-bit-width 4 \
             --out-seq-length $MAX_OUTPUT_LENGTH \
             --min-gen-length $MIN_GEN_LENGTH \
             --temperature $TEMP \
@@ -42,5 +42,4 @@ MODEL_ARGS="--model-parallel-size ${MP_SIZE} \
             --top_p $TOPP"
 
 
-torchrun --nproc_per_node $MP_SIZE dist_latency_glm_inference_w_httpclient.py $MODEL_ARGS
-
+torchrun --rdzv_endpoint=127.0.0.1:29402 --nproc_per_node $MP_SIZE dist_latency_glm_inference_w_httpclient.py $MODEL_ARGS

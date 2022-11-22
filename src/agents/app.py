@@ -36,8 +36,22 @@ lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 # sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
 machine_size_mapping = {
-     # 'gpt-j-6b': 4,
-    'stable_diffusion':1
+    'bloom': 1,
+    #'stable_diffusion': 1,
+    #'gpt-j-6b': 1,
+    #'t5-11b': 1,
+    #'t0pp': 1,
+    #'ul2': 1,
+    #'gpt-neox-20b': 1,
+    #'opt-175b': 1,
+    #'Together-gpt-J-6B-ProxAdam-50x': 1,
+    #'Together-gpt-neox-20B': 1,
+    #'bloom': 1,
+    #'glm': 1,
+    #'glm-int8': 1,
+    #'glm-int4': 1,
+    #'bloomz': 1,
+    #'flan-t5-xxl': 1,
 }
 
 job_status = {}
@@ -50,45 +64,6 @@ job_payload = {}
 model_warmness = {}
 model_heartbeats = {}
 example_jobs = {
-    'stable_diffusion': {
-        "type": "general",
-        "payload": {
-            "model": "stable_diffusion",
-            "num_returns": 1,
-            "input": [
-                "Painting of a hippo"
-            ]
-        },
-        "returned_payload": {},
-        "status": "submitted",
-        "source": "dalle",
-        "processed_by": ""
-    },
-    'gpt-j-6b': {
-        "type": "general",
-        "payload": {
-                "best_of": 1,
-                "logprobs": 1,
-                "max_tokens": 140,
-                "n": 1,
-                "temperature": 0,
-                "top_p": 1,
-                "stop": [
-                    "\n",
-                    "\n\n"
-                ],
-                "model": "gpt-j-6b",
-                "prompt": [
-                    "The return value of window.open() is a reference to the newly created window or tab or null if it failed. Do not add a third parameter to it as it will result in the opening of a new window rather than a tab"
-                ],
-                "request_type": "language-model-inference",
-                "echo": False
-        },
-        "returned_payload": {},
-        "status": "submitted",
-        "source": "dalle",
-        "processed_by": ""
-    }
 }
 settings = Settings()
 submit_lock = False
@@ -102,8 +77,6 @@ coord_status = {
         'heartbeats': {}
     },
     'minimal_warmness': {
-        'stable_diffusion': 1,
-        'gpt-j-6b': 1
     },
     'inqueue_jobs': {
         'stanford': set(),
@@ -116,8 +89,6 @@ coord_status = {
         'toma':999,
     },
     'warm_watch': [
-        'gpt-j-6b',
-        'stable_diffusion',
     ],
     'known_jobs': []
 }
@@ -379,7 +350,7 @@ def fetch_submitted_jobs():
                     returned_payload={"message": str(e)}
                 )
                 return
-        if each['payload'][0]['model'] not in machine_size_mapping:
+        if 'model' in each['payload'][0] and each['payload'][0]['model'] not in machine_size_mapping:
             logger.warning(
                 f"model {each['payload'][0]['model']} not in machine_size_mapping, skipping...")
             continue
@@ -444,7 +415,7 @@ def fetch_submitted_jobs():
 
 
 @lc_app.on_event("startup")
-@repeat_every(seconds=10)  # fetch jobs every $ seconds， but check submit lock
+@repeat_every(seconds=1)  # fetch jobs every $ seconds， but check submit lock
 def periodical():
     try:
         update_warmnesses()
