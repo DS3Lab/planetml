@@ -32,11 +32,43 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8'
 
 machine_size_mapping = {
-    'bloom': 8,
+    #'bloom': 8,
+    #'stable_diffusion': 1,
+    #'gpt-j-6b': 1,
+    #'t5-11b': 1,
+    #'t0pp': 1,
+    #'ul2': 1,
+    #'gpt-neox-20b': 1,
+    #'opt-175b': 1,
+    'Together-gpt-J-6B-ProxAdam-50x': 1,
+    'Together-gpt-neox-20B': 1,
+    'Together-gpt-JT-6B-v1':1,
+    #'bloomz': 8,
+    #'glm': 8,
+    #'glm-int8': 4,
+    #'glm-int4': 4,
+    #'bloomz': 8,
+    #'flan-t5-xxl': 1,
 }
 
 target_cluster_mapping = {
-    'bloom': 'toma',
+    #'bloom': 'toma',
+    #'stable_diffusion': 'toma',
+    #'gpt-j-6b': 'toma',
+    #'t5-11b': 'toma',
+    #'t0pp': 'toma',
+    #'ul2': 'toma',
+    #'gpt-neox-20b': 'toma',
+    #'opt-175b': 'toma',
+    'Together-gpt-J-6B-ProxAdam-50x': 'toma',
+    'Together-gpt-neox-20B': 'toma',
+    'Together-gpt-JT-6B-v1': 'toma',
+    #'bloomz': 'toma',
+    #'glm': 'toma',
+    #'glm-int8': 'toma',
+    #'glm-int4': 'toma',
+    #'bloomz': 'toma',
+    #'flan-t5-xxl': 'toma',
 }
 
 settings = Settings()

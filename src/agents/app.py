@@ -36,7 +36,7 @@ lc_app = FastAPI(debug=True, docs_url="/eth/docs",
                  openapi_url="/eth/api/v1/openapi.json")
 # sooner or later, this will be synced with the global coordinator/local database, such that it can be resumed if the local coordinator is restarted
 machine_size_mapping = {
-    'bloom': 1,
+    #'bloom': 1,
     #'stable_diffusion': 1,
     #'gpt-j-6b': 1,
     #'t5-11b': 1,
@@ -44,9 +44,10 @@ machine_size_mapping = {
     #'ul2': 1,
     #'gpt-neox-20b': 1,
     #'opt-175b': 1,
-    #'Together-gpt-J-6B-ProxAdam-50x': 1,
-    #'Together-gpt-neox-20B': 1,
-    #'bloom': 1,
+    'Together-gpt-J-6B-ProxAdam-50x': 1,
+    'Together-gpt-neox-20B': 1,
+    'Together-gpt-JT-6B-v1': 1,
+    #'bloomz': 1,
     #'glm': 1,
     #'glm-int8': 1,
     #'glm-int4': 1,
@@ -411,7 +412,7 @@ def fetch_submitted_jobs():
                 type=each['type'],
                 returned_payload={"message": error}
             )
-            raise e.with_traceback()
+            # raise e.with_traceback()
 
 
 @lc_app.on_event("startup")

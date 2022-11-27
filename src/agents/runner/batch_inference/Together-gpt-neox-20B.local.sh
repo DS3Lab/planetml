@@ -6,4 +6,4 @@ echo "start with $job_id"
 
 CONF="--fp16 --model-name Together-gpt-neox-20B --working-directory /root/fm/working_dir --cuda-id 1 --job_id $job_id"
 
-python3 local_latency_inference_nlp_w_httpclient.py
+python3 local_latency_inference_nlp_w_httpclient.py $CONF
